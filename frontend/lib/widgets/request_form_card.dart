@@ -1,0 +1,475 @@
+/// The "describe what you need" request form: disease, region, climate
+/// variables, date range, temporal aggregation, and scientific
+/// data-source selection.
+///
+/// Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
+library;
+
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+
+import '../core/responsive.dart';
+import '../models/integration_request_params.dart';
+import '../models/platform_options.dart';
+import 'world_map_dialog.dart';
+
+/// Stateful form card that collects an [IntegrationRequestParams] from the
+/// user and hands it to [onSubmit] once "Run integration" is pressed. All
+/// dropdown choices come from [options], which is fetched from the backend
+/// at startup so nothing here is hardcoded.
+class RequestFormCard extends StatefulWidget {
+  final PlatformOptions options;
+  final bool isSubmitting;
+  final ValueChanged<IntegrationRequestParams> onSubmit;
+
+  const RequestFormCard({
+    super.key,
+    required this.options,
+    required this.isSubmitting,
+    required this.onSubmit,
+  });
+
+  @override
+  State<RequestFormCard> createState() => _RequestFormCardState();
+}
+
+class _RequestFormCardState extends State<RequestFormCard> {
+  static final DateTime _minDate = DateTime(1990, 1, 1);
+  static final DateTime _maxDate = DateTime.now();
+
+  late String _disease = widget.options.diseases.keys.first;
+  late String? _region = _regionsForCurrentSelection().firstOrNull;
+  final Set<String> _variables = {'temperature', 'precipitation'};
+  DateTime _startDate = DateTime(2015, 1, 1);
+  DateTime _endDate = DateTime(2023, 12, 1);
+  late String _aggregation = widget.options.aggregations.first;
+
+  late String _climateSource = widget.options.climateSources.first.id;
+  late String _caseDataSource = widget.options.caseDataSources.first.id;
+  final TextEditingController _customUrlController = TextEditingController();
+  Uint8List? _uploadedBytes;
+  String? _uploadedFileName;
+
+  String? _validationError;
+
+  @override
+  void dispose() {
+    _customUrlController.dispose();
+    super.dispose();
+  }
+
+  /// Regions selectable right now: when using the built-in scientific
+  /// source, only regions the selected disease actually has case data for;
+  /// with a custom URL/upload, any region works since only climate data is
+  /// fetched from a region and the case counts come from the user.
+  List<String> _regionsForCurrentSelection() {
+    if (_caseDataSource != 'builtin') {
+      final all = widget.options.regions.keys.toList()..sort();
+      return all;
+    }
+    final disease = widget.options.diseases[_disease];
+    final regions = List<String>.from(disease?.regions ?? const []);
+    regions.sort();
+    return regions;
+  }
+
+  void _onDiseaseChanged(String disease) {
+    setState(() {
+      _disease = disease;
+      final available = _regionsForCurrentSelection();
+      if (!available.contains(_region)) _region = available.firstOrNull;
+    });
+  }
+
+  void _onCaseDataSourceChanged(String source) {
+    setState(() {
+      _caseDataSource = source;
+      final available = _regionsForCurrentSelection();
+      if (!available.contains(_region)) _region = available.firstOrNull;
+    });
+  }
+
+  Future<void> _pickDate({required bool isStart}) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: isStart ? _startDate : _endDate,
+      firstDate: _minDate,
+      lastDate: _maxDate,
+      helpText: isStart ? 'Select start month' : 'Select end month',
+    );
+    if (picked == null) return;
+    setState(() {
+      if (isStart) {
+        _startDate = DateTime(picked.year, picked.month, 1);
+      } else {
+        _endDate = DateTime(picked.year, picked.month, 1);
+      }
+    });
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    setState(() {
+      _uploadedBytes = result.files.single.bytes;
+      _uploadedFileName = result.files.single.name;
+    });
+  }
+
+  Future<void> _pickRegionOnMap() async {
+    final available = _regionsForCurrentSelection().toSet();
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (context) => WorldMapDialog(
+        availableRegions: available,
+        initialRegion: _region,
+      ),
+    );
+    if (selected != null) setState(() => _region = selected);
+  }
+
+  void _submit() {
+    if (_region == null) {
+      setState(
+        () => _validationError =
+            'No built-in data is available for this disease yet — switch to a '
+            'custom URL or file upload, or pick a different disease.',
+      );
+      return;
+    }
+    if (_variables.isEmpty) {
+      setState(() => _validationError = 'Select at least one climate variable.');
+      return;
+    }
+    if (_caseDataSource == 'custom_url' && _customUrlController.text.trim().isEmpty) {
+      setState(() => _validationError = 'Enter a URL for the custom data source.');
+      return;
+    }
+    if (_caseDataSource == 'custom_upload' && _uploadedBytes == null) {
+      setState(() => _validationError = 'Upload a CSV file for the custom data source.');
+      return;
+    }
+    setState(() => _validationError = null);
+
+    widget.onSubmit(
+      IntegrationRequestParams(
+        disease: _disease,
+        region: _region!,
+        variables: _variables.toList(),
+        startDate: _startDate,
+        endDate: _endDate,
+        aggregation: _aggregation,
+        climateSource: _climateSource,
+        caseDataSource: _caseDataSource,
+        customSourceUrl:
+            _caseDataSource == 'custom_url' ? _customUrlController.text.trim() : null,
+        uploadedFileBytes: _caseDataSource == 'custom_upload' ? _uploadedBytes : null,
+        uploadedFileName: _caseDataSource == 'custom_upload' ? _uploadedFileName : null,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Describe what you need', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 4),
+            Text(
+              'Choose a disease, a region of the world, the time span and '
+              'granularity, and the scientific data sources you want it built from.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            ResponsiveFieldRow(
+              columns: 2,
+              children: [
+                _buildDiseaseDropdown(),
+                _buildRegionField(),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text('Climate variables', style: Theme.of(context).textTheme.labelLarge),
+            _buildVariableChips(),
+            const SizedBox(height: 16),
+            ResponsiveFieldRow(
+              columns: 3,
+              children: [
+                _buildDateButton('From', _startDate, () => _pickDate(isStart: true)),
+                _buildDateButton('To', _endDate, () => _pickDate(isStart: false)),
+                _buildAggregationDropdown(),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildClimateSourceDropdown(),
+            const SizedBox(height: 16),
+            Text('Case-count data source', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 4),
+            Text(
+              'Only scientific / official surveillance sources. Bring your own '
+              'via a link or an uploaded file if you prefer.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 8),
+            _buildCaseDataSourceDropdown(),
+            const SizedBox(height: 8),
+            _buildAvailabilityStatus(),
+            if (_caseDataSource == 'custom_url') _buildCustomUrlField(),
+            if (_caseDataSource == 'custom_upload') _buildUploadPicker(),
+            const SizedBox(height: 20),
+            if (_validationError != null) _buildValidationError(),
+            FilledButton.icon(
+              onPressed: widget.isSubmitting ? null : _submit,
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Run integration'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDiseaseDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _disease,
+      isExpanded: true,
+      decoration: const InputDecoration(labelText: 'Disease', border: OutlineInputBorder()),
+      items: widget.options.diseases.values
+          .map((d) => DropdownMenuItem(value: d.key, child: Text(d.label)))
+          .toList(),
+      onChanged: (v) => _onDiseaseChanged(v!),
+    );
+  }
+
+  Widget _buildRegionField() {
+    final regionNames = _regionsForCurrentSelection();
+
+    if (regionNames.isEmpty) {
+      return InputDecorator(
+        decoration: const InputDecoration(
+          labelText: 'Region (country)',
+          border: OutlineInputBorder(),
+          errorText: 'No built-in data for this disease yet',
+        ),
+        child: const Text(
+          'Switch the case-count source below to a custom URL or upload.',
+          style: TextStyle(fontSize: 12),
+        ),
+      );
+    }
+
+    final countLabel = _caseDataSource == 'builtin'
+        ? '${regionNames.length} countries with real ${widget.options.diseases[_disease]?.label ?? ''} data'
+        : 'any of ${regionNames.length} countries (climate data only needs a location)';
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Autocomplete<String>(
+            key: ValueKey('$_disease-$_caseDataSource'),
+            initialValue: TextEditingValue(text: _region ?? ''),
+            optionsBuilder: (value) {
+              if (value.text.isEmpty) return regionNames;
+              return regionNames.where(
+                (r) => r.toLowerCase().contains(value.text.toLowerCase()),
+              );
+            },
+            onSelected: (v) => setState(() => _region = v),
+            fieldViewBuilder: (context, controller, focusNode, onSubmit) {
+              return TextField(
+                controller: controller,
+                focusNode: focusNode,
+                decoration: InputDecoration(
+                  labelText: 'Region (country)',
+                  border: const OutlineInputBorder(),
+                  helperText: 'Type to search — $countLabel',
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: 8),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: IconButton.outlined(
+            tooltip: 'Choose region on a world map',
+            icon: const Icon(Icons.public),
+            onPressed: _pickRegionOnMap,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVariableChips() {
+    return Wrap(
+      spacing: 8,
+      children: widget.options.variables.map((v) {
+        final label = v[0].toUpperCase() + v.substring(1);
+        return FilterChip(
+          label: Text(label),
+          selected: _variables.contains(v),
+          onSelected: (sel) => setState(() {
+            sel ? _variables.add(v) : _variables.remove(v);
+          }),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildDateButton(String label, DateTime date, VoidCallback onTap) {
+    final formatted = '${date.year}-${date.month.toString().padLeft(2, '0')}';
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: const Icon(Icons.calendar_month),
+      label: Text('$label: $formatted'),
+    );
+  }
+
+  Widget _buildAggregationDropdown() {
+    const labels = {
+      'native': 'As reported',
+      'yearly': 'Yearly',
+      'decadal': 'Decadal',
+    };
+    return DropdownButtonFormField<String>(
+      initialValue: _aggregation,
+      isExpanded: true,
+      decoration: const InputDecoration(labelText: 'Time granularity', border: OutlineInputBorder()),
+      items: widget.options.aggregations
+          .map((a) => DropdownMenuItem(value: a, child: Text(labels[a] ?? a)))
+          .toList(),
+      onChanged: (v) => setState(() => _aggregation = v!),
+    );
+  }
+
+  Widget _buildClimateSourceDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _climateSource,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: 'Climate data source',
+        border: OutlineInputBorder(),
+      ),
+      items: widget.options.climateSources
+          .map((s) => DropdownMenuItem(
+                value: s.id,
+                child: Text(s.label, overflow: TextOverflow.ellipsis),
+              ))
+          .toList(),
+      onChanged: (v) => setState(() => _climateSource = v!),
+    );
+  }
+
+  Widget _buildCaseDataSourceDropdown() {
+    return DropdownButtonFormField<String>(
+      initialValue: _caseDataSource,
+      isExpanded: true,
+      decoration: const InputDecoration(border: OutlineInputBorder()),
+      items: widget.options.caseDataSources
+          .map((s) => DropdownMenuItem(
+                value: s.id,
+                child: Text(s.label, overflow: TextOverflow.ellipsis),
+              ))
+          .toList(),
+      onChanged: (v) => _onCaseDataSourceChanged(v!),
+    );
+  }
+
+  /// Live "does this source actually have data for what I picked" readout,
+  /// so the user never has to submit and hit an error to find out.
+  Widget _buildAvailabilityStatus() {
+    final diseaseLabel = widget.options.diseases[_disease]?.label ?? _disease;
+
+    if (_caseDataSource != 'builtin') {
+      return _statusChip(
+        icon: Icons.info_outline,
+        color: Colors.blueGrey,
+        text: 'Using a source you provide — case counts come from your '
+            'link/file; the region is only used to fetch climate data.',
+      );
+    }
+
+    if (_region == null) {
+      return _statusChip(
+        icon: Icons.cancel_outlined,
+        color: Colors.red,
+        text: 'No built-in $diseaseLabel data for any region yet.',
+      );
+    }
+
+    final available = widget.options.diseases[_disease]?.regions.contains(_region) ?? false;
+    return _statusChip(
+      icon: available ? Icons.check_circle_outline : Icons.cancel_outlined,
+      color: available ? Colors.green[700]! : Colors.red,
+      text: available
+          ? '$_region has built-in $diseaseLabel data.'
+          : '$_region has no built-in $diseaseLabel data — pick another '
+              'region, or switch to a custom URL/upload.',
+    );
+  }
+
+  Widget _statusChip({required IconData icon, required Color color, required String text}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Expanded(child: Text(text, style: TextStyle(fontSize: 12, color: color))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomUrlField() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: TextField(
+        controller: _customUrlController,
+        decoration: const InputDecoration(
+          labelText: 'CSV URL (columns: date, cases)',
+          border: OutlineInputBorder(),
+          hintText: 'https://example.org/cases.csv',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUploadPicker() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
+        children: [
+          OutlinedButton.icon(
+            onPressed: _pickFile,
+            icon: const Icon(Icons.upload_file),
+            label: const Text('Choose CSV file'),
+          ),
+          const SizedBox(width: 12),
+          if (_uploadedFileName != null) Text(_uploadedFileName!),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildValidationError() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(_validationError!, style: const TextStyle(color: Colors.red)),
+    );
+  }
+}

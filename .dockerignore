@@ -1,0 +1,10 @@
+scratch/
+**/.env
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/venv/
+frontend/build/
+frontend/.dart_tool/
+docs_ka/
+.git/

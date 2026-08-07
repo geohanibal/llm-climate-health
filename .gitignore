@@ -1,0 +1,13 @@
+.env
+backend/.env
+**/.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+build/
+.dart_tool/
+*.log
+scratch/
+.claude/

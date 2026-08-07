@@ -1,0 +1,37 @@
+/// Data model bundling everything the request form collects from the user.
+///
+/// Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
+library;
+
+import 'dart:typed_data';
+
+/// Immutable snapshot of the request form's state, passed from
+/// [RequestFormCard] up to [HomePage] on submit and from there to
+/// [ApiClient].
+class IntegrationRequestParams {
+  final String disease;
+  final String region;
+  final List<String> variables;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String aggregation;
+  final String climateSource;
+  final String caseDataSource;
+  final String? customSourceUrl;
+  final Uint8List? uploadedFileBytes;
+  final String? uploadedFileName;
+
+  const IntegrationRequestParams({
+    required this.disease,
+    required this.region,
+    required this.variables,
+    required this.startDate,
+    required this.endDate,
+    required this.aggregation,
+    required this.climateSource,
+    required this.caseDataSource,
+    this.customSourceUrl,
+    this.uploadedFileBytes,
+    this.uploadedFileName,
+  });
+}
