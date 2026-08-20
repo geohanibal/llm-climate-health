@@ -20,6 +20,8 @@ class IntegrationRequestParams {
   final String? customSourceUrl;
   final Uint8List? uploadedFileBytes;
   final String? uploadedFileName;
+  final String? whoIndicatorCode;
+  final String? whoIndicatorName;
 
   const IntegrationRequestParams({
     required this.disease,
@@ -33,5 +35,7 @@ class IntegrationRequestParams {
     this.customSourceUrl,
     this.uploadedFileBytes,
     this.uploadedFileName,
+    this.whoIndicatorCode,
+    this.whoIndicatorName,
   });
 }

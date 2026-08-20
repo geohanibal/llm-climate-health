@@ -17,20 +17,23 @@ from app.services.case_data import (
     get_case_data_from_url,
 )
 from app.services.climate import fetch_climate
+from app.services.tmd import fetch_tmd_climate
+from app.services.who_gho import fetch_who_gho_case_data
 
 # Internal, resolution-agnostic vocabulary used throughout this module.
 _RESOLUTION_LABEL = {"month": "monthly", "year": "yearly", "decade": "decadal"}
 
 
-def _target_resolution(disease: DiseaseMeta, aggregation: str) -> str:
-    """Resolve the user's requested aggregation against what the disease's
-    data actually supports — you cannot go finer than the native
-    resolution (e.g. malaria/cholera have no monthly case counts)."""
+def _target_resolution(native_resolution: str, aggregation: str) -> str:
+    """Resolve the user's requested aggregation against what the chosen
+    case-data source actually supports — you cannot go finer than its
+    native resolution (e.g. malaria/cholera, and every WHO GHO indicator,
+    have no monthly case counts)."""
     if aggregation == "decadal":
         return "decade"
     if aggregation == "yearly":
         return "year"
-    return "month" if disease.native_resolution == "month" else "year"
+    return "month" if native_resolution == "month" else "year"
 
 
 def _period_label(series: pd.Series, resolution: str) -> pd.Series:
@@ -50,6 +53,8 @@ def resolve_case_data(
     custom_source_url: str | None,
     upload_content: bytes | None,
     steps: list[str],
+    who_indicator_code: str | None = None,
+    who_indicator_name: str | None = None,
 ) -> pd.DataFrame:
     if case_data_source == "custom_upload":
         df = get_case_data_from_upload(upload_content, start, end)
@@ -64,6 +69,16 @@ def resolve_case_data(
         steps.append(
             f"Fetched and parsed {len(df)} case-count records from the URL "
             f"you provided: {custom_source_url}"
+        )
+        return df
+
+    if case_data_source == "who_gho":
+        iso3 = REGIONS[region]["iso3"]
+        df = fetch_who_gho_case_data(who_indicator_code, iso3, start, end)
+        steps.append(
+            f"Fetched {len(df)} yearly records for {region} from WHO Global "
+            f"Health Observatory indicator '{who_indicator_name or who_indicator_code}' "
+            f"({who_indicator_code}), the source you selected from the search results."
         )
         return df
 
@@ -87,6 +102,8 @@ def run_integration(
     case_data_source: str = "builtin",
     custom_source_url: str | None = None,
     upload_content: bytes | None = None,
+    who_indicator_code: str | None = None,
+    who_indicator_name: str | None = None,
 ):
     disease = DISEASES[disease_key]
     steps: list[str] = []
@@ -105,10 +122,24 @@ def run_integration(
     )
 
     case_df = resolve_case_data(
-        disease, region, start, end, case_data_source, custom_source_url, upload_content, steps
+        disease,
+        region,
+        start,
+        end,
+        case_data_source,
+        custom_source_url,
+        upload_content,
+        steps,
+        who_indicator_code,
+        who_indicator_name,
     )
 
-    resolution = _target_resolution(disease, aggregation)
+    # WHO GHO indicators are always yearly, regardless of the disease's
+    # normal native resolution (e.g. dengue is monthly via OpenDengue but
+    # yearly via WHO GHO) — using the source actually queried, not the
+    # disease's default, keeps the case/climate join periods aligned.
+    native_resolution = "year" if case_data_source == "who_gho" else disease.native_resolution
+    resolution = _target_resolution(native_resolution, aggregation)
 
     case_df = case_df.copy()
     if case_df.empty:
@@ -118,9 +149,14 @@ def run_integration(
         case_agg = case_df.groupby("period", as_index=False)["value"].sum()
 
     climate_fetch_resolution = "month" if resolution == "month" else "year"
-    climate_df = fetch_climate(
-        region, variables, start, end, source=climate_source, resolution=climate_fetch_resolution
-    )
+    if climate_source == "tmd":
+        climate_df = fetch_tmd_climate(
+            region, variables, start, end, resolution=climate_fetch_resolution
+        )
+    else:
+        climate_df = fetch_climate(
+            region, variables, start, end, source=climate_source, resolution=climate_fetch_resolution
+        )
     steps.append(
         f"Retrieved daily {', '.join(variables)} data for {region} from "
         f"{CLIMATE_SOURCES[climate_source]['label']} "

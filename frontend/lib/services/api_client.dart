@@ -7,8 +7,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../models/discovered_source.dart';
 import '../models/integration_request_params.dart';
 import '../models/integration_result.dart';
+import '../models/parsed_request.dart';
 import '../models/platform_options.dart';
 
 /// Base URL of the FastAPI backend. Overridable at build time with
@@ -40,6 +42,35 @@ class ApiClient {
     return PlatformOptions.fromJson(_decodeJsonObject(response));
   }
 
+  /// Sends the user's free-text description to the LLM-backed parser and
+  /// returns a best-effort request plan for the form to prefill. Throws
+  /// [ApiException] (e.g. 503) if the server has no LLM configured.
+  Future<ParsedRequest> parseRequest(String text) async {
+    final response = await http.post(
+      Uri.parse('$backendBaseUrl/api/parse-request'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'text': text}),
+    );
+    _throwIfNotOk(response);
+    return ParsedRequest.fromJson(_decodeJsonObject(response));
+  }
+
+  /// Searches WHO GHO and HDX for real, citable case-data sources for a
+  /// disease/region, so the user can pick one instead of being limited to
+  /// the single built-in source. Best-effort on the backend — an empty
+  /// list here means nothing was found, not necessarily an error.
+  Future<List<DiscoveredSource>> searchCaseSources(String disease, String region) async {
+    final uri = Uri.parse('$backendBaseUrl/api/search-case-sources').replace(
+      queryParameters: {'disease': disease, 'region': region},
+    );
+    final response = await http.get(uri);
+    _throwIfNotOk(response);
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+    return decoded
+        .map((e) => DiscoveredSource.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<IntegrationResult> runIntegration(IntegrationRequestParams params) async {
     if (params.caseDataSource == 'custom_upload') {
       return _runIntegrationWithUpload(params);
@@ -62,6 +93,8 @@ class ApiClient {
         'climate_source': params.climateSource,
         'case_data_source': params.caseDataSource,
         'custom_source_url': params.customSourceUrl,
+        'who_indicator_code': params.whoIndicatorCode,
+        'who_indicator_name': params.whoIndicatorName,
       }),
     );
     _throwIfNotOk(response);

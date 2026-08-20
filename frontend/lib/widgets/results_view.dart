@@ -32,7 +32,10 @@ class ResultsView extends StatelessWidget {
           lastVerified: result.lastVerified,
         ),
         const SizedBox(height: 16),
-        ExplanationCard(explanation: result.explanation),
+        ExplanationCard(
+          explanation: result.explanation,
+          explanationSource: result.explanationSource,
+        ),
         const SizedBox(height: 16),
         CaseChartCard(data: result.data, resolution: result.resolution),
         const SizedBox(height: 16),

@@ -24,6 +24,7 @@ class PipelineStepsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SectionCard(
       title: 'What the pipeline did',
+      leading: Icons.timeline,
       trailing: Chip(
         avatar: Icon(cached ? Icons.cached : Icons.bolt, size: 16),
         label: Text(

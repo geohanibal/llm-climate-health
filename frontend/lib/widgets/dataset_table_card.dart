@@ -21,6 +21,7 @@ class DatasetTableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SectionCard(
       title: 'Integrated dataset',
+      leading: Icons.table_chart_outlined,
       trailing: Wrap(
         spacing: 8,
         children: [

@@ -1,20 +1,28 @@
-"""Gemini-backed plain-language explanation of the ETL pipeline.
+"""Gemini-backed plain-language explanation of the ETL pipeline, and
+Gemini-backed extraction of a structured request from free-text user input.
 
 Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 """
 
+import json
 import time
 from collections import deque
+from datetime import date
 from threading import Lock
 
 from app.config import GEMINI_API_KEY, GEMINI_MODEL
-from app.models import PeriodRecord
+from app.models import ParsedRequest, PeriodRecord
 
 _client = None
 if GEMINI_API_KEY:
     from google import genai
 
     _client = genai.Client(api_key=GEMINI_API_KEY)
+
+
+def is_llm_available() -> bool:
+    return _client is not None
+
 
 FALLBACK_EXPLANATION = (
     "This dataset combines monthly disease case counts from the selected "
@@ -74,15 +82,140 @@ def build_prompt(
 
 def explain_pipeline(
     disease: str, region: str, steps: list[str], records: list[PeriodRecord]
-) -> str:
+) -> tuple[str, str]:
+    """Returns (explanation_text, source) where source is "llm" or
+    "fallback" — the caller surfaces this to the user so a canned string is
+    never mistaken for a real model response."""
     if _client is None:
-        return FALLBACK_EXPLANATION
+        return FALLBACK_EXPLANATION, "fallback"
 
     prompt = build_prompt(disease, region, steps, records)
 
     try:
         _wait_for_rate_limit_slot()
         resp = _client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
-        return resp.text.strip()
+        return resp.text.strip(), "llm"
     except Exception:
-        return FALLBACK_EXPLANATION
+        return FALLBACK_EXPLANATION, "fallback"
+
+
+def build_parse_prompt(
+    text: str,
+    diseases: dict[str, str],
+    regions: list[str],
+    variables: list[str],
+    aggregations: list[str],
+    climate_sources: list[str],
+) -> str:
+    """diseases maps key -> label; everything else is a flat list of valid
+    values. The model must only ever choose from these closed vocabularies,
+    or omit the field, never invent a value outside them."""
+    disease_list = "\n".join(f"- {key}: {label}" for key, label in diseases.items())
+    return (
+        "You turn a non-expert's free-text description of a climate-health "
+        "data request into a structured JSON plan. Only pick values from the "
+        "closed lists given below (use the exact spelling/casing shown) or "
+        "leave the field null if the text does not clearly imply one — never "
+        "invent a value that is not in a list. Resolve relative dates (e.g. "
+        f"\"the last 10 years\") against today's date, {date.today().isoformat()}. "
+        "Dates must be the first day of a month, formatted YYYY-MM-01.\n\n"
+        f"Valid diseases (key: label):\n{disease_list}\n\n"
+        f"Valid regions (must match exactly): {', '.join(regions)}\n\n"
+        f"Valid variables: {', '.join(variables)}\n"
+        f"Valid aggregations: {', '.join(aggregations)}\n"
+        f"Valid climate_source values: {', '.join(climate_sources)}\n\n"
+        "Respond with a single JSON object with exactly these keys: "
+        "disease, region, variables (array), start_date, end_date, "
+        "aggregation, climate_source, notes. \"notes\" is a short "
+        "plain-language sentence noting any assumptions you made or "
+        "anything the text left unclear.\n\n"
+        f'User request: "{text}"'
+    )
+
+
+def _coerce_parsed_json(
+    raw: dict,
+    valid_diseases: set[str],
+    valid_regions: set[str],
+    valid_climate_sources: set[str],
+) -> ParsedRequest:
+    """Pure validation/clamping of the model's raw JSON reply: any value
+    outside the closed vocabulary this platform actually supports is
+    dropped to None (never guessed at) and called out in `notes`, so a
+    hallucinated disease/region can never silently reach the ETL pipeline."""
+    notes = str(raw.get("notes") or "").strip()
+    extra_notes: list[str] = []
+
+    disease = raw.get("disease")
+    if disease is not None and disease not in valid_diseases:
+        extra_notes.append(f"model suggested an unrecognized disease '{disease}'")
+        disease = None
+
+    region = raw.get("region")
+    if region is not None and region not in valid_regions:
+        extra_notes.append(f"model suggested an unrecognized region '{region}'")
+        region = None
+
+    variables = raw.get("variables")
+    if not isinstance(variables, list) or not variables:
+        variables = None
+    else:
+        variables = [v for v in variables if v in ("temperature", "precipitation")] or None
+
+    def _clean_date(value):
+        try:
+            return date.fromisoformat(value) if value else None
+        except (TypeError, ValueError):
+            return None
+
+    aggregation = raw.get("aggregation")
+    if aggregation not in ("native", "yearly", "decadal"):
+        aggregation = None
+
+    climate_source = raw.get("climate_source")
+    if climate_source not in valid_climate_sources:
+        climate_source = None
+
+    if extra_notes:
+        notes = (notes + " " if notes else "") + "; ".join(extra_notes) + "."
+
+    return ParsedRequest(
+        disease=disease,
+        region=region,
+        variables=variables,
+        start_date=_clean_date(raw.get("start_date")),
+        end_date=_clean_date(raw.get("end_date")),
+        aggregation=aggregation,
+        climate_source=climate_source,
+        notes=notes or "No assumptions needed.",
+    )
+
+
+def parse_request(
+    text: str,
+    diseases: dict[str, str],
+    regions: list[str],
+    variables: list[str],
+    aggregations: list[str],
+    climate_sources: list[str],
+) -> ParsedRequest:
+    """Raises RuntimeError if the LLM is unavailable or the call/parse fails
+    — callers should turn that into a clear error, not a silent guess,
+    since (unlike `explain_pipeline`) there is no safe canned fallback for
+    "what did the user actually ask for"."""
+    if _client is None:
+        raise RuntimeError("LLM is not configured (no GEMINI_API_KEY).")
+
+    prompt = build_parse_prompt(text, diseases, regions, variables, aggregations, climate_sources)
+    try:
+        _wait_for_rate_limit_slot()
+        resp = _client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config={"response_mime_type": "application/json"},
+        )
+        raw = json.loads(resp.text)
+    except Exception as exc:
+        raise RuntimeError(f"Could not parse the request with the LLM: {exc}") from exc
+
+    return _coerce_parsed_json(raw, set(diseases), set(regions), set(climate_sources))

@@ -12,6 +12,7 @@ import '../models/integration_result.dart';
 import '../models/platform_options.dart';
 import '../services/api_client.dart';
 import '../widgets/error_card.dart';
+import '../widgets/natural_language_card.dart';
 import '../widgets/request_form_card.dart';
 import '../widgets/results_view.dart';
 
@@ -24,6 +25,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final ApiClient _api = const ApiClient();
+  final GlobalKey<RequestFormCardState> _formKey = GlobalKey<RequestFormCardState>();
 
   PlatformOptions? _options;
   String? _optionsError;
@@ -31,6 +33,10 @@ class _HomePageState extends State<HomePage> {
   bool _isSubmitting = false;
   String? _submitError;
   IntegrationResult? _result;
+
+  bool _isParsing = false;
+  String? _parseError;
+  String? _parseNotes;
 
   @override
   void initState() {
@@ -44,6 +50,23 @@ class _HomePageState extends State<HomePage> {
       setState(() => _options = options);
     } catch (e) {
       setState(() => _optionsError = 'Could not reach the backend: $e');
+    }
+  }
+
+  Future<void> _handleParseRequest(String text) async {
+    setState(() {
+      _isParsing = true;
+      _parseError = null;
+      _parseNotes = null;
+    });
+    try {
+      final parsed = await _api.parseRequest(text);
+      _formKey.currentState?.applyPrefill(parsed);
+      setState(() => _parseNotes = parsed.notes);
+    } catch (e) {
+      setState(() => _parseError = e.toString());
+    } finally {
+      setState(() => _isParsing = false);
     }
   }
 
@@ -83,6 +106,8 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    _buildHero(context),
+                    const SizedBox(height: 20),
                     _buildBody(),
                   ],
                 ),
@@ -90,6 +115,46 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildHero(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      decoration: BoxDecoration(
+        color: colors.primaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.public, size: 36, color: colors.onPrimaryContainer),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Climate-Health Data Integration Platform',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: colors.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Describe a disease and region — or fill in the form directly — '
+                  'and get a harmonized, analysis-ready dataset joining climate and '
+                  'health data, explained in plain language.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colors.onPrimaryContainer.withValues(alpha: 0.85),
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -108,7 +173,15 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        NaturalLanguageCard(
+          isParsing: _isParsing,
+          error: _parseError,
+          notes: _parseNotes,
+          onParse: _handleParseRequest,
+        ),
+        const SizedBox(height: 16),
         RequestFormCard(
+          key: _formKey,
           options: _options!,
           isSubmitting: _isSubmitting,
           onSubmit: _handleSubmit,

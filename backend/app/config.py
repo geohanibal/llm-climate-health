@@ -15,6 +15,9 @@ load_dotenv()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")
 
+TMD_API_UID = os.environ.get("TMD_API_UID", "")
+TMD_API_UKEY = os.environ.get("TMD_API_UKEY", "")
+
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 
@@ -89,12 +92,27 @@ CLIMATE_SOURCES = {
         "label": "NASA POWER (Prediction of Worldwide Energy Resources)",
         "citation": "NASA Langley Research Center POWER Project (power.larc.nasa.gov)",
     },
+    "tmd": {
+        "label": "Thai Meteorological Department (TMD)",
+        "citation": "Thai Meteorological Department, data.tmd.go.th — official "
+        "national meteorological data for Thailand",
+    },
+}
+
+# Climate sources with national/regional (rather than global) coverage.
+# Sources not listed here are assumed available for every region.
+CLIMATE_SOURCE_REGIONS: dict[str, set[str]] = {
+    "tmd": {"Thailand"},
 }
 
 CASE_DATA_SOURCES = {
     "builtin": {
         "label": "Built-in scientific source for the selected disease",
         "citation": "See disease metadata",
+    },
+    "who_gho": {
+        "label": "WHO Global Health Observatory (search result)",
+        "citation": "See selected indicator",
     },
     "custom_url": {
         "label": "Custom URL (user-provided CSV of scientific/official case data)",

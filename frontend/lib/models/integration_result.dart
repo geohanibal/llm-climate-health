@@ -15,6 +15,7 @@ class IntegrationResult {
   final String resolution;
   final List<String> steps;
   final String explanation;
+  final String explanationSource;
   final List<PeriodRecord> data;
   final List<String> sources;
   final bool cached;
@@ -26,6 +27,7 @@ class IntegrationResult {
     required this.resolution,
     required this.steps,
     required this.explanation,
+    required this.explanationSource,
     required this.data,
     required this.sources,
     required this.cached,
@@ -40,6 +42,7 @@ class IntegrationResult {
       resolution: json['resolution'] as String? ?? 'month',
       steps: (json['steps'] as List).cast<String>(),
       explanation: json['explanation'] as String,
+      explanationSource: json['explanation_source'] as String? ?? 'fallback',
       data: (json['data'] as List)
           .map((e) => PeriodRecord.fromJson(e as Map<String, dynamic>))
           .toList(),

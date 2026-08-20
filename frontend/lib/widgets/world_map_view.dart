@@ -8,6 +8,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../app.dart';
 import '../models/country_shape.dart';
 import '../services/world_map_loader.dart';
 
@@ -165,9 +166,9 @@ class _WorldMapPainter extends CustomPainter {
   final String? selectedRegion;
   final String? hoveredName;
 
-  static const _unavailableFill = Color(0xFFE0E0E0);
-  static const _availableFill = Color(0xFFA8D5C9);
-  static const _selectedFill = Color(0xFF1F6F5C);
+  static const _unavailableFill = AppColors.mapUnavailable;
+  static const _availableFill = AppColors.mapAvailable;
+  static const _selectedFill = AppColors.mapSelected;
   static const _borderColor = Color(0xFFFFFFFF);
 
   _WorldMapPainter({

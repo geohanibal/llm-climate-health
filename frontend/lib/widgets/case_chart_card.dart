@@ -29,6 +29,7 @@ class CaseChartCard extends StatelessWidget {
     final label = _resolutionLabel[resolution] ?? resolution;
     return SectionCard(
       title: 'Case counts per $label',
+      leading: Icons.show_chart,
       child: SizedBox(height: 260, child: _buildChart()),
     );
   }

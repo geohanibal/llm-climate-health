@@ -1,17 +1,51 @@
-# climate_health_frontend
+# Frontend — LLM-Climate-Health
 
-A new Flutter project.
+Flutter web UI for the Climate-Health Data Integration Platform. Single page:
+a "describe your request" free-text box (AI-assisted prefill) above a
+structured request form, followed by the integration results once a run
+completes.
 
-## Getting Started
+## Run locally
 
-This project is a starting point for a Flutter application.
+```bash
+cd frontend
+flutter pub get
+flutter run -d chrome --web-port=5173
+```
 
-A few resources to get you started if this is your first Flutter project:
+Talks to a backend at `http://127.0.0.1:8000` by default (see
+`../backend/README.md` to run it). Point at a different backend with:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+flutter run -d chrome --web-port=5173 --dart-define=BACKEND_URL=https://your-deployment
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+For a production build, the same flag matters — an empty `BACKEND_URL`
+makes the app call same-origin relative paths, which is what the single
+Docker image deployment (`../Dockerfile`) uses:
+
+```bash
+flutter build web --release --dart-define=BACKEND_URL=
+```
+
+## Tests
+
+```bash
+flutter test
+flutter analyze
+```
+
+## Layout
+
+```text
+lib/
+  main.dart, app.dart      entry point, MaterialApp shell
+  pages/home_page.dart     top-level page: loads options, hosts form + results
+  widgets/                 one file per UI section (form, natural-language
+                            card, results, chart, table, sources, ...)
+  services/                api_client.dart (HTTP), PDF/CSV export, world-map
+                            GeoJSON loading
+  models/                  plain data classes mirroring the backend's JSON
+  core/                    responsive layout + formatting helpers
+test/                      model round-trip tests + a smoke test
+```

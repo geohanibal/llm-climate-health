@@ -12,7 +12,11 @@ import 'package:flutter/material.dart';
 
 import '../core/responsive.dart';
 import '../models/integration_request_params.dart';
+import '../models/discovered_source.dart';
+import '../models/parsed_request.dart';
 import '../models/platform_options.dart';
+import 'section_card.dart';
+import 'source_search_dialog.dart';
 import 'world_map_dialog.dart';
 
 /// Stateful form card that collects an [IntegrationRequestParams] from the
@@ -32,10 +36,12 @@ class RequestFormCard extends StatefulWidget {
   });
 
   @override
-  State<RequestFormCard> createState() => _RequestFormCardState();
+  State<RequestFormCard> createState() => RequestFormCardState();
 }
 
-class _RequestFormCardState extends State<RequestFormCard> {
+/// Public so [HomePage] can reach [applyPrefill] through a `GlobalKey` when
+/// the natural-language card returns a parsed request.
+class RequestFormCardState extends State<RequestFormCard> {
   static final DateTime _minDate = DateTime(1990, 1, 1);
   static final DateTime _maxDate = DateTime.now();
 
@@ -48,6 +54,8 @@ class _RequestFormCardState extends State<RequestFormCard> {
 
   late String _climateSource = widget.options.climateSources.first.id;
   late String _caseDataSource = widget.options.caseDataSources.first.id;
+  String? _whoIndicatorCode;
+  String? _whoIndicatorName;
   final TextEditingController _customUrlController = TextEditingController();
   Uint8List? _uploadedBytes;
   String? _uploadedFileName;
@@ -84,10 +92,49 @@ class _RequestFormCardState extends State<RequestFormCard> {
   }
 
   void _onCaseDataSourceChanged(String source) {
+    final previous = _caseDataSource;
     setState(() {
       _caseDataSource = source;
       final available = _regionsForCurrentSelection();
       if (!available.contains(_region)) _region = available.firstOrNull;
+    });
+    if (source == 'who_gho') {
+      _openSourceSearch(revertTo: previous);
+    }
+  }
+
+  /// Opens the WHO GHO / HDX search dialog. If the user cancels without
+  /// picking a result, [revertTo] restores the previously selected
+  /// case-data source instead of leaving `who_gho` selected with no
+  /// indicator chosen (which would fail validation on submit).
+  Future<void> _openSourceSearch({String? revertTo}) async {
+    if (_region == null) {
+      setState(() => _validationError = 'Pick a region first, then search for sources.');
+      if (revertTo != null) setState(() => _caseDataSource = revertTo);
+      return;
+    }
+    final diseaseLabel = widget.options.diseases[_disease]?.label ?? _disease;
+    final picked = await showDialog<DiscoveredSource>(
+      context: context,
+      builder: (context) => SourceSearchDialog(
+        diseaseKey: _disease,
+        diseaseLabel: diseaseLabel,
+        region: _region!,
+      ),
+    );
+    if (picked == null) {
+      if (revertTo != null) setState(() => _caseDataSource = revertTo);
+      return;
+    }
+    setState(() {
+      if (picked.isWhoGho) {
+        _caseDataSource = 'who_gho';
+        _whoIndicatorCode = picked.indicatorCode;
+        _whoIndicatorName = picked.title;
+      } else {
+        _caseDataSource = 'custom_url';
+        _customUrlController.text = picked.resourceUrl ?? picked.datasetUrl;
+      }
     });
   }
 
@@ -127,11 +174,48 @@ class _RequestFormCardState extends State<RequestFormCard> {
     final selected = await showDialog<String>(
       context: context,
       builder: (context) => WorldMapDialog(
+        regions: widget.options.regions,
         availableRegions: available,
         initialRegion: _region,
       ),
     );
     if (selected != null) setState(() => _region = selected);
+  }
+
+  /// Applies a best-effort [ParsedRequest] from the natural-language card.
+  /// Only overwrites a field when the parsed value is present *and* valid
+  /// for the current selection — e.g. a region only applies if it's still
+  /// in [_regionsForCurrentSelection] once the disease has been applied.
+  void applyPrefill(ParsedRequest r) {
+    setState(() {
+      if (r.disease != null && widget.options.diseases.containsKey(r.disease)) {
+        _disease = r.disease!;
+      }
+      final available = _regionsForCurrentSelection();
+      if (r.region != null && available.contains(r.region)) {
+        _region = r.region;
+      } else if (!available.contains(_region)) {
+        _region = available.firstOrNull;
+      }
+      if (r.variables != null && r.variables!.isNotEmpty) {
+        _variables
+          ..clear()
+          ..addAll(r.variables!.where(widget.options.variables.contains));
+      }
+      if (r.startDate != null) {
+        _startDate = DateTime(r.startDate!.year, r.startDate!.month, 1);
+      }
+      if (r.endDate != null) {
+        _endDate = DateTime(r.endDate!.year, r.endDate!.month, 1);
+      }
+      if (r.aggregation != null && widget.options.aggregations.contains(r.aggregation)) {
+        _aggregation = r.aggregation!;
+      }
+      if (r.climateSource != null &&
+          widget.options.climateSources.any((s) => s.id == r.climateSource)) {
+        _climateSource = r.climateSource!;
+      }
+    });
   }
 
   void _submit() {
@@ -155,6 +239,10 @@ class _RequestFormCardState extends State<RequestFormCard> {
       setState(() => _validationError = 'Upload a CSV file for the custom data source.');
       return;
     }
+    if (_caseDataSource == 'who_gho' && _whoIndicatorCode == null) {
+      setState(() => _validationError = 'Search and pick a WHO indicator first.');
+      return;
+    }
     setState(() => _validationError = null);
 
     widget.onSubmit(
@@ -171,71 +259,69 @@ class _RequestFormCardState extends State<RequestFormCard> {
             _caseDataSource == 'custom_url' ? _customUrlController.text.trim() : null,
         uploadedFileBytes: _caseDataSource == 'custom_upload' ? _uploadedBytes : null,
         uploadedFileName: _caseDataSource == 'custom_upload' ? _uploadedFileName : null,
+        whoIndicatorCode: _caseDataSource == 'who_gho' ? _whoIndicatorCode : null,
+        whoIndicatorName: _caseDataSource == 'who_gho' ? _whoIndicatorName : null,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Describe what you need', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text(
-              'Choose a disease, a region of the world, the time span and '
-              'granularity, and the scientific data sources you want it built from.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 16),
-            ResponsiveFieldRow(
-              columns: 2,
-              children: [
-                _buildDiseaseDropdown(),
-                _buildRegionField(),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text('Climate variables', style: Theme.of(context).textTheme.labelLarge),
-            _buildVariableChips(),
-            const SizedBox(height: 16),
-            ResponsiveFieldRow(
-              columns: 3,
-              children: [
-                _buildDateButton('From', _startDate, () => _pickDate(isStart: true)),
-                _buildDateButton('To', _endDate, () => _pickDate(isStart: false)),
-                _buildAggregationDropdown(),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildClimateSourceDropdown(),
-            const SizedBox(height: 16),
-            Text('Case-count data source', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 4),
-            Text(
-              'Only scientific / official surveillance sources. Bring your own '
-              'via a link or an uploaded file if you prefer.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            _buildCaseDataSourceDropdown(),
-            const SizedBox(height: 8),
-            _buildAvailabilityStatus(),
-            if (_caseDataSource == 'custom_url') _buildCustomUrlField(),
-            if (_caseDataSource == 'custom_upload') _buildUploadPicker(),
-            const SizedBox(height: 20),
-            if (_validationError != null) _buildValidationError(),
-            FilledButton.icon(
-              onPressed: widget.isSubmitting ? null : _submit,
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Run integration'),
-            ),
-          ],
-        ),
+    return SectionCard(
+      title: 'Describe what you need',
+      leading: Icons.tune,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Choose a disease, a region of the world, the time span and '
+            'granularity, and the scientific data sources you want it built from.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 16),
+          ResponsiveFieldRow(
+            columns: 2,
+            children: [
+              _buildDiseaseDropdown(),
+              _buildRegionField(),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text('Climate variables', style: Theme.of(context).textTheme.labelLarge),
+          _buildVariableChips(),
+          const SizedBox(height: 16),
+          ResponsiveFieldRow(
+            columns: 3,
+            children: [
+              _buildDateButton('From', _startDate, () => _pickDate(isStart: true)),
+              _buildDateButton('To', _endDate, () => _pickDate(isStart: false)),
+              _buildAggregationDropdown(),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildClimateSourceDropdown(),
+          const SizedBox(height: 16),
+          Text('Case-count data source', style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 4),
+          Text(
+            'Only scientific / official surveillance sources. Bring your own '
+            'via a link or an uploaded file if you prefer.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 8),
+          _buildCaseDataSourceDropdown(),
+          const SizedBox(height: 8),
+          _buildAvailabilityStatus(),
+          if (_caseDataSource == 'custom_url') _buildCustomUrlField(),
+          if (_caseDataSource == 'custom_upload') _buildUploadPicker(),
+          const SizedBox(height: 20),
+          if (_validationError != null) _buildValidationError(),
+          FilledButton.icon(
+            onPressed: widget.isSubmitting ? null : _submit,
+            icon: const Icon(Icons.play_arrow),
+            label: const Text('Run integration'),
+          ),
+        ],
       ),
     );
   }
@@ -392,6 +478,44 @@ class _RequestFormCardState extends State<RequestFormCard> {
   /// so the user never has to submit and hit an error to find out.
   Widget _buildAvailabilityStatus() {
     final diseaseLabel = widget.options.diseases[_disease]?.label ?? _disease;
+
+    if (_caseDataSource == 'who_gho') {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              _whoIndicatorCode != null ? Icons.verified_outlined : Icons.cancel_outlined,
+              size: 16,
+              color: _whoIndicatorCode != null ? Colors.green[700] : Colors.red,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                _whoIndicatorCode != null
+                    ? 'WHO GHO indicator: $_whoIndicatorName ($_whoIndicatorCode)'
+                    : 'No WHO indicator selected yet.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _whoIndicatorCode != null ? Colors.green[700] : Colors.red,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => _openSourceSearch(),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+              child: const Text('Change'),
+            ),
+          ],
+        ),
+      );
+    }
 
     if (_caseDataSource != 'builtin') {
       return _statusChip(

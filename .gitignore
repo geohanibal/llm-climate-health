@@ -11,3 +11,9 @@ build/
 *.log
 scratch/
 .claude/
+
+# LaTeX build artifacts (docs_ka/) -- only the .tex source and the
+# compiled .pdf are meant to be committed.
+*.aux
+*.out
+*.toc
