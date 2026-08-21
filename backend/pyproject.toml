@@ -10,3 +10,6 @@ max-line-length = 100
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+    "network: needs real internet access (hits a live upstream API) — run with plain `pytest`, skip with `pytest -m \"not network\"`.",
+]

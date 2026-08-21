@@ -9,8 +9,10 @@ Exposes:
 Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 """
 
+from datetime import date
 from pathlib import Path
 
+import requests
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -20,6 +22,7 @@ from app.config import (
     CASE_DATA_SOURCES,
     CLIMATE_SOURCE_REGIONS,
     CLIMATE_SOURCES,
+    DISEASE_REGION_COVERAGE,
     DISEASES,
     DISEASES_WITH_DATA,
     REGIONS,
@@ -57,6 +60,16 @@ def options():
                 "label": meta.label,
                 "native_resolution": meta.native_resolution,
                 "regions": sorted(DISEASES_WITH_DATA.get(key, set())),
+                # Per-region (earliest, latest) period actually present in
+                # the builtin file — a region can have data at all while
+                # only covering a narrow recent window (e.g. Italy/France
+                # dengue is 2024-2025 only, a real 2024 local outbreak, not
+                # decades of history), so the frontend can warn before a
+                # query whose date range can't overlap any real case data.
+                "region_coverage": {
+                    region: list(span)
+                    for region, span in DISEASE_REGION_COVERAGE.get(key, {}).items()
+                },
             }
             for key, meta in DISEASES.items()
         },
@@ -124,6 +137,12 @@ def _validate_common(req: IntegrationRequest) -> None:
         raise HTTPException(400, f"Disease '{req.disease}' is not supported.")
     if req.start_date >= req.end_date:
         raise HTTPException(400, "start_date must be before end_date.")
+    if req.end_date > date.today():
+        raise HTTPException(
+            400,
+            "end_date can't be in the future — climate archives only cover "
+            "dates up to today.",
+        )
     allowed_regions = CLIMATE_SOURCE_REGIONS.get(req.climate_source)
     if allowed_regions is not None and req.region not in allowed_regions:
         raise HTTPException(
@@ -158,13 +177,16 @@ def _validate_for_builtin_source(req: IntegrationRequest) -> None:
 def _run_integration_or_502(*args, **kwargs):
     """Thin wrapper around `run_integration` that turns a known, expected
     upstream failure (e.g. TMD credentials not configured, a custom source
-    with unrecognized columns) into a clear error response instead of an
-    opaque 500 — the same honest-failure principle already used for
+    with unrecognized columns, a dead/unreachable custom URL, a climate API
+    rejecting the request) into a clear error response instead of an opaque
+    500 — the same honest-failure principle already used for
     /api/parse-request."""
     try:
         return run_integration(*args, **kwargs)
     except (RuntimeError, ValueError) as exc:
         raise HTTPException(502, str(exc)) from exc
+    except requests.exceptions.RequestException as exc:
+        raise HTTPException(502, f"Could not reach an upstream data source: {exc}") from exc
 
 
 def _build_response(

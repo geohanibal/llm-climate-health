@@ -99,7 +99,11 @@ def fetch_climate(
     if "temperature_2m_mean" in daily.columns:
         agg["temperature_2m_mean"] = "mean"
     if "precipitation_sum" in daily.columns:
-        agg["precipitation_sum"] = "sum"
+        # min_count=1 makes an all-missing period sum to NaN instead of 0 —
+        # a real zero-rainfall reading must stay distinguishable from "no
+        # data for this period" (e.g. NASA POWER's -999.0 sentinel, already
+        # replaced with NA above).
+        agg["precipitation_sum"] = lambda s: s.sum(min_count=1)
 
     grouped = daily.groupby("period", as_index=False).agg(agg)
     return grouped.round(2)

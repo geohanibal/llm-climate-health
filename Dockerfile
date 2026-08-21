@@ -14,10 +14,7 @@ COPY frontend/ .
 # (e.g. /api/options) instead of the local-dev default of
 # http://127.0.0.1:8000 — the frontend and backend are served from the
 # same container/domain in production, so this is always correct there.
-# --wasm is required by the flutter_earth_globe package's shaders (the 3D
-# region-picker globe) — confirmed building cleanly on Flutter stable with
-# this project's other dependencies before adopting it.
-RUN flutter build web --release --wasm --dart-define=BACKEND_URL=
+RUN flutter build web --release --dart-define=BACKEND_URL=
 
 FROM python:3.12-slim AS backend
 WORKDIR /app

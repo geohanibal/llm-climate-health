@@ -83,6 +83,39 @@ DISEASES_WITH_DATA: dict[str, set[str]] = {
     key: _regions_with_data(meta.data_file) for key, meta in DISEASES.items()
 }
 
+
+def _region_coverage(
+    data_file: str, native_resolution: str
+) -> dict[str, tuple[str, str]]:
+    """Per-region (earliest, latest) period actually present in a builtin
+    case-data file. A region can appear in `DISEASES_WITH_DATA` (has at
+    least one row) while its real coverage is a narrow, recent window —
+    e.g. Italy/France's dengue rows are all 2024-2025 (a real 2024 local
+    outbreak), not the decades of history a user might assume. Surfacing
+    this lets the frontend warn before running a query whose date range
+    can't possibly overlap any real case data."""
+    path = DATA_DIR / data_file
+    if not path.exists():
+        return {}
+    df = pd.read_csv(path)
+    if "iso3" not in df.columns or df.empty:
+        return {}
+    period_col = "month" if native_resolution == "month" else "year"
+    coverage: dict[str, tuple[str, str]] = {}
+    for iso3, group in df.groupby("iso3"):
+        name = _ISO3_TO_NAME.get(iso3)
+        if name is None:
+            continue
+        periods = group[period_col].astype(str)
+        coverage[name] = (periods.min(), periods.max())
+    return coverage
+
+
+DISEASE_REGION_COVERAGE: dict[str, dict[str, tuple[str, str]]] = {
+    key: _region_coverage(meta.data_file, meta.native_resolution)
+    for key, meta in DISEASES.items()
+}
+
 CLIMATE_SOURCES = {
     "open-meteo-era5": {
         "label": "Open-Meteo Historical Archive (ECMWF ERA5 reanalysis)",

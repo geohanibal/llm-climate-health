@@ -11,6 +11,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../core/responsive.dart';
+import '../models/data_source_info.dart';
 import '../models/integration_request_params.dart';
 import '../models/discovered_source.dart';
 import '../models/parsed_request.dart';
@@ -46,16 +47,24 @@ class RequestFormCardState extends State<RequestFormCard> {
   static final DateTime _maxDate = DateTime.now();
 
   late String _disease = widget.options.diseases.keys.first;
-  late String? _region = _regionsForCurrentSelection().firstOrNull;
+  late String? _region = _initialRegion();
   final Set<String> _variables = {'temperature', 'precipitation'};
   DateTime _startDate = DateTime(2015, 1, 1);
   DateTime _endDate = DateTime(2023, 12, 1);
   late String _aggregation = widget.options.aggregations.first;
 
-  late String _climateSource = widget.options.climateSources.first.id;
-  late String _caseDataSource = widget.options.caseDataSources.first.id;
+  // Seeded from the region-filtered lists (not the raw, unfiltered options)
+  // so the very first build can never hand a DropdownButtonFormField a
+  // value that isn't among its own filtered items — that mismatch throws
+  // an assertion. Both filters only need `widget.options` and `_region`,
+  // already initialized above.
+  late String _climateSource = _climateSourceOptions().first.id;
+  late String _caseDataSource = _caseDataSourceOptions().first.id;
   String? _whoIndicatorCode;
   String? _whoIndicatorName;
+  // Disease the currently-picked WHO indicator was searched/selected for —
+  // used by [_reconcileSources] to drop a stale pick (see its doc).
+  String? _whoIndicatorDisease;
   final TextEditingController _customUrlController = TextEditingController();
   Uint8List? _uploadedBytes;
   String? _uploadedFileName;
@@ -68,36 +77,97 @@ class RequestFormCardState extends State<RequestFormCard> {
     super.dispose();
   }
 
-  /// Regions selectable right now: when using the built-in scientific
-  /// source, only regions the selected disease actually has case data for;
-  /// with a custom URL/upload, any region works since only climate data is
-  /// fetched from a region and the case counts come from the user.
-  List<String> _regionsForCurrentSelection() {
-    if (_caseDataSource != 'builtin') {
-      final all = widget.options.regions.keys.toList()..sort();
-      return all;
+  /// Every region the platform knows about, regardless of disease or
+  /// source: the region is chosen first, and the source dropdowns below
+  /// filter themselves to what's actually available for it (see
+  /// [_climateSourceOptions] and [_caseDataSourceOptions]) — this is what
+  /// keeps an incompatible region/source pair from ever being selectable
+  /// in the first place, rather than only failing at submit time.
+  List<String> _allRegionNames() => widget.options.regions.keys.toList()..sort();
+
+  /// Picks a sensible default region at first load: prefer one the default
+  /// disease actually has built-in data for, so the initial form is a
+  /// valid, runnable combination out of the box.
+  String? _initialRegion() {
+    final diseaseRegions = widget.options.diseases[_disease]?.regions;
+    if (diseaseRegions != null && diseaseRegions.isNotEmpty) {
+      final sorted = List<String>.from(diseaseRegions)..sort();
+      return sorted.first;
     }
-    final disease = widget.options.diseases[_disease];
-    final regions = List<String>.from(disease?.regions ?? const []);
-    regions.sort();
-    return regions;
+    return _allRegionNames().firstOrNull;
+  }
+
+  /// Whether the built-in source has real case data for [_disease] in
+  /// [_region] — the only case-data source whose availability depends on
+  /// the region, since who_gho/custom_url/custom_upload work anywhere.
+  bool _builtinAvailableForCurrentRegion() {
+    return widget.options.diseases[_disease]?.regions.contains(_region) ?? false;
+  }
+
+  /// Climate sources compatible with [_region] (e.g. TMD only covers
+  /// Thailand). A source with no entry in `climateSourceRegions` is global.
+  List<DataSourceInfo> _climateSourceOptions() {
+    return widget.options.climateSources.where((s) {
+      final restriction = widget.options.climateSourceRegions[s.id];
+      return restriction == null || restriction.contains(_region);
+    }).toList();
+  }
+
+  /// Case-data sources compatible with [_region]: every source except
+  /// "builtin" works for any region (the user supplies the data), so only
+  /// "builtin" needs filtering.
+  List<DataSourceInfo> _caseDataSourceOptions() {
+    return widget.options.caseDataSources
+        .where((s) => s.id != 'builtin' || _builtinAvailableForCurrentRegion())
+        .toList();
+  }
+
+  /// Re-validates the selected climate/case-data sources against
+  /// [_region]/[_disease] whenever either changes, and swaps away from
+  /// whatever became invalid — so an incompatible combination can never
+  /// linger in the form waiting to fail at submit time.
+  void _reconcileSources() {
+    final validClimate = _climateSourceOptions();
+    // validClimate can't currently be empty (at least one configured
+    // climate source is always region-unrestricted — see
+    // test_config.py's invariant test), but guard defensively rather than
+    // let a future config change throw a StateError here.
+    if (validClimate.isNotEmpty && !validClimate.any((s) => s.id == _climateSource)) {
+      _climateSource = validClimate.first.id;
+    }
+    if (_caseDataSource == 'builtin' && !_builtinAvailableForCurrentRegion()) {
+      _caseDataSource = 'custom_url';
+    }
+    // A WHO indicator is disease-specific (e.g. "estimated malaria cases"
+    // means nothing for cholera) — carrying a stale one over would submit
+    // the new disease's label with the old disease's numbers. Dropping it
+    // forces a fresh search; the submit-time check ("Search and pick a WHO
+    // indicator first") keeps it from being submitted empty in the
+    // meantime.
+    if (_whoIndicatorCode != null && _whoIndicatorDisease != _disease) {
+      _whoIndicatorCode = null;
+      _whoIndicatorName = null;
+      _whoIndicatorDisease = null;
+    }
   }
 
   void _onDiseaseChanged(String disease) {
     setState(() {
       _disease = disease;
-      final available = _regionsForCurrentSelection();
-      if (!available.contains(_region)) _region = available.firstOrNull;
+      _reconcileSources();
+    });
+  }
+
+  void _onRegionChanged(String? region) {
+    setState(() {
+      _region = region;
+      _reconcileSources();
     });
   }
 
   void _onCaseDataSourceChanged(String source) {
     final previous = _caseDataSource;
-    setState(() {
-      _caseDataSource = source;
-      final available = _regionsForCurrentSelection();
-      if (!available.contains(_region)) _region = available.firstOrNull;
-    });
+    setState(() => _caseDataSource = source);
     if (source == 'who_gho') {
       _openSourceSearch(revertTo: previous);
     }
@@ -131,6 +201,7 @@ class RequestFormCardState extends State<RequestFormCard> {
         _caseDataSource = 'who_gho';
         _whoIndicatorCode = picked.indicatorCode;
         _whoIndicatorName = picked.title;
+        _whoIndicatorDisease = _disease;
       } else {
         _caseDataSource = 'custom_url';
         _customUrlController.text = picked.resourceUrl ?? picked.datasetUrl;
@@ -170,32 +241,29 @@ class RequestFormCardState extends State<RequestFormCard> {
   }
 
   Future<void> _pickRegionOnMap() async {
-    final available = _regionsForCurrentSelection().toSet();
     final selected = await showDialog<String>(
       context: context,
       builder: (context) => WorldMapDialog(
         regions: widget.options.regions,
-        availableRegions: available,
+        availableRegions: _allRegionNames().toSet(),
         initialRegion: _region,
       ),
     );
-    if (selected != null) setState(() => _region = selected);
+    if (selected != null) _onRegionChanged(selected);
   }
 
   /// Applies a best-effort [ParsedRequest] from the natural-language card.
-  /// Only overwrites a field when the parsed value is present *and* valid
-  /// for the current selection — e.g. a region only applies if it's still
-  /// in [_regionsForCurrentSelection] once the disease has been applied.
+  /// Only overwrites a field when the parsed value is present and valid;
+  /// [_reconcileSources] runs last so an incompatible disease/region/source
+  /// combination the model suggested is corrected the same way a manual
+  /// pick would be.
   void applyPrefill(ParsedRequest r) {
     setState(() {
       if (r.disease != null && widget.options.diseases.containsKey(r.disease)) {
         _disease = r.disease!;
       }
-      final available = _regionsForCurrentSelection();
-      if (r.region != null && available.contains(r.region)) {
+      if (r.region != null && widget.options.regions.containsKey(r.region)) {
         _region = r.region;
-      } else if (!available.contains(_region)) {
-        _region = available.firstOrNull;
       }
       if (r.variables != null && r.variables!.isNotEmpty) {
         _variables
@@ -215,6 +283,7 @@ class RequestFormCardState extends State<RequestFormCard> {
           widget.options.climateSources.any((s) => s.id == r.climateSource)) {
         _climateSource = r.climateSource!;
       }
+      _reconcileSources();
     });
   }
 
@@ -339,32 +408,21 @@ class RequestFormCardState extends State<RequestFormCard> {
   }
 
   Widget _buildRegionField() {
-    final regionNames = _regionsForCurrentSelection();
-
-    if (regionNames.isEmpty) {
-      return InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Region (country)',
-          border: OutlineInputBorder(),
-          errorText: 'No built-in data for this disease yet',
-        ),
-        child: const Text(
-          'Switch the case-count source below to a custom URL or upload.',
-          style: TextStyle(fontSize: 12),
-        ),
-      );
-    }
-
-    final countLabel = _caseDataSource == 'builtin'
-        ? '${regionNames.length} countries with real ${widget.options.diseases[_disease]?.label ?? ''} data'
-        : 'any of ${regionNames.length} countries (climate data only needs a location)';
+    final regionNames = _allRegionNames();
+    final countLabel = 'any of ${regionNames.length} countries — the sources below '
+        'adapt to what has data here';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Autocomplete<String>(
-            key: ValueKey('$_disease-$_caseDataSource'),
+            // Region can change from outside this field too (map picker,
+            // AI prefill) — Autocomplete only reads `initialValue` once
+            // when created, so the key must include `_region` or an
+            // external change would update the app's state but leave this
+            // text field showing the old country.
+            key: ValueKey(_region),
             initialValue: TextEditingValue(text: _region ?? ''),
             optionsBuilder: (value) {
               if (value.text.isEmpty) return regionNames;
@@ -372,7 +430,7 @@ class RequestFormCardState extends State<RequestFormCard> {
                 (r) => r.toLowerCase().contains(value.text.toLowerCase()),
               );
             },
-            onSelected: (v) => setState(() => _region = v),
+            onSelected: _onRegionChanged,
             fieldViewBuilder: (context, controller, focusNode, onSubmit) {
               return TextField(
                 controller: controller,
@@ -449,7 +507,10 @@ class RequestFormCardState extends State<RequestFormCard> {
         labelText: 'Climate data source',
         border: OutlineInputBorder(),
       ),
-      items: widget.options.climateSources
+      // Only sources that actually cover `_region` are offered — e.g. TMD
+      // is hidden unless the region is Thailand — so an incompatible pair
+      // can't be selected in the first place.
+      items: _climateSourceOptions()
           .map((s) => DropdownMenuItem(
                 value: s.id,
                 child: Text(s.label, overflow: TextOverflow.ellipsis),
@@ -464,7 +525,9 @@ class RequestFormCardState extends State<RequestFormCard> {
       initialValue: _caseDataSource,
       isExpanded: true,
       decoration: const InputDecoration(border: OutlineInputBorder()),
-      items: widget.options.caseDataSources
+      // "builtin" only appears when the disease actually has case data for
+      // `_region`; who_gho/custom_url/custom_upload always work.
+      items: _caseDataSourceOptions()
           .map((s) => DropdownMenuItem(
                 value: s.id,
                 child: Text(s.label, overflow: TextOverflow.ellipsis),
@@ -534,15 +597,52 @@ class RequestFormCardState extends State<RequestFormCard> {
       );
     }
 
-    final available = widget.options.diseases[_disease]?.regions.contains(_region) ?? false;
+    final available = _builtinAvailableForCurrentRegion();
+    if (!available) {
+      return _statusChip(
+        icon: Icons.cancel_outlined,
+        color: Colors.red,
+        text: '$_region has no built-in $diseaseLabel data — pick another '
+            'region, or switch to a custom URL/upload.',
+      );
+    }
+
+    final coverage = widget.options.diseases[_disease]?.regionCoverage[_region];
+    if (coverage != null && coverage.length == 2 && !_overlapsCoverage(coverage)) {
+      return _statusChip(
+        icon: Icons.warning_amber_outlined,
+        color: Colors.orange[800]!,
+        text: '$_region has built-in $diseaseLabel data, but only for '
+            '${coverage[0]} to ${coverage[1]} — your selected period does not '
+            'overlap that, so you will get climate data with no case counts. '
+            'Adjust the dates or pick a different region.',
+      );
+    }
+
     return _statusChip(
-      icon: available ? Icons.check_circle_outline : Icons.cancel_outlined,
-      color: available ? Colors.green[700]! : Colors.red,
-      text: available
-          ? '$_region has built-in $diseaseLabel data.'
-          : '$_region has no built-in $diseaseLabel data — pick another '
-              'region, or switch to a custom URL/upload.',
+      icon: Icons.check_circle_outline,
+      color: Colors.green[700]!,
+      text: coverage != null && coverage.length == 2
+          ? '$_region has built-in $diseaseLabel data (${coverage[0]} to ${coverage[1]}).'
+          : '$_region has built-in $diseaseLabel data.',
     );
+  }
+
+  /// Whether [_startDate]..[_endDate] overlaps a "YYYY-MM" or "YYYY"
+  /// [earliest, latest] coverage span from the backend.
+  bool _overlapsCoverage(List<String> coverage) {
+    DateTime? parsePeriod(String period) {
+      final parts = period.split('-');
+      final year = int.tryParse(parts[0]);
+      if (year == null) return null;
+      final month = parts.length > 1 ? int.tryParse(parts[1]) ?? 1 : 1;
+      return DateTime(year, month, 1);
+    }
+
+    final coverageStart = parsePeriod(coverage[0]);
+    final coverageEnd = parsePeriod(coverage[1]);
+    if (coverageStart == null || coverageEnd == null) return true;
+    return !_endDate.isBefore(coverageStart) && !_startDate.isAfter(coverageEnd);
   }
 
   Widget _statusChip({required IconData icon, required Color color, required String text}) {

@@ -55,6 +55,34 @@ def test_fetch_climate_open_meteo_aggregates_to_month(mock_get):
 
 
 @patch("app.services.climate.requests.get")
+def test_fetch_climate_all_missing_precipitation_stays_null_not_zero(mock_get):
+    """Regression test: a period where every reading is missing (NASA
+    POWER's -999.0 sentinel, already replaced with NA upstream) must sum to
+    NaN, not 0.0 — a real zero-rainfall reading has to stay distinguishable
+    from "no data for this period"."""
+    mock_get.return_value = _mock_response(
+        {
+            "properties": {
+                "parameter": {
+                    "T2M": {"20200101": 20.0, "20200102": 22.0},
+                    "PRECTOTCORR": {"20200101": -999.0, "20200102": -999.0},
+                }
+            }
+        }
+    )
+    df = fetch_climate(
+        "Thailand",
+        ["temperature", "precipitation"],
+        date(2020, 1, 1),
+        date(2020, 1, 31),
+        source="nasa-power",
+        resolution="month",
+    )
+    jan = df[df["period"] == "2020-01"].iloc[0]
+    assert pd.isna(jan["precipitation_sum"])
+
+
+@patch("app.services.climate.requests.get")
 def test_fetch_climate_nasa_power_aggregates_to_month(mock_get):
     mock_get.return_value = _mock_response(
         {

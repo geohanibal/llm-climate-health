@@ -9,7 +9,12 @@ import pandas as pd
 import pytest
 
 from app.config import DISEASES
-from app.services.case_data import _filter_range, _normalize_custom_frame, get_builtin_case_data
+from app.services.case_data import (
+    _filter_range,
+    _normalize_custom_frame,
+    get_builtin_case_data,
+    get_case_data_from_upload,
+)
 
 
 def test_get_builtin_case_data_returns_rows_in_range():
@@ -40,6 +45,34 @@ def test_normalize_custom_frame_raises_on_unrecognized_columns():
     raw = pd.DataFrame({"foo": [1], "bar": [2]})
     with pytest.raises(ValueError):
         _normalize_custom_frame(raw)
+
+
+def test_normalize_custom_frame_parses_bare_year_column():
+    """Regression test: a plain int `year` column used to be handed to
+    pd.to_datetime unformatted, which pandas reads as nanoseconds since the
+    epoch (collapsing every row to 1970) — silently filtering out all data
+    downstream instead of raising. This is the same column shape as the
+    project's own builtin malaria/cholera CSVs, so a very plausible
+    real-world custom-upload shape."""
+    raw = pd.DataFrame({"year": [2020, 2021, 2022], "cases": [10, 20, 30]})
+    out = _normalize_custom_frame(raw)
+    assert out["period_start"].dt.year.tolist() == [2020, 2021, 2022]
+    filtered = _filter_range(out, date(2020, 1, 1), date(2022, 12, 31))
+    assert filtered["value"].tolist() == [10, 20, 30]
+
+
+def test_normalize_custom_frame_parses_year_month_column():
+    raw = pd.DataFrame({"month": ["2020-03", "2020-01"], "cases": [7, 3]})
+    out = _normalize_custom_frame(raw)
+    assert out["period_start"].tolist() == list(
+        pd.to_datetime(["2020-03-01", "2020-01-01"])
+    )
+
+
+def test_get_case_data_from_upload_survives_year_only_csv():
+    content = b"year,cases\n2020,10\n2021,20\n"
+    df = get_case_data_from_upload(content, date(2019, 1, 1), date(2022, 1, 1))
+    assert df["value"].tolist() == [10, 20]
 
 
 def test_filter_range_keeps_only_rows_inside_bounds():

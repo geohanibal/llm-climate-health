@@ -3,6 +3,15 @@
 /// tiles, so it works offline and never depends on a third-party service
 /// being up during a demo) and highlights which ones currently have data.
 ///
+/// The bundled outline asset is a *simplified* Natural Earth extract and is
+/// missing polygons for many small countries/territories entirely (e.g.
+/// Maldives, Mauritius — both real, selectable dengue regions). To keep
+/// every backend-supported region clickable regardless of polygon coverage
+/// or size, each available region also gets a small marker dot at its
+/// actual reference coordinate ([RegionInfo.lat]/[lon], the same point the
+/// ETL pipeline fetches climate data for); markers are checked first on tap
+/// so they always win over a thin sliver of polygon underneath.
+///
 /// Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 library;
 
@@ -10,9 +19,14 @@ import 'package:flutter/material.dart';
 
 import '../app.dart';
 import '../models/country_shape.dart';
+import '../models/region_info.dart';
 import '../services/world_map_loader.dart';
 
 class WorldMapView extends StatefulWidget {
+  /// All selectable regions with their reference coordinates, used to place
+  /// marker dots.
+  final Map<String, RegionInfo> regions;
+
   /// Region *names* (matching [PlatformOptions.regions] keys) that should
   /// render as "available" and be selectable.
   final Set<String> availableRegions;
@@ -21,6 +35,7 @@ class WorldMapView extends StatefulWidget {
 
   const WorldMapView({
     super.key,
+    required this.regions,
     required this.availableRegions,
     required this.onRegionTap,
     this.selectedRegion,
@@ -41,6 +56,9 @@ class _ProjectedShape {
 }
 
 class _WorldMapViewState extends State<WorldMapView> {
+  static const _markerRadius = 5.0;
+  static const _markerHitRadius = 9.0;
+
   final _loader = const WorldMapLoader();
   List<CountryShape>? _shapes;
   Object? _loadError;
@@ -48,6 +66,7 @@ class _WorldMapViewState extends State<WorldMapView> {
 
   Size? _projectedForSize;
   List<_ProjectedShape> _projected = const [];
+  Map<String, Offset> _markers = const {};
 
   @override
   void initState() {
@@ -77,6 +96,11 @@ class _WorldMapViewState extends State<WorldMapView> {
           ),
         )
         .toList();
+    _markers = {
+      for (final name in widget.availableRegions)
+        if (widget.regions[name] case final info?)
+          name: _project([info.lon, info.lat], size),
+    };
     _projectedForSize = size;
   }
 
@@ -92,11 +116,17 @@ class _WorldMapViewState extends State<WorldMapView> {
     return inside;
   }
 
-  CountryShape? _hitTest(Offset localPosition, Size size) {
+  /// Marker dots are checked before polygons: they're the reliable path for
+  /// every available region (see class doc), so they should win over
+  /// whatever sliver of country polygon happens to sit underneath them.
+  String? _hitTest(Offset localPosition, Size size) {
     _ensureProjected(size);
+    for (final entry in _markers.entries) {
+      if ((entry.value - localPosition).distance <= _markerHitRadius) return entry.key;
+    }
     for (final entry in _projected) {
       for (final ring in entry.screenRings) {
-        if (_pointInPolygon(localPosition, ring)) return entry.shape;
+        if (_pointInPolygon(localPosition, ring)) return entry.shape.name;
       }
     }
     return null;
@@ -122,24 +152,26 @@ class _WorldMapViewState extends State<WorldMapView> {
               child: MouseRegion(
                 onHover: (event) {
                   final hit = _hitTest(event.localPosition, size);
-                  if (hit?.name != _hoveredName) setState(() => _hoveredName = hit?.name);
+                  if (hit != _hoveredName) setState(() => _hoveredName = hit);
                 },
                 onExit: (_) => setState(() => _hoveredName = null),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTapUp: (details) {
                     final hit = _hitTest(details.localPosition, size);
-                    if (hit != null && widget.availableRegions.contains(hit.name)) {
-                      widget.onRegionTap(hit.name);
+                    if (hit != null && widget.availableRegions.contains(hit)) {
+                      widget.onRegionTap(hit);
                     }
                   },
                   child: CustomPaint(
                     size: size,
                     painter: _WorldMapPainter(
                       shapes: _projected,
+                      markers: _markers,
                       availableRegions: widget.availableRegions,
                       selectedRegion: widget.selectedRegion,
                       hoveredName: _hoveredName,
+                      markerRadius: _markerRadius,
                     ),
                   ),
                 ),
@@ -162,9 +194,11 @@ class _WorldMapViewState extends State<WorldMapView> {
 
 class _WorldMapPainter extends CustomPainter {
   final List<_ProjectedShape> shapes;
+  final Map<String, Offset> markers;
   final Set<String> availableRegions;
   final String? selectedRegion;
   final String? hoveredName;
+  final double markerRadius;
 
   static const _unavailableFill = AppColors.mapUnavailable;
   static const _availableFill = AppColors.mapAvailable;
@@ -173,9 +207,11 @@ class _WorldMapPainter extends CustomPainter {
 
   _WorldMapPainter({
     required this.shapes,
+    required this.markers,
     required this.availableRegions,
     required this.selectedRegion,
     required this.hoveredName,
+    required this.markerRadius,
   });
 
   @override
@@ -211,6 +247,23 @@ class _WorldMapPainter extends CustomPainter {
         canvas.drawPath(path, border);
       }
     }
+
+    final markerBorder = Paint()
+      ..color = _borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    for (final entry in markers.entries) {
+      final isSelected = entry.key == selectedRegion;
+      final isHovered = entry.key == hoveredName;
+      final fill = Paint()
+        ..color = isSelected
+            ? _selectedFill
+            : (isHovered ? _availableFill.withValues(alpha: 0.85) : _availableFill);
+      final radius = isSelected ? markerRadius + 1.5 : markerRadius;
+      canvas.drawCircle(entry.value, radius, fill);
+      canvas.drawCircle(entry.value, radius, markerBorder);
+    }
   }
 
   @override
@@ -218,6 +271,7 @@ class _WorldMapPainter extends CustomPainter {
     return oldDelegate.selectedRegion != selectedRegion ||
         oldDelegate.hoveredName != hoveredName ||
         oldDelegate.availableRegions != availableRegions ||
-        oldDelegate.shapes != shapes;
+        oldDelegate.shapes != shapes ||
+        oldDelegate.markers != markers;
   }
 }

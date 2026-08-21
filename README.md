@@ -51,6 +51,8 @@ For deploying to a public URL (Render.com, single Docker image), see
 
 ## Docs
 
+- [`docs/TESTING_GUIDE.md`](docs/TESTING_GUIDE.md) — how to run the automated
+  test suites and manually verify every feature
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deploy runbook
 - [`docs/requirements/anforderungskatalog.tex`](docs/requirements/anforderungskatalog.tex) —
   bilingual (DE/EN) requirements catalog for the thesis

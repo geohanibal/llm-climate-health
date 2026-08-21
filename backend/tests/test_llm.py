@@ -5,6 +5,10 @@ environment, since a developer's local .env may well have a real key.
 Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 """
 
+from unittest.mock import MagicMock
+
+import pytest
+
 from app.models import PeriodRecord
 from app.services import llm as llm_module
 from app.services.llm import (
@@ -12,6 +16,7 @@ from app.services.llm import (
     _coerce_parsed_json,
     build_prompt,
     explain_pipeline,
+    parse_request,
 )
 
 
@@ -32,6 +37,65 @@ def test_explain_pipeline_falls_back_when_llm_unavailable(monkeypatch):
     text, source = explain_pipeline("dengue", "Thailand", ["a step"], [])
     assert text == FALLBACK_EXPLANATION
     assert source == "fallback"
+
+
+def test_explain_pipeline_returns_llm_text_on_success(monkeypatch):
+    fake_client = MagicMock()
+    fake_client.models.generate_content.return_value = MagicMock(text="  A plain-language summary.  ")
+    monkeypatch.setattr(llm_module, "_client", fake_client)
+
+    text, source = explain_pipeline("dengue", "Thailand", ["a step"], [])
+    assert text == "A plain-language summary."
+    assert source == "llm"
+
+
+def test_explain_pipeline_falls_back_when_the_llm_call_raises(monkeypatch):
+    """A bug in the SDK/network call must still degrade gracefully, the
+    same as an unavailable client — never propagate to the caller."""
+    fake_client = MagicMock()
+    fake_client.models.generate_content.side_effect = RuntimeError("boom")
+    monkeypatch.setattr(llm_module, "_client", fake_client)
+
+    text, source = explain_pipeline("dengue", "Thailand", ["a step"], [])
+    assert text == FALLBACK_EXPLANATION
+    assert source == "fallback"
+
+
+def test_parse_request_raises_when_llm_unavailable(monkeypatch):
+    monkeypatch.setattr(llm_module, "_client", None)
+    with pytest.raises(RuntimeError):
+        parse_request(
+            "dengue in Thailand",
+            diseases={"dengue": "Dengue"},
+            regions=["Thailand"],
+            variables=["temperature", "precipitation"],
+            aggregations=["native"],
+            climate_sources=["open-meteo-era5"],
+        )
+
+
+def test_parse_request_returns_coerced_result_on_success(monkeypatch):
+    fake_client = MagicMock()
+    fake_client.models.generate_content.return_value = MagicMock(
+        text=(
+            '{"disease": "dengue", "region": "Thailand", "variables": ["temperature"], '
+            '"start_date": "2015-01-01", "end_date": "2020-01-01", "aggregation": "yearly", '
+            '"climate_source": "open-meteo-era5", "notes": "ok"}'
+        )
+    )
+    monkeypatch.setattr(llm_module, "_client", fake_client)
+
+    result = parse_request(
+        "dengue in Thailand since 2015",
+        diseases={"dengue": "Dengue"},
+        regions=["Thailand"],
+        variables=["temperature", "precipitation"],
+        aggregations=["native", "yearly"],
+        climate_sources=["open-meteo-era5"],
+    )
+    assert result.disease == "dengue"
+    assert result.region == "Thailand"
+    assert result.aggregation == "yearly"
 
 
 def test_coerce_parsed_json_passes_through_valid_payload():

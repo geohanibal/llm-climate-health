@@ -7,11 +7,55 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:climate_health_frontend/models/discovered_source.dart';
+import 'package:climate_health_frontend/models/disease_info.dart';
 import 'package:climate_health_frontend/models/integration_result.dart';
 import 'package:climate_health_frontend/models/parsed_request.dart';
 import 'package:climate_health_frontend/models/platform_options.dart';
 
 void main() {
+  group('DiseaseInfo.fromEntry', () {
+    test('decodes a populated region_coverage map', () {
+      final disease = DiseaseInfo.fromEntry('dengue', {
+        'label': 'Dengue',
+        'native_resolution': 'month',
+        'regions': ['Thailand', 'Italy'],
+        'region_coverage': {
+          'Thailand': ['1990-01', '2023-12'],
+          'Italy': ['2024-01', '2025-03'],
+        },
+      });
+
+      expect(disease.regionCoverage['Thailand'], ['1990-01', '2023-12']);
+      expect(disease.regionCoverage['Italy'], ['2024-01', '2025-03']);
+    });
+
+    test('defaults regionCoverage to an empty map when the key is missing', () {
+      final disease = DiseaseInfo.fromEntry('malaria', {
+        'label': 'Malaria',
+        'native_resolution': 'year',
+        'regions': ['Kenya'],
+      });
+
+      expect(disease.regionCoverage, isEmpty);
+    });
+
+    test('decodes a malformed (non-2-element) coverage span without throwing', () {
+      // DiseaseInfo itself doesn't validate span length — RequestFormCard is
+      // responsible for guarding against a short list before indexing it
+      // (see request_form_card_test.dart's regression test for that guard).
+      final disease = DiseaseInfo.fromEntry('dengue', {
+        'label': 'Dengue',
+        'native_resolution': 'month',
+        'regions': ['Thailand'],
+        'region_coverage': {
+          'Thailand': ['2020-01'],
+        },
+      });
+
+      expect(disease.regionCoverage['Thailand'], ['2020-01']);
+    });
+  });
+
   group('IntegrationResult.fromJson', () {
     test('decodes a full backend response', () {
       final result = IntegrationResult.fromJson({

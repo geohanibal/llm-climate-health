@@ -52,17 +52,27 @@ def get_builtin_case_data(disease: DiseaseMeta, region: str, start: date, end: d
 def _normalize_custom_frame(raw: pd.DataFrame) -> pd.DataFrame:
     cols = {c.lower().strip(): c for c in raw.columns}
 
-    date_col = next((cols[c] for c in CANDIDATE_DATE_COLUMNS if c in cols), None)
+    date_key = next((c for c in CANDIDATE_DATE_COLUMNS if c in cols), None)
     value_col = next((cols[c] for c in CANDIDATE_VALUE_COLUMNS if c in cols), None)
-    if date_col is None or value_col is None:
+    if date_key is None or value_col is None:
         raise ValueError(
             "Could not find recognizable date/case columns. Expected one of "
             f"{CANDIDATE_DATE_COLUMNS} and one of {CANDIDATE_VALUE_COLUMNS}."
         )
+    date_col = cols[date_key]
 
     out = raw[[date_col, value_col]].copy()
     out.columns = ["raw_date", "value"]
-    out["period_start"] = pd.to_datetime(out["raw_date"])
+    # A bare "year" (e.g. 2020) or "month" (e.g. "2020-01") column needs an
+    # explicit format: pandas otherwise reads a plain int as nanoseconds
+    # since the epoch, collapsing every row to 1970 and silently dropping
+    # all of them once filtered against a real date range.
+    if date_key == "year":
+        out["period_start"] = pd.to_datetime(out["raw_date"], format="%Y")
+    elif date_key == "month":
+        out["period_start"] = pd.to_datetime(out["raw_date"], format="%Y-%m")
+    else:
+        out["period_start"] = pd.to_datetime(out["raw_date"])
     return out[["period_start", "value"]]
 
 

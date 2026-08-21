@@ -89,8 +89,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // The full platform name is the hero banner's headline below — the
+      // app bar repeats just a short form so the two don't render the
+      // exact same sentence twice on screen.
       appBar: AppBar(
-        title: const Text('Climate-Health Data Integration Platform'),
+        title: const Text('Climate-Health Platform'),
         centerTitle: false,
       ),
       body: LayoutBuilder(

@@ -5,6 +5,8 @@
 /// Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 library;
 
+import 'dart:typed_data';
+
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -14,11 +16,25 @@ import 'browser_download_service.dart';
 
 class ReportPdfService {
   static final PdfColor _brand = PdfColor.fromInt(0xFF1F6F5C);
-  static const _download = BrowserDownloadService();
 
-  const ReportPdfService();
+  /// Injectable so tests can supply a fake and assert on what would have
+  /// been downloaded, without touching the browser.
+  final BrowserDownloadService download;
+
+  const ReportPdfService({this.download = const BrowserDownloadService()});
 
   Future<void> downloadReport({
+    required IntegrationResult result,
+    required String disease,
+    required String region,
+  }) async {
+    final bytes = await buildDocumentBytes(result: result, disease: disease, region: region);
+    download.downloadBytes(bytes, 'application/pdf', 'climate_health_report.pdf');
+  }
+
+  /// Builds the report's PDF bytes without triggering a browser download —
+  /// the part of report generation that's actually testable on the Dart VM.
+  Future<Uint8List> buildDocumentBytes({
     required IntegrationResult result,
     required String disease,
     required String region,
@@ -56,8 +72,7 @@ class ReportPdfService {
       ),
     );
 
-    final bytes = await doc.save();
-    _download.downloadBytes(bytes, 'application/pdf', 'climate_health_report.pdf');
+    return doc.save();
   }
 
   pw.Widget _sectionTitle(String text) => pw.Padding(

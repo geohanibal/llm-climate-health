@@ -15,9 +15,11 @@ enum ExportFormat { csv, json }
 /// download mechanics live in [BrowserDownloadService], shared with the PDF
 /// report export.
 class DatasetExportService {
-  static const _download = BrowserDownloadService();
+  /// Injectable so tests can supply a fake and assert on what would have
+  /// been downloaded, without touching the browser.
+  final BrowserDownloadService download;
 
-  const DatasetExportService();
+  const DatasetExportService({this.download = const BrowserDownloadService()});
 
   void export(
     List<PeriodRecord> data,
@@ -26,13 +28,13 @@ class DatasetExportService {
   }) {
     switch (format) {
       case ExportFormat.csv:
-        _download.downloadText(_toCsv(data), 'text/csv', '$fileNamePrefix.csv');
+        download.downloadText(toCsv(data), 'text/csv', '$fileNamePrefix.csv');
       case ExportFormat.json:
-        _download.downloadText(_toJson(data), 'application/json', '$fileNamePrefix.json');
+        download.downloadText(toJson(data), 'application/json', '$fileNamePrefix.json');
     }
   }
 
-  String _toCsv(List<PeriodRecord> data) {
+  String toCsv(List<PeriodRecord> data) {
     final buffer = StringBuffer('period,case_count,temperature_mean_c,precipitation_sum_mm\n');
     for (final record in data) {
       buffer.writeln(
@@ -43,7 +45,7 @@ class DatasetExportService {
     return buffer.toString();
   }
 
-  String _toJson(List<PeriodRecord> data) {
+  String toJson(List<PeriodRecord> data) {
     return const JsonEncoder.withIndent('  ').convert(data.map((r) => r.toJson()).toList());
   }
 }
