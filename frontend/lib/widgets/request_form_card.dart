@@ -483,8 +483,17 @@ class RequestFormCardState extends State<RequestFormCard> {
   }
 
   Widget _buildAggregationDropdown() {
-    const labels = {
-      'native': 'As reported',
+    // Mirrors the backend's own resolution rule (etl.py's run_integration):
+    // WHO GHO indicators are always yearly regardless of the disease's
+    // usual native resolution; otherwise it's the disease's own
+    // (dengue = monthly, malaria/cholera = yearly) — spelling that out
+    // here means "As reported" never leaves the user guessing what
+    // resolution they're actually about to get.
+    final nativeResolution = _caseDataSource == 'who_gho'
+        ? 'year'
+        : (widget.options.diseases[_disease]?.nativeResolution ?? 'year');
+    final labels = {
+      'native': nativeResolution == 'month' ? 'As reported (monthly)' : 'As reported (yearly)',
       'yearly': 'Yearly',
       'decadal': 'Decadal',
     };

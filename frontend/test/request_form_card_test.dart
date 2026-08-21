@@ -282,6 +282,56 @@ void main() {
     expect(find.text('Search and pick a WHO indicator first.'), findsOneWidget);
   });
 
+  testWidgets('time granularity spells out the native resolution for a monthly disease', (tester) async {
+    final options = _options(); // default disease is dengue, native_resolution: month
+    await tester.pumpWidget(_wrap(options));
+    await tester.pumpAndSettle();
+
+    expect(find.text('As reported (monthly)'), findsOneWidget);
+  });
+
+  testWidgets('time granularity spells out the native resolution for a yearly disease', (tester) async {
+    final options = _options(
+      diseases: const {
+        'malaria': DiseaseInfo(
+          key: 'malaria',
+          label: 'Malaria',
+          nativeResolution: 'year',
+          regions: ['Thailand'],
+          regionCoverage: {},
+        ),
+      },
+    );
+    await tester.pumpWidget(_wrap(options));
+    await tester.pumpAndSettle();
+
+    expect(find.text('As reported (yearly)'), findsOneWidget);
+  });
+
+  testWidgets('time granularity switches to yearly once WHO GHO is the case-data source, even for a monthly disease', (tester) async {
+    // dengue has no builtin regions here, so the bug #3 fix seeds
+    // _caseDataSource straight to the only non-builtin option: who_gho.
+    final options = _options(
+      diseases: const {
+        'dengue': DiseaseInfo(
+          key: 'dengue',
+          label: 'Dengue',
+          nativeResolution: 'month',
+          regions: [],
+          regionCoverage: {},
+        ),
+      },
+      caseDataSources: const [
+        DataSourceInfo(id: 'builtin', label: 'Built-in', citation: 'cite'),
+        DataSourceInfo(id: 'who_gho', label: 'WHO GHO', citation: 'cite'),
+      ],
+    );
+    await tester.pumpWidget(_wrap(options));
+    await tester.pumpAndSettle();
+
+    expect(find.text('As reported (yearly)'), findsOneWidget);
+  });
+
   testWidgets('submit calls onSubmit with the current form state when valid', (tester) async {
     IntegrationRequestParams? submitted;
     final options = _options();
