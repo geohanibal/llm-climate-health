@@ -13,6 +13,7 @@ import 'explanation_card.dart';
 import 'pipeline_steps_card.dart';
 import 'report_download_bar.dart';
 import 'sources_card.dart';
+import 'temperature_chart_card.dart';
 
 class ResultsView extends StatelessWidget {
   final IntegrationResult result;
@@ -38,6 +39,8 @@ class ResultsView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         CaseChartCard(data: result.data, resolution: result.resolution),
+        const SizedBox(height: 16),
+        TemperatureChartCard(data: result.data, resolution: result.resolution),
         const SizedBox(height: 16),
         DatasetTableCard(data: result.data),
         const SizedBox(height: 16),

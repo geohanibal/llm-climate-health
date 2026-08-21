@@ -22,6 +22,17 @@ class AppColors {
   static const mapSelected = Color(0xFF0B6E5C);
   static const mapAvailable = Color(0xFF7FC8B4);
   static const mapUnavailable = Color(0xFFE3E7E5);
+
+  // Result-chart series colors: one hue per metric, validated as a
+  // colorblind-safe categorical pair (adjacent CVD deltaE, OKLab, both
+  // modes) rather than eyeballed, since case counts and temperature are
+  // always shown as separate small-multiple charts a reader compares
+  // side by side. Dark steps sit in the dark-surface lightness band
+  // (OKLCH L 0.48-0.67); light steps in the light band (L 0.43-0.77).
+  static const chartCases = Color(0xFF0EA383);
+  static const chartCasesDark = Color(0xFF2E9E80);
+  static const chartTemperature = Color(0xFFDB6B2C);
+  static const chartTemperatureDark = Color(0xFFD3722E);
 }
 
 class ClimateHealthApp extends StatelessWidget {
