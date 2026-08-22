@@ -149,7 +149,11 @@ order — it touches every major feature.
    again. Without `TMD_API_UID`/`TMD_API_UKEY` configured, this correctly
    fails with a clear "TMD_API_UID/TMD_API_UKEY are not configured" error
    (502) rather than a generic failure — this is expected unless those
-   credentials have been set up (see §5).
+   credentials have been set up (see §5). To see it actually return data,
+   set `TMD_API_UID=demo` / `TMD_API_UKEY=demokey` (TMD's own published
+   demo pair, no registration needed) and pick a date range inside the
+   current year — that tier only ever returns the current year's
+   already-elapsed months, not historical data.
 
 8. **Custom case-data sources.** Switch the case-data source to "Custom URL"
    and paste a link to any CSV with a recognizable date and case-count
@@ -198,11 +202,10 @@ curl -X POST "$BASE/api/integrate" \
 
 ## 7. Known limitations (by design, not oversights)
 
-- **TMD's endpoint is plain HTTP, not HTTPS** — that's the Thai
-  Meteorological Department's own documented endpoint
-  (`data.tmd.go.th`); its exact JSON response shape also hasn't been
-  verified against a live account yet (see `backend/app/services/tmd.py`'s
-  module docstring) since no credentials were available during development.
+- **TMD's demo credential tier only returns the current year** — a
+  registered (non-demo) account may unlock historical years, but that's
+  unverified without one; see `backend/app/services/tmd.py`'s module
+  docstring for everything else discovered from a real live response.
 - **The coverage-window warning (§4.5) is advisory, not enforced** — the
   backend deliberately still runs an out-of-window query rather than
   rejecting it, so a user can still explore what data does exist.
