@@ -89,6 +89,17 @@ def test_parse_tmd_response_drops_not_yet_reported_months_in_the_current_year(mo
     assert list(df["period"]) == ["2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06"]
 
 
+def test_parse_tmd_response_recovers_from_a_duplicated_document():
+    """Observed live: TMD's server occasionally concatenates the whole
+    document onto itself, which trips the XML parser with "junk after
+    document element" — the first copy alone should still parse fine."""
+    single = _document(_station_xml(lon=100.5, lat=13.7, year=2020, rainfall={"JAN": 12.5}))
+    duplicated = single + single
+
+    df = _parse_tmd_response(duplicated, region_lat=13.7, region_lon=100.5)
+    assert df.iloc[0]["precipitation_sum"] == 12.5
+
+
 def test_parse_tmd_response_raises_on_invalid_xml():
     with pytest.raises(RuntimeError):
         _parse_tmd_response("not xml at all", region_lat=13.7, region_lon=100.5)

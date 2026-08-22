@@ -16,6 +16,10 @@ Three things the docs don't mention, discovered from the real payload:
     Months later than today, within that current year, come back as a
     placeholder 0 rather than being omitted — treated as "not reported
     yet" (dropped) rather than "zero rainfall" below.
+  - The server occasionally emits the entire document twice, concatenated
+    ("junk after document element" from the XML parser) — seen live,
+    intermittently, on an otherwise-identical repeated request. Handled by
+    retrying the parse against just the first copy before giving up.
 
 Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 """
@@ -29,6 +33,8 @@ import requests
 from app.config import REGIONS, TMD_API_UID, TMD_API_UKEY
 
 TMD_MONTHLY_RAINFALL_URL = "https://data.tmd.go.th/api/ThailandMonthlyRainfall/v1/index.php"
+
+_ROOT_CLOSE_TAG = "</ThailandMonthlyRainfall>"
 
 _MONTH_TAGS = [
     ("JAN", 1), ("FEB", 2), ("MAR", 3), ("APR", 4), ("MAY", 5), ("JUN", 6),
@@ -57,8 +63,18 @@ def _parse_tmd_response(xml_text: str, region_lat: float, region_lon: float) -> 
     temperature_2m_mean is always null for the tmd source."""
     try:
         root = ET.fromstring(xml_text)
-    except ET.ParseError as exc:
-        raise RuntimeError(f"Unexpected TMD API response (not valid XML): {exc}") from exc
+    except ET.ParseError:
+        # Observed live: TMD's server occasionally emits the whole document
+        # twice, concatenated ("junk after document element") — the first
+        # copy alone is still well-formed, so retry against just that
+        # before giving up.
+        end = xml_text.find(_ROOT_CLOSE_TAG)
+        if end == -1:
+            raise RuntimeError("Unexpected TMD API response (not valid XML).") from None
+        try:
+            root = ET.fromstring(xml_text[: end + len(_ROOT_CLOSE_TAG)])
+        except ET.ParseError as exc:
+            raise RuntimeError(f"Unexpected TMD API response (not valid XML): {exc}") from exc
 
     stations = root.findall("StationMonthlyRainfall")
     if not stations:
