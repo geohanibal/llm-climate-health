@@ -39,7 +39,11 @@ def _fetch_open_meteo_daily(lat: float, lon: float, variables: list[str], start:
             "start_date": start.isoformat(),
             "end_date": end.isoformat(),
             "daily": ",".join(daily_fields),
-            "timezone": "auto",
+            # Fixed, not "auto": "auto" resolves a per-point local timezone,
+            # which shifts which calendar day/month a reading near a day
+            # boundary falls into depending on the region — UTC keeps every
+            # region's periods aligned to the same, deterministic boundary.
+            "timezone": "UTC",
         },
         timeout=30,
     )

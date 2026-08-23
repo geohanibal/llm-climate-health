@@ -68,17 +68,36 @@ def _normalize_custom_frame(raw: pd.DataFrame) -> pd.DataFrame:
     # since the epoch, collapsing every row to 1970 and silently dropping
     # all of them once filtered against a real date range.
     if date_key == "year":
-        out["period_start"] = pd.to_datetime(out["raw_date"], format="%Y")
+        out["period_start"] = pd.to_datetime(out["raw_date"], format="%Y", errors="coerce")
     elif date_key == "month":
-        out["period_start"] = pd.to_datetime(out["raw_date"], format="%Y-%m")
+        out["period_start"] = pd.to_datetime(out["raw_date"], format="%Y-%m", errors="coerce")
     else:
-        out["period_start"] = pd.to_datetime(out["raw_date"])
-    return out[["period_start", "value"]]
+        out["period_start"] = pd.to_datetime(out["raw_date"], errors="coerce")
+
+    # A single malformed date must not fail the whole import — but staying
+    # honest means never dropping rows without saying so: the caller reads
+    # this count back out of `.attrs` and reports it in the pipeline steps.
+    n_total = len(out)
+    out = out.dropna(subset=["period_start"])
+    n_dropped = n_total - len(out)
+    if n_total > 0 and out.empty:
+        raise ValueError(
+            f"None of the {n_total} row(s) had a date this parser could "
+            f"recognize in the '{date_col}' column."
+        )
+
+    result = out[["period_start", "value"]]
+    result.attrs["dropped_rows"] = n_dropped
+    return result
 
 
 def _filter_range(df: pd.DataFrame, start: date, end: date) -> pd.DataFrame:
     mask = (df["period_start"] >= pd.Timestamp(start)) & (df["period_start"] <= pd.Timestamp(end))
-    return df.loc[mask].sort_values("period_start").reset_index(drop=True)
+    out = df.loc[mask].sort_values("period_start").reset_index(drop=True)
+    # .loc/.sort_values/.reset_index don't reliably carry `.attrs` forward
+    # across pandas versions — copy it explicitly rather than depend on that.
+    out.attrs = dict(df.attrs)
+    return out
 
 
 def get_case_data_from_url(url: str, start: date, end: date) -> pd.DataFrame:

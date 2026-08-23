@@ -42,6 +42,13 @@ _MONTH_TAGS = [
 ]
 
 
+class ConfigurationError(RuntimeError):
+    """Raised when this service is unavailable because of local
+    misconfiguration (e.g. missing credentials) rather than an upstream
+    (TMD-side) failure — callers map this to a distinct status code so a
+    "you forgot to set an env var" error doesn't read as "TMD is down"."""
+
+
 def is_available() -> bool:
     return bool(TMD_API_UID and TMD_API_UKEY)
 
@@ -132,7 +139,7 @@ def fetch_tmd_climate(
     empty, not an error, once the mask below filters out the returned
     current-year rows."""
     if not is_available():
-        raise RuntimeError(
+        raise ConfigurationError(
             "TMD_API_UID/TMD_API_UKEY are not configured — register for free "
             "at data.tmd.go.th and set them in the backend's .env."
         )

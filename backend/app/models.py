@@ -12,10 +12,9 @@ from pydantic import BaseModel, Field
 class IntegrationRequest(BaseModel):
     disease: str = Field(examples=["dengue"])
     region: str = Field(examples=["Thailand"])
-    variables: list[Literal["temperature", "precipitation"]] = [
-        "temperature",
-        "precipitation",
-    ]
+    variables: list[Literal["temperature", "precipitation"]] = Field(
+        default=["temperature", "precipitation"], min_length=1
+    )
     start_date: date
     end_date: date
     scenario: Literal["historical"] = "historical"

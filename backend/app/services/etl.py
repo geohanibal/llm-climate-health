@@ -36,6 +36,18 @@ def _target_resolution(native_resolution: str, aggregation: str) -> str:
     return "month" if native_resolution == "month" else "year"
 
 
+def _dropped_rows_note(df: pd.DataFrame) -> str:
+    """Surfaces `_normalize_custom_frame`'s row-drop count (carried on the
+    DataFrame via `.attrs` rather than a second return value, since the
+    frame is also used directly by tests as-is) in the user-facing steps —
+    a few unparseable rows shouldn't fail the whole import, but dropping
+    them must never happen silently."""
+    dropped = df.attrs.get("dropped_rows", 0)
+    if not dropped:
+        return ""
+    return f" ({dropped} row(s) skipped: unparseable date.)"
+
+
 def _period_label(series: pd.Series, resolution: str) -> pd.Series:
     if resolution == "decade":
         return (series.dt.year // 10 * 10).astype(str) + "s"
@@ -61,6 +73,7 @@ def resolve_case_data(
         steps.append(
             f"Parsed {len(df)} case-count records from the file you uploaded "
             f"(date/case columns auto-detected)."
+            + _dropped_rows_note(df)
         )
         return df
 
@@ -69,6 +82,7 @@ def resolve_case_data(
         steps.append(
             f"Fetched and parsed {len(df)} case-count records from the URL "
             f"you provided: {custom_source_url}"
+            + _dropped_rows_note(df)
         )
         return df
 

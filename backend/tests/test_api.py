@@ -83,11 +83,12 @@ def test_integrate_rejects_tmd_source_for_non_thailand_region():
 
 def test_integrate_with_tmd_source_returns_clear_error_without_credentials(monkeypatch):
     """Without TMD_API_UID/TMD_API_UKEY configured, this must surface a
-    clear 502 with an actionable message — not an opaque 500."""
+    clear 503 (local misconfiguration, not an upstream/TMD failure) with an
+    actionable message — not a 502 or an opaque 500."""
     monkeypatch.setattr("app.services.tmd.TMD_API_UID", "")
     monkeypatch.setattr("app.services.tmd.TMD_API_UKEY", "")
     resp = client.post("/api/integrate", json=_valid_request(climate_source="tmd"))
-    assert resp.status_code == 502
+    assert resp.status_code == 503
     assert "TMD_API_UID" in resp.json()["detail"]
 
 

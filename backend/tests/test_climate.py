@@ -52,6 +52,9 @@ def test_fetch_climate_open_meteo_aggregates_to_month(mock_get):
     jan = df[df["period"] == "2020-01"].iloc[0]
     assert jan["temperature_2m_mean"] == 21.0  # mean of 20 and 22
     assert jan["precipitation_sum"] == 3.0  # sum of 1 and 2
+    # Fixed UTC, not "auto": a per-point local timezone would shift which
+    # day/month a boundary reading falls into depending on the region.
+    assert mock_get.call_args.kwargs["params"]["timezone"] == "UTC"
 
 
 @patch("app.services.climate.requests.get")

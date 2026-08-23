@@ -61,6 +61,11 @@ def fetch_who_gho_case_data(
 
     df = pd.DataFrame(rows)
     df = df[df["TimeDimType"] == "YEAR"]
+    if df.empty:
+        raise ValueError(
+            f"WHO GHO indicator '{indicator_code}' has no yearly data for "
+            f"country '{iso3}' (only non-yearly records were returned)."
+        )
     df["period_start"] = pd.to_datetime(df["TimeDim"], format="%Y")
     df["value"] = pd.to_numeric(df["NumericValue"], errors="coerce")
     df = df.dropna(subset=["value"])

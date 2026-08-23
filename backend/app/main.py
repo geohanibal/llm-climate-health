@@ -34,6 +34,9 @@ from app.services import cache
 from app.services.etl import run_integration
 from app.services.llm import explain_pipeline, is_llm_available, parse_request
 from app.services.source_discovery import search_case_sources
+from app.services.tmd import ConfigurationError
+
+_MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB — a case-count CSV has no business being larger
 
 app = FastAPI(title="LLM-Driven Climate-Health ETL Platform (demo)")
 
@@ -183,6 +186,8 @@ def _run_integration_or_502(*args, **kwargs):
     /api/parse-request."""
     try:
         return run_integration(*args, **kwargs)
+    except ConfigurationError as exc:
+        raise HTTPException(503, str(exc)) from exc
     except (RuntimeError, ValueError) as exc:
         raise HTTPException(502, str(exc)) from exc
     except requests.exceptions.RequestException as exc:
@@ -303,6 +308,10 @@ async def integrate_with_upload(
     _validate_common(req)
 
     content = await file.read()
+    if len(content) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            413, f"Uploaded file exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit."
+        )
     steps, records, resolution = _run_integration_or_502(
         req.disease,
         req.region,

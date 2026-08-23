@@ -41,15 +41,20 @@ _rate_limit_lock = Lock()
 
 
 def _wait_for_rate_limit_slot() -> None:
-    with _rate_limit_lock:
-        now = time.monotonic()
-        while _call_timestamps and now - _call_timestamps[0] > 60:
-            _call_timestamps.popleft()
-        if len(_call_timestamps) >= _MAX_CALLS_PER_MINUTE:
+    # The sleep must happen outside the lock: holding it during time.sleep()
+    # would block every other thread from even checking the rate limit,
+    # serializing all concurrent requests behind whichever one is waiting.
+    while True:
+        with _rate_limit_lock:
+            now = time.monotonic()
+            while _call_timestamps and now - _call_timestamps[0] > 60:
+                _call_timestamps.popleft()
+            if len(_call_timestamps) < _MAX_CALLS_PER_MINUTE:
+                _call_timestamps.append(time.monotonic())
+                return
             sleep_for = 60 - (now - _call_timestamps[0])
-            if sleep_for > 0:
-                time.sleep(sleep_for)
-        _call_timestamps.append(time.monotonic())
+        if sleep_for > 0:
+            time.sleep(sleep_for)
 
 
 def build_prompt(
@@ -118,11 +123,19 @@ def build_parse_prompt(
         "leave the field null if the text does not clearly imply one — never "
         "invent a value that is not in a list. Resolve relative dates (e.g. "
         f"\"the last 10 years\") against today's date, {date.today().isoformat()}. "
-        "Dates must be the first day of a month, formatted YYYY-MM-01.\n\n"
+        "Dates must be the first day of a month, formatted YYYY-MM-01. If the "
+        "text names only a year for the start of the range, use January of "
+        "that year; if it names only a year for the end of the range, use "
+        "December of that year, so the full range the user meant is covered "
+        "(e.g. \"from 2015 to 2023\" means start_date=2015-01-01, "
+        "end_date=2023-12-01).\n\n"
         f"Valid diseases (key: label):\n{disease_list}\n\n"
         f"Valid regions (must match exactly): {', '.join(regions)}\n\n"
         f"Valid variables: {', '.join(variables)}\n"
-        f"Valid aggregations: {', '.join(aggregations)}\n"
+        f"Valid aggregations: {', '.join(aggregations)} — \"native\" means "
+        "the data's own original/as-reported resolution (e.g. \"monthly\", "
+        "\"as reported\", or no granularity mentioned at all); map wording "
+        "like that to \"native\" rather than leaving aggregation null.\n"
         f"Valid climate_source values: {', '.join(climate_sources)}\n\n"
         "Respond with a single JSON object with exactly these keys: "
         "disease, region, variables (array), start_date, end_date, "

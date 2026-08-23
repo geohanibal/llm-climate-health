@@ -75,6 +75,23 @@ def test_get_case_data_from_upload_survives_year_only_csv():
     assert df["value"].tolist() == [10, 20]
 
 
+def test_normalize_custom_frame_skips_unparseable_rows_without_failing_the_batch():
+    """One malformed date shouldn't sink an otherwise-good CSV — but the
+    skip must be recorded (in `.attrs`), never silent."""
+    raw = pd.DataFrame(
+        {"date": ["2020-01-01", "not-a-date", "2020-03-01"], "cases": [10, 20, 30]}
+    )
+    out = _normalize_custom_frame(raw)
+    assert out["value"].tolist() == [10, 30]
+    assert out.attrs["dropped_rows"] == 1
+
+
+def test_normalize_custom_frame_raises_when_every_date_is_unparseable():
+    raw = pd.DataFrame({"date": ["not-a-date", "also-not-a-date"], "cases": [10, 20]})
+    with pytest.raises(ValueError):
+        _normalize_custom_frame(raw)
+
+
 def test_filter_range_keeps_only_rows_inside_bounds():
     df = pd.DataFrame(
         {
