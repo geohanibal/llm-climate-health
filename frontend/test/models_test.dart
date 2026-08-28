@@ -99,8 +99,38 @@ void main() {
       });
 
       expect(result.explanationSource, 'fallback');
+      expect(result.transformationAudit, isNull);
+    });
+
+    test('decodes transformation_audit when present in response', () {
+      final result = IntegrationResult.fromJson({
+        'request_echo': {'disease': 'dengue', 'region': 'Thailand'},
+        'resolution': 'month',
+        'steps': <String>[],
+        'explanation': 'Audit test explanation',
+        'data': <Map<String, dynamic>>[],
+        'sources': <String>[],
+        'last_verified': '2024-01-01T00:00:00Z',
+        'transformation_audit': {
+          'original_columns': ['period', 'malaria_cases'],
+          'selected_date_column': 'period',
+          'selected_value_column': 'malaria_cases',
+          'total_rows_received': 10,
+          'valid_rows_retained': 10,
+          'dropped_rows_count': 0,
+          'transformations_applied': ['Mapped period to date'],
+          'human_explanation': 'AI audit summary.',
+        },
+      });
+
+      expect(result.transformationAudit, isNotNull);
+      expect(result.transformationAudit!.selectedDateColumn, 'period');
+      expect(result.transformationAudit!.selectedValueColumn, 'malaria_cases');
+      expect(result.transformationAudit!.totalRowsReceived, 10);
+      expect(result.transformationAudit!.humanExplanation, 'AI audit summary.');
     });
   });
+
 
   group('PlatformOptions.fromJson', () {
     test('decodes diseases, regions, and data sources', () {

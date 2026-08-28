@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../models/integration_result.dart';
 import 'case_chart_card.dart';
+import 'data_audit_card.dart';
 import 'dataset_table_card.dart';
 import 'explanation_card.dart';
 import 'pipeline_steps_card.dart';
@@ -25,6 +26,10 @@ class ResultsView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ReportDownloadBar(result: result),
+        if (result.transformationAudit != null) ...[
+          const SizedBox(height: 12),
+          DataAuditCard(audit: result.transformationAudit!),
+        ],
         const SizedBox(height: 12),
         PipelineStepsCard(
           steps: result.steps,
@@ -46,3 +51,4 @@ class ResultsView extends StatelessWidget {
     );
   }
 }
+

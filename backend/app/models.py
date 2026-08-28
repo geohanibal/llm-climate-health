@@ -33,6 +33,20 @@ class PeriodRecord(BaseModel):
     precipitation_sum_mm: float | None = None
 
 
+class DataTransformationAudit(BaseModel):
+    """Audit trail of data harmonization and transformations applied to
+    user-supplied or external case datasets."""
+
+    original_columns: list[str] = Field(default_factory=list)
+    selected_date_column: str | None = None
+    selected_value_column: str | None = None
+    total_rows_received: int = 0
+    valid_rows_retained: int = 0
+    dropped_rows_count: int = 0
+    transformations_applied: list[str] = Field(default_factory=list)
+    human_explanation: str = ""
+
+
 class IntegrationResponse(BaseModel):
     request_echo: IntegrationRequest
     resolution: Literal["month", "year", "decade"]
@@ -43,6 +57,7 @@ class IntegrationResponse(BaseModel):
     sources: list[str]
     cached: bool = False
     last_verified: str
+    transformation_audit: DataTransformationAudit | None = None
 
 
 class DiscoveredSource(BaseModel):

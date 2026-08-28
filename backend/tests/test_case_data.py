@@ -99,5 +99,38 @@ def test_filter_range_keeps_only_rows_inside_bounds():
             "value": [1, 2, 3],
         }
     )
-    out = _filter_range(df, date(2020, 1, 1), date(2020, 12, 31))
-    assert out["value"].tolist() == [2]
+    df.attrs["dropped_rows"] = 0
+    filtered = _filter_range(df, date(2020, 1, 1), date(2020, 12, 31))
+    assert filtered["value"].tolist() == [2]
+
+
+def test_normalize_custom_frame_detects_extended_aliases_and_audit():
+    raw = pd.DataFrame({"period": ["2021-01", "2021-02"], "malaria_cases": [45, 60]})
+    out = _normalize_custom_frame(raw)
+    assert list(out.columns) == ["period_start", "value"]
+    assert out["value"].tolist() == [45, 60]
+    audit = out.attrs.get("transformation_audit")
+    assert audit is not None
+    assert audit["selected_date_column"] == "period"
+    assert audit["selected_value_column"] == "malaria_cases"
+    assert audit["total_rows_received"] == 2
+    assert audit["valid_rows_retained"] == 2
+
+
+def test_normalize_custom_frame_fuzzy_matching():
+    raw = pd.DataFrame({"observation_date": ["2022-05-01"], "confirmed_cases_count": [120]})
+    out = _normalize_custom_frame(raw)
+    assert out["value"].tolist() == [120]
+
+
+def test_normalize_custom_frame_informative_error_on_spatial_data():
+    raw = pd.DataFrame(
+        {
+            "county": ["BARINGO", "BOMET"],
+            "had_fever_or_malaria_in_percent": [14.9, 39.5],
+            "spending_per_person_in_ksh": [714.0, 666.0],
+        }
+    )
+    with pytest.raises(ValueError) as exc:
+        _normalize_custom_frame(raw)
+    assert "time-series date column" in str(exc.value)

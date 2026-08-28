@@ -29,10 +29,21 @@ from app.config import (
 )
 from pydantic import BaseModel
 
-from app.models import DiscoveredSource, IntegrationRequest, IntegrationResponse, ParsedRequest
+from app.models import (
+    DataTransformationAudit,
+    DiscoveredSource,
+    IntegrationRequest,
+    IntegrationResponse,
+    ParsedRequest,
+)
 from app.services import cache
 from app.services.etl import run_integration
-from app.services.llm import explain_pipeline, is_llm_available, parse_request
+from app.services.llm import (
+    explain_data_transformation,
+    explain_pipeline,
+    is_llm_available,
+    parse_request,
+)
 from app.services.source_discovery import search_case_sources
 from app.services.tmd import ConfigurationError
 
@@ -202,6 +213,7 @@ def _build_response(
     cached: bool,
     last_verified: str,
     uploaded_file_name: str | None = None,
+    transformation_audit: DataTransformationAudit | None = None,
 ) -> IntegrationResponse:
     explanation, explanation_source = explain_pipeline(req.disease, req.region, steps, records)
 
@@ -232,6 +244,7 @@ def _build_response(
         sources=sources,
         cached=cached,
         last_verified=last_verified,
+        transformation_audit=transformation_audit,
     )
 
 
@@ -257,11 +270,22 @@ def integrate(req: IntegrationRequest):
     )
     hit = cache.get(cache_key)
     if hit is not None:
+        cached_audit = (
+            DataTransformationAudit(**hit["transformation_audit"])
+            if hit.get("transformation_audit")
+            else None
+        )
         return _build_response(
-            req, hit["steps"], hit["records"], hit["resolution"], True, hit["last_verified"]
+            req,
+            hit["steps"],
+            hit["records"],
+            hit["resolution"],
+            True,
+            hit["last_verified"],
+            transformation_audit=cached_audit,
         )
 
-    steps, records, resolution = _run_integration_or_502(
+    steps, records, resolution, audit_data = _run_integration_or_502(
         req.disease,
         req.region,
         req.variables,
@@ -274,12 +298,36 @@ def integrate(req: IntegrationRequest):
         who_indicator_code=req.who_indicator_code,
         who_indicator_name=req.who_indicator_name,
     )
+    transformation_audit = None
+    if audit_data:
+        human_explanation = explain_data_transformation(audit_data, req.disease, req.region)
+        transformation_audit = DataTransformationAudit(
+            original_columns=audit_data.get("original_columns", []),
+            selected_date_column=audit_data.get("selected_date_column"),
+            selected_value_column=audit_data.get("selected_value_column"),
+            total_rows_received=audit_data.get("total_rows_received", 0),
+            valid_rows_retained=audit_data.get("valid_rows_retained", 0),
+            dropped_rows_count=audit_data.get("dropped_rows_count", 0),
+            transformations_applied=audit_data.get("transformations_applied", []),
+            human_explanation=human_explanation,
+        )
+
     last_verified = cache.now_iso()
     cache.set(
         cache_key,
-        {"steps": steps, "records": records, "resolution": resolution, "last_verified": last_verified},
+        {
+            "steps": steps,
+            "records": records,
+            "resolution": resolution,
+            "last_verified": last_verified,
+            "transformation_audit": (
+                transformation_audit.model_dump() if transformation_audit else None
+            ),
+        },
     )
-    return _build_response(req, steps, records, resolution, False, last_verified)
+    return _build_response(
+        req, steps, records, resolution, False, last_verified, transformation_audit=transformation_audit
+    )
 
 
 @app.post("/api/integrate/upload", response_model=IntegrationResponse)
@@ -312,7 +360,7 @@ async def integrate_with_upload(
         raise HTTPException(
             413, f"Uploaded file exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit."
         )
-    steps, records, resolution = _run_integration_or_502(
+    steps, records, resolution, audit_data = _run_integration_or_502(
         req.disease,
         req.region,
         req.variables,
@@ -323,8 +371,29 @@ async def integrate_with_upload(
         case_data_source="custom_upload",
         upload_content=content,
     )
+    transformation_audit = None
+    if audit_data:
+        human_explanation = explain_data_transformation(audit_data, req.disease, req.region)
+        transformation_audit = DataTransformationAudit(
+            original_columns=audit_data.get("original_columns", []),
+            selected_date_column=audit_data.get("selected_date_column"),
+            selected_value_column=audit_data.get("selected_value_column"),
+            total_rows_received=audit_data.get("total_rows_received", 0),
+            valid_rows_retained=audit_data.get("valid_rows_retained", 0),
+            dropped_rows_count=audit_data.get("dropped_rows_count", 0),
+            transformations_applied=audit_data.get("transformations_applied", []),
+            human_explanation=human_explanation,
+        )
+
     return _build_response(
-        req, steps, records, resolution, False, cache.now_iso(), uploaded_file_name=file.filename
+        req,
+        steps,
+        records,
+        resolution,
+        False,
+        cache.now_iso(),
+        uploaded_file_name=file.filename,
+        transformation_audit=transformation_audit,
     )
 
 

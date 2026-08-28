@@ -217,4 +217,6 @@ def run_integration(
             )
         )
 
-    return steps, records, resolution
+    transformation_audit_data = case_df.attrs.get("transformation_audit")
+    return steps, records, resolution, transformation_audit_data
+

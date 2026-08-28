@@ -44,13 +44,32 @@ def search_case_datasets(keyword: str, limit: int = 8) -> list[dict]:
         )
         if resource_url is None:
             continue
+        title = pkg.get("title", "Untitled dataset")
+        notes = (pkg.get("notes") or "").strip()
+        combined_text = f"{title} {notes}".lower()
+
+        # Score relevance: prefer datasets describing disease case surveillance
+        score = 0
+        for kw in ["cases", "surveillance", "monthly", "yearly", "annual", "time series", "outbreak", "epidemic"]:
+            if kw in combined_text:
+                score += 2
+        for kw in ["boundary", "boundaries", "spending", "facility", "facilities", "roads", "shapefile"]:
+            if kw in combined_text:
+                score -= 3
+
         results.append(
             {
-                "title": pkg.get("title", "Untitled dataset"),
+                "title": title,
                 "organization": pkg.get("organization", {}).get("title", "Unknown organization"),
-                "notes": (pkg.get("notes") or "").strip(),
+                "notes": notes,
                 "dataset_url": f"https://data.humdata.org/dataset/{pkg.get('name', pkg.get('id', ''))}",
                 "resource_url": resource_url,
+                "score": score,
             }
         )
+
+    results.sort(key=lambda x: x.get("score", 0), reverse=True)
+    for r in results:
+        r.pop("score", None)
     return results
+

@@ -232,3 +232,56 @@ def parse_request(
         raise RuntimeError(f"Could not parse the request with the LLM: {exc}") from exc
 
     return _coerce_parsed_json(raw, set(diseases), set(regions), set(climate_sources))
+
+
+def _fallback_audit_explanation(audit: dict) -> str:
+    date_col = audit.get("selected_date_column") or "date"
+    val_col = audit.get("selected_value_column") or "cases"
+    total = audit.get("total_rows_received", 0)
+    valid = audit.get("valid_rows_retained", 0)
+    dropped = audit.get("dropped_rows_count", 0)
+    transforms = ", ".join(audit.get("transformations_applied", [])) or "standard temporal normalization"
+
+    msg = (
+        f"Received {total} row(s) with columns: {audit.get('original_columns')}. "
+        f"Identified '{date_col}' as the temporal index and '{val_col}' as the disease case metric. "
+        f"Applied: {transforms}. Retained {valid} valid record(s)"
+    )
+    if dropped > 0:
+        msg += f" ({dropped} row(s) dropped due to unparseable dates)."
+    else:
+        msg += "."
+    return msg
+
+
+def explain_data_transformation(audit: dict, disease: str = "", region: str = "") -> str:
+    """Generates a plain-language explanation of how the custom dataset was
+    harmonized, which columns were selected, and what was filtered out."""
+    if _client is None:
+        return _fallback_audit_explanation(audit)
+
+    prompt = (
+        "You are an expert data engineer explaining an automated data transformation "
+        "and harmonization step to a researcher or public health official.\n"
+        f"Context: Preparing case data for {disease or 'disease'} in {region or 'region'}.\n"
+        "Audit Log Details:\n"
+        f"- Original Columns Received: {audit.get('original_columns')}\n"
+        f"- Selected Date Column: {audit.get('selected_date_column')}\n"
+        f"- Selected Case Value Column: {audit.get('selected_value_column')}\n"
+        f"- Total Input Rows: {audit.get('total_rows_received')}\n"
+        f"- Valid Rows Retained: {audit.get('valid_rows_retained')}\n"
+        f"- Dropped / Filtered Rows: {audit.get('dropped_rows_count')}\n"
+        f"- Transformations Applied: {audit.get('transformations_applied')}\n\n"
+        "Write a concise, transparent 2-4 sentence explanation in plain language explaining: "
+        "1. What raw data was received.\n"
+        "2. Which columns were chosen for dates and case counts.\n"
+        "3. Any rows or noise filtered out/dropped and why.\n"
+        "4. The final clean dataset ready for climate integration."
+    )
+    try:
+        _wait_for_rate_limit_slot()
+        resp = _client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+        return resp.text.strip()
+    except Exception:
+        return _fallback_audit_explanation(audit)
+
