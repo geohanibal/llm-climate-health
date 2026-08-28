@@ -115,6 +115,21 @@ def _normalize_custom_frame(raw: pd.DataFrame) -> pd.DataFrame:
 
     date_key = _find_column(cols, CANDIDATE_DATE_COLUMNS, DATE_KEYWORDS)
     value_key = _find_column(cols, CANDIDATE_VALUE_COLUMNS, VALUE_KEYWORDS)
+    ai_note = None
+
+    if date_key is None or value_key is None:
+        try:
+            from app.services.llm import harmonize_schema_with_llm
+            sample = raw.head(5).to_dict(orient="records")
+            ai_date, ai_val, ai_note = harmonize_schema_with_llm(list(raw.columns), sample)
+            if ai_date and date_key is None:
+                date_key = ai_date.lower().strip()
+                cols[date_key] = ai_date
+            if ai_val and value_key is None:
+                value_key = ai_val.lower().strip()
+                cols[value_key] = ai_val
+        except Exception:
+            pass
 
     if date_key is None or value_key is None:
         found_cols = [str(c) for c in raw.columns]
@@ -140,6 +155,8 @@ def _normalize_custom_frame(raw: pd.DataFrame) -> pd.DataFrame:
         f"Selected '{date_col}' as temporal index",
         f"Selected '{value_col}' as disease case metric",
     ]
+    if ai_note:
+        transformations.append(f"AI Schema Harmonization: {ai_note}")
 
     out = raw[[date_col, value_col]].copy()
     out.columns = ["raw_date", "value"]

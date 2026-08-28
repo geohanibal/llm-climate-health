@@ -287,3 +287,43 @@ def explain_data_transformation(audit: dict, disease: str = "", region: str = ""
     except Exception:
         return _fallback_audit_explanation(audit)
 
+
+def harmonize_schema_with_llm(
+    columns: list[str], sample_rows: list[dict]
+) -> tuple[str | None, str | None, str]:
+    """Uses Gemini LLM to intelligently infer the date/temporal column and
+    the disease case count / metric column from heterogeneous raw datasets.
+    Returns (date_column, value_column, explanation_note)."""
+    if _client is None:
+        return None, None, "LLM client not configured"
+
+    prompt = (
+        "You are an expert epidemiological data engineer harmonizing heterogeneous health datasets.\n"
+        "Given the columns and sample rows from an external CSV dataset, identify:\n"
+        "1. The column representing the time/date dimension (e.g. year, month, date, period, epi_week, timestamp).\n"
+        "2. The column representing the disease cases / health count metric (e.g. cases, count, incidence, confirmed, suspected, fever).\n\n"
+        f"Available columns: {columns}\n"
+        f"Sample rows:\n{json.dumps(sample_rows, indent=2, default=str)}\n\n"
+        "Respond ONLY with a JSON object with keys:\n"
+        "- date_column: string matching one of the available column names exactly, or null if no temporal column exists\n"
+        "- value_column: string matching one of the available column names exactly, or null if no health metric exists\n"
+        "- notes: short 1-sentence explanation of your selection"
+    )
+    try:
+        _wait_for_rate_limit_slot()
+        resp = _client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config={"response_mime_type": "application/json"},
+        )
+        data = json.loads(resp.text)
+        raw_date = data.get("date_column")
+        raw_val = data.get("value_column")
+        col_lookup = {c.lower().strip(): c for c in columns}
+        actual_date = col_lookup.get(str(raw_date).lower().strip()) if raw_date else None
+        actual_val = col_lookup.get(str(raw_val).lower().strip()) if raw_val else None
+        return actual_date, actual_val, str(data.get("notes") or "Identified by AI")
+    except Exception as exc:
+        return None, None, f"AI schema inference failed: {exc}"
+
+
