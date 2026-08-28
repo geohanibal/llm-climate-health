@@ -17,3 +17,6 @@ scratch/
 *.aux
 *.out
 *.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz

@@ -11,6 +11,7 @@ import 'case_chart_card.dart';
 import 'data_audit_card.dart';
 import 'dataset_table_card.dart';
 import 'explanation_card.dart';
+import 'kpi_summary_card.dart';
 import 'pipeline_steps_card.dart';
 import 'report_download_bar.dart';
 import 'sources_card.dart';
@@ -41,6 +42,8 @@ class ResultsView extends StatelessWidget {
           explanation: result.explanation,
           explanationSource: result.explanationSource,
         ),
+        const SizedBox(height: 16),
+        KpiSummaryCard(data: result.data, resolution: result.resolution),
         const SizedBox(height: 16),
         CaseChartCard(data: result.data, resolution: result.resolution),
         const SizedBox(height: 16),

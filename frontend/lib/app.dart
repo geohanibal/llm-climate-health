@@ -33,6 +33,8 @@ class AppColors {
   static const chartCasesDark = Color(0xFF2E9E80);
   static const chartTemperature = Color(0xFFDB6B2C);
   static const chartTemperatureDark = Color(0xFFD3722E);
+  static const chartPrecipitation = Color(0xFF1E88E5);
+  static const chartPrecipitationDark = Color(0xFF64B5F6);
 }
 
 class ClimateHealthApp extends StatelessWidget {
