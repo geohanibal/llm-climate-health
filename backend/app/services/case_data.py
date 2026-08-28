@@ -193,13 +193,21 @@ def _filter_range(df: pd.DataFrame, start: date, end: date) -> pd.DataFrame:
     return out
 
 
+def _safe_read_csv(source: io.StringIO | io.BytesIO) -> pd.DataFrame:
+    try:
+        return pd.read_csv(source, on_bad_lines="skip")
+    except Exception:
+        source.seek(0)
+        return pd.read_csv(source, sep=None, engine="python", on_bad_lines="skip")
+
+
 def get_case_data_from_url(url: str, start: date, end: date) -> pd.DataFrame:
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
-    df = _normalize_custom_frame(pd.read_csv(io.StringIO(resp.text)))
+    df = _normalize_custom_frame(_safe_read_csv(io.StringIO(resp.text)))
     return _filter_range(df, start, end)
 
 
 def get_case_data_from_upload(content: bytes, start: date, end: date) -> pd.DataFrame:
-    df = _normalize_custom_frame(pd.read_csv(io.BytesIO(content)))
+    df = _normalize_custom_frame(_safe_read_csv(io.BytesIO(content)))
     return _filter_range(df, start, end)
