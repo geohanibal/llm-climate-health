@@ -9,7 +9,7 @@ from datetime import date
 
 import pandas as pd
 
-from app.config import CLIMATE_SOURCES, DISEASES, REGIONS, DiseaseMeta
+from app.config import CLIMATE_SOURCES, DISEASES, POPULATION_SOURCES, REGIONS, DiseaseMeta
 from app.models import PeriodRecord
 from app.services.case_data import (
     get_builtin_case_data,
@@ -115,6 +115,7 @@ def run_integration(
     aggregation: str = "native",
     climate_source: str = "open-meteo-era5",
     case_data_source: str = "builtin",
+    population_source: str = "worldbank",
     custom_source_url: str | None = None,
     upload_content: bytes | None = None,
     who_indicator_code: str | None = None,
@@ -197,7 +198,7 @@ def run_integration(
             "as the mean annual total, and cases as the decade's total count."
         )
 
-    pop_df = get_population_data(region, start, end, resolution=resolution)
+    pop_df = get_population_data(region, start, end, resolution=resolution, source=population_source)
 
     merged = pd.merge(case_agg, climate_df, on="period", how="outer")
     if not pop_df.empty:
@@ -210,8 +211,9 @@ def run_integration(
         f"{len(merged)} aligned rows."
     )
     if not pop_df.empty:
+        pop_source_label = POPULATION_SOURCES.get(population_source, {}).get("label", population_source)
         steps.append(
-            f"Linked demographic population series for {region} (World Bank / UN WPP) "
+            f"Linked demographic population series for {region} ({pop_source_label}) "
             f"and calculated disease incidence rate per 100,000 population."
         )
 

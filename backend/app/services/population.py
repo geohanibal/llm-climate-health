@@ -61,6 +61,7 @@ def get_population_data(
     start: date,
     end: date,
     resolution: str = "year",
+    source: str = "worldbank",
 ) -> pd.DataFrame:
     """Returns a DataFrame with columns ['period', 'population'] aligned to
     the requested temporal resolution ('month', 'year', 'decade') for the given region."""

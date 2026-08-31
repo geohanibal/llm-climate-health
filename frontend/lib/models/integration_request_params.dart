@@ -17,6 +17,7 @@ class IntegrationRequestParams {
   final String aggregation;
   final String climateSource;
   final String caseDataSource;
+  final String populationSource;
   final String? customSourceUrl;
   final Uint8List? uploadedFileBytes;
   final String? uploadedFileName;
@@ -32,6 +33,7 @@ class IntegrationRequestParams {
     required this.aggregation,
     required this.climateSource,
     required this.caseDataSource,
+    this.populationSource = 'worldbank',
     this.customSourceUrl,
     this.uploadedFileBytes,
     this.uploadedFileName,

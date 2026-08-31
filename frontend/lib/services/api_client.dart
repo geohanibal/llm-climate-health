@@ -92,6 +92,7 @@ class ApiClient {
         'aggregation': params.aggregation,
         'climate_source': params.climateSource,
         'case_data_source': params.caseDataSource,
+        'population_source': params.populationSource,
         'custom_source_url': params.customSourceUrl,
         'who_indicator_code': params.whoIndicatorCode,
         'who_indicator_name': params.whoIndicatorName,
@@ -115,6 +116,7 @@ class ApiClient {
       ..fields['end_date'] = _formatDate(params.endDate)
       ..fields['aggregation'] = params.aggregation
       ..fields['climate_source'] = params.climateSource
+      ..fields['population_source'] = params.populationSource
       ..files.add(
         http.MultipartFile.fromBytes(
           'file',

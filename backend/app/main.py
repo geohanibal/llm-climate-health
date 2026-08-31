@@ -25,6 +25,7 @@ from app.config import (
     DISEASE_REGION_COVERAGE,
     DISEASES,
     DISEASES_WITH_DATA,
+    POPULATION_SOURCES,
     REGIONS,
 )
 from pydantic import BaseModel
@@ -99,6 +100,7 @@ def options():
             source: sorted(regions) for source, regions in CLIMATE_SOURCE_REGIONS.items()
         },
         "case_data_sources": CASE_DATA_SOURCES,
+        "population_sources": POPULATION_SOURCES,
     }
 
 
@@ -230,10 +232,15 @@ def _build_response(
     else:
         case_source_citation = f"Case counts: user-uploaded file '{uploaded_file_name}'"
 
+    pop_source = POPULATION_SOURCES.get(req.population_source, {})
+    pop_citation = pop_source.get(
+        "citation",
+        "World Bank Group (2024), World Development Indicators: Population, total (SP.POP.TOTL)",
+    )
     sources = [
         f"Climate data: {CLIMATE_SOURCES[req.climate_source]['citation']}",
         case_source_citation,
-        "Demographics & Population: World Bank Open Data (indicator SP.POP.TOTL) / UN World Population Prospects",
+        f"Demographics & Population: {pop_citation}",
     ]
     return IntegrationResponse(
         request_echo=req,
@@ -266,6 +273,7 @@ def integrate(req: IntegrationRequest):
         aggregation=req.aggregation,
         climate_source=req.climate_source,
         case_data_source=req.case_data_source,
+        population_source=req.population_source,
         custom_source_url=req.custom_source_url,
         who_indicator_code=req.who_indicator_code,
     )
@@ -295,6 +303,7 @@ def integrate(req: IntegrationRequest):
         aggregation=req.aggregation,
         climate_source=req.climate_source,
         case_data_source=req.case_data_source,
+        population_source=req.population_source,
         custom_source_url=req.custom_source_url,
         who_indicator_code=req.who_indicator_code,
         who_indicator_name=req.who_indicator_name,
@@ -340,6 +349,7 @@ async def integrate_with_upload(
     end_date: str = Form(...),
     aggregation: str = Form("native"),
     climate_source: str = Form("open-meteo-era5"),
+    population_source: str = Form("worldbank"),
     file: UploadFile = File(...),
 ):
     """Same pipeline as /api/integrate, but the case-count series comes from
@@ -353,6 +363,7 @@ async def integrate_with_upload(
         aggregation=aggregation,
         climate_source=climate_source,
         case_data_source="custom_upload",
+        population_source=population_source,
     )
     _validate_common(req)
 
@@ -370,6 +381,7 @@ async def integrate_with_upload(
         aggregation=req.aggregation,
         climate_source=req.climate_source,
         case_data_source="custom_upload",
+        population_source=req.population_source,
         upload_content=content,
     )
     transformation_audit = None

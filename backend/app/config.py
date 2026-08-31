@@ -157,4 +157,15 @@ CASE_DATA_SOURCES = {
     },
 }
 
+POPULATION_SOURCES = {
+    "worldbank": {
+        "label": "World Bank Open Data (SP.POP.TOTL)",
+        "citation": "World Bank Group (2024), World Development Indicators: Population, total (SP.POP.TOTL), data.worldbank.org",
+    },
+    "un_wpp": {
+        "label": "United Nations Population Division (UN WPP 2024)",
+        "citation": "United Nations, Department of Economic and Social Affairs, Population Division (2024). World Population Prospects 2024 (population.un.org)",
+    },
+}
+
 AGGREGATIONS = ["native", "yearly", "decadal"]

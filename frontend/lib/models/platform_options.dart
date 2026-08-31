@@ -23,6 +23,7 @@ class PlatformOptions {
   final Map<String, List<String>> climateSourceRegions;
 
   final List<DataSourceInfo> caseDataSources;
+  final List<DataSourceInfo> populationSources;
 
   const PlatformOptions({
     required this.diseases,
@@ -32,6 +33,7 @@ class PlatformOptions {
     required this.climateSources,
     required this.climateSourceRegions,
     required this.caseDataSources,
+    this.populationSources = const [],
   });
 
   factory PlatformOptions.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,8 @@ class PlatformOptions {
     final climateSourceRegionsJson =
         json['climate_source_regions'] as Map<String, dynamic>? ?? const {};
     final caseDataSourcesJson = json['case_data_sources'] as Map<String, dynamic>;
+    final populationSourcesJson =
+        json['population_sources'] as Map<String, dynamic>? ?? const {};
 
     return PlatformOptions(
       diseases: diseasesJson.map(
@@ -58,6 +62,9 @@ class PlatformOptions {
         (k, v) => MapEntry(k, (v as List).cast<String>()),
       ),
       caseDataSources: caseDataSourcesJson.entries
+          .map((e) => DataSourceInfo.fromEntry(e.key, e.value as Map<String, dynamic>))
+          .toList(),
+      populationSources: populationSourcesJson.entries
           .map((e) => DataSourceInfo.fromEntry(e.key, e.value as Map<String, dynamic>))
           .toList(),
     );

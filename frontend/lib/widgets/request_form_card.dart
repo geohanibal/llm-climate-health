@@ -60,6 +60,7 @@ class RequestFormCardState extends State<RequestFormCard> {
   // already initialized above.
   late String _climateSource = _climateSourceOptions().first.id;
   late String _caseDataSource = _caseDataSourceOptions().first.id;
+  late String _populationSource = _initialPopulationSource();
   String? _whoIndicatorCode;
   String? _whoIndicatorName;
   // Disease the currently-picked WHO indicator was searched/selected for —
@@ -70,6 +71,12 @@ class RequestFormCardState extends State<RequestFormCard> {
   String? _uploadedFileName;
 
   String? _validationError;
+
+  String _initialPopulationSource() {
+    return widget.options.populationSources.isNotEmpty
+        ? widget.options.populationSources.first.id
+        : 'worldbank';
+  }
 
   @override
   void dispose() {
@@ -324,6 +331,7 @@ class RequestFormCardState extends State<RequestFormCard> {
         aggregation: _aggregation,
         climateSource: _climateSource,
         caseDataSource: _caseDataSource,
+        populationSource: _populationSource,
         customSourceUrl:
             _caseDataSource == 'custom_url' ? _customUrlController.text.trim() : null,
         uploadedFileBytes: _caseDataSource == 'custom_upload' ? _uploadedBytes : null,
@@ -369,6 +377,8 @@ class RequestFormCardState extends State<RequestFormCard> {
           ),
           const SizedBox(height: 16),
           _buildClimateSourceDropdown(),
+          const SizedBox(height: 16),
+          _buildPopulationSourceDropdown(),
           const SizedBox(height: 16),
           Text('Case-count data source', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 4),
@@ -526,6 +536,41 @@ class RequestFormCardState extends State<RequestFormCard> {
               ))
           .toList(),
       onChanged: (v) => setState(() => _climateSource = v!),
+    );
+  }
+
+  Widget _buildPopulationSourceDropdown() {
+    final popOptions = widget.options.populationSources;
+    final items = popOptions.isNotEmpty
+        ? popOptions
+        : [
+            const DataSourceInfo(
+              id: 'worldbank',
+              label: 'World Bank Open Data (SP.POP.TOTL)',
+              citation: 'World Bank Group (2024), World Development Indicators: Population, total (SP.POP.TOTL), data.worldbank.org',
+            ),
+            const DataSourceInfo(
+              id: 'un_wpp',
+              label: 'United Nations Population Division (UN WPP 2024)',
+              citation: 'United Nations, Department of Economic and Social Affairs, Population Division (2024). World Population Prospects 2024 (population.un.org)',
+            ),
+          ];
+
+    return DropdownButtonFormField<String>(
+      initialValue: _populationSource,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: 'Population data source (demographics)',
+        border: OutlineInputBorder(),
+        helperText: 'Trusted international demographic source for incidence rate calculation',
+      ),
+      items: items
+          .map((s) => DropdownMenuItem(
+                value: s.id,
+                child: Text(s.label, overflow: TextOverflow.ellipsis),
+              ))
+          .toList(),
+      onChanged: (v) => setState(() => _populationSource = v!),
     );
   }
 

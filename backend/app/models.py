@@ -21,6 +21,7 @@ class IntegrationRequest(BaseModel):
     aggregation: Literal["native", "yearly", "decadal"] = "native"
     climate_source: Literal["open-meteo-era5", "nasa-power", "tmd"] = "open-meteo-era5"
     case_data_source: Literal["builtin", "custom_url", "custom_upload", "who_gho"] = "builtin"
+    population_source: Literal["worldbank", "un_wpp"] = "worldbank"
     custom_source_url: str | None = None
     who_indicator_code: str | None = None
     who_indicator_name: str | None = None

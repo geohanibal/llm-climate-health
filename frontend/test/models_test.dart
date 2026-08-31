@@ -245,4 +245,33 @@ void main() {
       expect(parsed.notes, 'Could not determine a region from the text.');
     });
   });
+
+  group('PlatformOptions.fromJson', () {
+    test('decodes population_sources correctly', () {
+      final options = PlatformOptions.fromJson({
+        'diseases': {
+          'dengue': {'label': 'Dengue', 'native_resolution': 'month', 'regions': ['Thailand']},
+        },
+        'regions': {
+          'Thailand': {'label': 'Thailand', 'lat': 15.87, 'lon': 100.99},
+        },
+        'variables': ['temperature'],
+        'aggregations': ['native'],
+        'climate_sources': {
+          'open-meteo-era5': {'label': 'Open-Meteo', 'citation': 'cite'},
+        },
+        'case_data_sources': {
+          'builtin': {'label': 'Built-in', 'citation': 'cite'},
+        },
+        'population_sources': {
+          'worldbank': {'label': 'World Bank Open Data', 'citation': 'WB 2024'},
+          'un_wpp': {'label': 'UN Population Division', 'citation': 'UN 2024'},
+        },
+      });
+
+      expect(options.populationSources, hasLength(2));
+      expect(options.populationSources.first.id, 'worldbank');
+      expect(options.populationSources.last.id, 'un_wpp');
+    });
+  });
 }
