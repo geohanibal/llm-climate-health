@@ -101,18 +101,27 @@ class ReportPdfService {
 
   pw.Widget _datasetTable(IntegrationResult result) {
     return pw.TableHelper.fromTextArray(
-      headers: const ['Period', 'Cases', 'Temp mean (°C)', 'Precip sum (mm)'],
+      headers: const [
+        'Period',
+        'Cases',
+        'Population',
+        'Incidence / 100k',
+        'Temp mean (°C)',
+        'Precip sum (mm)',
+      ],
       data: result.data
           .map((r) => [
                 r.period,
                 Formatting.caseCount(r.caseCount),
+                Formatting.population(r.population),
+                Formatting.incidenceRate(r.incidenceRatePer100k),
                 Formatting.temperature(r.temperatureMeanC),
                 Formatting.precipitation(r.precipitationSumMm),
               ])
           .toList(),
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.white),
+      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: PdfColors.white),
       headerDecoration: pw.BoxDecoration(color: _brand),
-      cellStyle: const pw.TextStyle(fontSize: 9),
+      cellStyle: const pw.TextStyle(fontSize: 8),
       cellAlignment: pw.Alignment.centerLeft,
       border: null,
     );

@@ -34,6 +34,7 @@ class _CaseChartCardState extends State<CaseChartCard> {
   static final _compactFormat = NumberFormat.compact();
 
   late bool _showCases;
+  late bool _showIncidence;
   late bool _showTemperature;
   late bool _showPrecipitation;
 
@@ -41,6 +42,7 @@ class _CaseChartCardState extends State<CaseChartCard> {
   void initState() {
     super.initState();
     _showCases = widget.data.any((r) => r.caseCount != null);
+    _showIncidence = widget.data.any((r) => r.incidenceRatePer100k != null);
     _showTemperature = widget.data.any((r) => r.temperatureMeanC != null);
     _showPrecipitation = widget.data.any((r) => r.precipitationSumMm != null);
   }
@@ -49,10 +51,11 @@ class _CaseChartCardState extends State<CaseChartCard> {
   Widget build(BuildContext context) {
     final label = _resolutionLabel[widget.resolution] ?? widget.resolution;
     final hasCases = widget.data.any((r) => r.caseCount != null);
+    final hasIncidence = widget.data.any((r) => r.incidenceRatePer100k != null);
     final hasTemps = widget.data.any((r) => r.temperatureMeanC != null);
     final hasPrecip = widget.data.any((r) => r.precipitationSumMm != null);
 
-    if (!hasCases && !hasTemps && !hasPrecip) {
+    if (!hasCases && !hasIncidence && !hasTemps && !hasPrecip) {
       return SectionCard(
         title: 'Case counts & climate per $label',
         leading: Icons.show_chart,
@@ -65,6 +68,7 @@ class _CaseChartCardState extends State<CaseChartCard> {
 
     final activeCount =
         (_showCases && hasCases ? 1 : 0) +
+        (_showIncidence && hasIncidence ? 1 : 0) +
         (_showTemperature && hasTemps ? 1 : 0) +
         (_showPrecipitation && hasPrecip ? 1 : 0);
 
@@ -74,7 +78,7 @@ class _CaseChartCardState extends State<CaseChartCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildToggles(context, hasCases, hasTemps, hasPrecip),
+          _buildToggles(context, hasCases, hasIncidence, hasTemps, hasPrecip),
           const SizedBox(height: 12),
           if (activeCount == 0)
             const Padding(
@@ -92,6 +96,7 @@ class _CaseChartCardState extends State<CaseChartCard> {
               child: _buildChart(
                 context,
                 showCases: _showCases && hasCases,
+                showIncidence: _showIncidence && hasIncidence,
                 showTemps: _showTemperature && hasTemps,
                 showPrecip: _showPrecipitation && hasPrecip,
               ),
@@ -101,9 +106,16 @@ class _CaseChartCardState extends State<CaseChartCard> {
     );
   }
 
-  Widget _buildToggles(BuildContext context, bool hasCases, bool hasTemps, bool hasPrecip) {
+  Widget _buildToggles(
+    BuildContext context,
+    bool hasCases,
+    bool hasIncidence,
+    bool hasTemps,
+    bool hasPrecip,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final caseColor = isDark ? AppColors.chartCasesDark : AppColors.chartCases;
+    final incidenceColor = isDark ? AppColors.chartIncidenceDark : AppColors.chartIncidence;
     final tempColor = isDark ? AppColors.chartTemperatureDark : AppColors.chartTemperature;
     final precipColor = isDark ? AppColors.chartPrecipitationDark : AppColors.chartPrecipitation;
 
@@ -129,6 +141,24 @@ class _CaseChartCardState extends State<CaseChartCard> {
               decoration: BoxDecoration(shape: BoxShape.circle, color: caseColor),
             ),
             onSelected: (val) => setState(() => _showCases = val),
+          ),
+        if (hasIncidence)
+          FilterChip(
+            label: const Text('Incidence / 100k'),
+            selected: _showIncidence,
+            selectedColor: incidenceColor.withAlpha(50),
+            checkmarkColor: incidenceColor,
+            labelStyle: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              color: _showIncidence ? incidenceColor : null,
+            ),
+            avatar: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: incidenceColor),
+            ),
+            onSelected: (val) => setState(() => _showIncidence = val),
           ),
         if (hasTemps)
           FilterChip(
@@ -173,11 +203,13 @@ class _CaseChartCardState extends State<CaseChartCard> {
   Widget _buildChart(
     BuildContext context, {
     required bool showCases,
+    required bool showIncidence,
     required bool showTemps,
     required bool showPrecip,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final caseColor = isDark ? AppColors.chartCasesDark : AppColors.chartCases;
+    final incidenceColor = isDark ? AppColors.chartIncidenceDark : AppColors.chartIncidence;
     final tempColor = isDark ? AppColors.chartTemperatureDark : AppColors.chartTemperature;
     final precipColor = isDark ? AppColors.chartPrecipitationDark : AppColors.chartPrecipitation;
     final outline = Theme.of(context).colorScheme.outline;
@@ -189,6 +221,10 @@ class _CaseChartCardState extends State<CaseChartCard> {
       for (final r in widget.data)
         if (r.caseCount != null) r.caseCount!,
     ]);
+    final incidenceRange = _paddedRange([
+      for (final r in widget.data)
+        if (r.incidenceRatePer100k != null) r.incidenceRatePer100k!,
+    ]);
     final tempRange = _paddedRange([
       for (final r in widget.data)
         if (r.temperatureMeanC != null) r.temperatureMeanC!,
@@ -199,8 +235,10 @@ class _CaseChartCardState extends State<CaseChartCard> {
     ]);
 
     // Choose base coordinate range for chart Y axis:
-    // Priority: Cases -> Precip -> Temp
-    final baseRange = showCases ? caseRange : (showPrecip ? precipRange : tempRange);
+    // Priority: Cases -> Incidence -> Precip -> Temp
+    final baseRange = showCases
+        ? caseRange
+        : (showIncidence ? incidenceRange : (showPrecip ? precipRange : tempRange));
 
     double mapToChartY(double value, ({double min, double max, double span}) srcRange) {
       if (srcRange.span == 0) return (baseRange.min + baseRange.max) / 2;
@@ -220,13 +258,25 @@ class _CaseChartCardState extends State<CaseChartCard> {
           if (widget.data[i].caseCount != null) FlSpot(i.toDouble(), widget.data[i].caseCount!),
     ];
 
+    final incidenceSpots = <FlSpot>[
+      if (showIncidence)
+        for (var i = 0; i < widget.data.length; i++)
+          if (widget.data[i].incidenceRatePer100k != null)
+            FlSpot(
+              i.toDouble(),
+              showCases
+                  ? mapToChartY(widget.data[i].incidenceRatePer100k!, incidenceRange)
+                  : widget.data[i].incidenceRatePer100k!,
+            ),
+    ];
+
     final tempSpots = <FlSpot>[
       if (showTemps)
         for (var i = 0; i < widget.data.length; i++)
           if (widget.data[i].temperatureMeanC != null)
             FlSpot(
               i.toDouble(),
-              showCases || showPrecip
+              showCases || showIncidence || showPrecip
                   ? mapToChartY(widget.data[i].temperatureMeanC!, tempRange)
                   : widget.data[i].temperatureMeanC!,
             ),
@@ -238,7 +288,7 @@ class _CaseChartCardState extends State<CaseChartCard> {
           if (widget.data[i].precipitationSumMm != null)
             FlSpot(
               i.toDouble(),
-              showCases
+              showCases || showIncidence
                   ? mapToChartY(widget.data[i].precipitationSumMm!, precipRange)
                   : widget.data[i].precipitationSumMm!,
             ),
@@ -259,6 +309,22 @@ class _CaseChartCardState extends State<CaseChartCard> {
         ),
       ),
       belowBarData: BarAreaData(show: true, color: caseColor.withAlpha(25)),
+    );
+
+    final incidenceBar = LineChartBarData(
+      spots: incidenceSpots,
+      isCurved: true,
+      barWidth: 2.2,
+      color: incidenceColor,
+      dotData: FlDotData(
+        show: widget.data.length <= 15,
+        getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
+          radius: 4,
+          color: incidenceColor,
+          strokeWidth: 2,
+          strokeColor: Theme.of(context).colorScheme.surface,
+        ),
+      ),
     );
 
     final tempBar = LineChartBarData(
@@ -294,7 +360,7 @@ class _CaseChartCardState extends State<CaseChartCard> {
       ),
     );
 
-    final showRightAxis = showTemps && (showCases || showPrecip);
+    final showRightAxis = showTemps && (showCases || showIncidence || showPrecip);
 
     return LineChart(
       LineChartData(
@@ -308,11 +374,17 @@ class _CaseChartCardState extends State<CaseChartCard> {
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
-              showTitles: showCases || showPrecip || showTemps,
+              showTitles: showCases || showIncidence || showPrecip || showTemps,
               reservedSize: 48,
               getTitlesWidget: (value, meta) => Text(
                 _compactFormat.format(value),
-                style: axisTextStyle.copyWith(color: showCases ? caseColor : (showPrecip ? precipColor : tempColor)),
+                style: axisTextStyle.copyWith(
+                  color: showCases
+                      ? caseColor
+                      : (showIncidence
+                          ? incidenceColor
+                          : (showPrecip ? precipColor : tempColor)),
+                ),
               ),
             ),
           ),
@@ -358,9 +430,11 @@ class _CaseChartCardState extends State<CaseChartCard> {
                     context,
                     prefix: i == 0 ? '$period\n' : '',
                     spot: touchedSpots[i],
+                    incidenceBar: incidenceBar,
                     tempBar: tempBar,
                     precipBar: precipBar,
                     caseColor: caseColor,
+                    incidenceColor: incidenceColor,
                     tempColor: tempColor,
                     precipColor: precipColor,
                     record: record,
@@ -371,6 +445,7 @@ class _CaseChartCardState extends State<CaseChartCard> {
         ),
         lineBarsData: [
           if (showCases) caseBar,
+          if (showIncidence) incidenceBar,
           if (showTemps) tempBar,
           if (showPrecip) precipBar,
         ],
@@ -382,9 +457,11 @@ class _CaseChartCardState extends State<CaseChartCard> {
     BuildContext context, {
     required String prefix,
     required LineBarSpot spot,
+    required LineChartBarData incidenceBar,
     required LineChartBarData tempBar,
     required LineChartBarData precipBar,
     required Color caseColor,
+    required Color incidenceColor,
     required Color tempColor,
     required Color precipColor,
     required PeriodRecord record,
@@ -398,6 +475,9 @@ class _CaseChartCardState extends State<CaseChartCard> {
     } else if (spot.bar == precipBar) {
       label = Formatting.precipitation(record.precipitationSumMm);
       color = precipColor;
+    } else if (spot.bar == incidenceBar) {
+      label = Formatting.incidenceRate(record.incidenceRatePer100k);
+      color = incidenceColor;
     } else {
       label = Formatting.caseCount(record.caseCount);
       color = caseColor;

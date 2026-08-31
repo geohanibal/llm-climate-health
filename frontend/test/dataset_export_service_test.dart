@@ -34,7 +34,14 @@ class _FakeDownloadService implements BrowserDownloadService {
 
 void main() {
   const data = [
-    PeriodRecord(period: '2020-01', caseCount: 5, temperatureMeanC: 26.0, precipitationSumMm: 10.0),
+    PeriodRecord(
+      period: '2020-01',
+      caseCount: 5,
+      population: 70000000,
+      incidenceRatePer100k: 0.007,
+      temperatureMeanC: 26.0,
+      precipitationSumMm: 10.0,
+    ),
     PeriodRecord(period: '2020-02'),
   ];
 
@@ -43,9 +50,12 @@ void main() {
     final csv = service.toCsv(data);
     final lines = const LineSplitter().convert(csv.trim());
 
-    expect(lines[0], 'period,case_count,temperature_mean_c,precipitation_sum_mm');
-    expect(lines[1], '2020-01,5.0,26.0,10.0');
-    expect(lines[2], '2020-02,,,');
+    expect(
+      lines[0],
+      'period,case_count,population,incidence_rate_per_100k,temperature_mean_c,precipitation_sum_mm',
+    );
+    expect(lines[1], '2020-01,5.0,70000000.0,0.007,26.0,10.0');
+    expect(lines[2], '2020-02,,,,,');
   });
 
   test('toJson round-trips through PeriodRecord.toJson', () {
@@ -55,6 +65,8 @@ void main() {
     expect(decoded, hasLength(2));
     expect(decoded[0]['period'], '2020-01');
     expect(decoded[0]['case_count'], 5.0);
+    expect(decoded[0]['population'], 70000000.0);
+    expect(decoded[0]['incidence_rate_per_100k'], 0.007);
     expect(decoded[1]['case_count'], isNull);
   });
 
@@ -66,7 +78,7 @@ void main() {
 
     expect(fake.lastFileName, 'my_dataset.csv');
     expect(fake.lastMimeType, 'text/csv');
-    expect(fake.lastContent, contains('2020-01,5.0,26.0,10.0'));
+    expect(fake.lastContent, contains('2020-01,5.0,70000000.0,0.007,26.0,10.0'));
   });
 
   test('export(json) hands the JSON text to the injected download service', () {

@@ -23,10 +23,12 @@ class KpiSummaryCard extends StatelessWidget {
     if (data.isEmpty) return const SizedBox.shrink();
 
     final casesList = [for (final r in data) if (r.caseCount != null) r.caseCount!];
+    final popList = [for (final r in data) if (r.population != null) r.population!];
     final tempList = [for (final r in data) if (r.temperatureMeanC != null) r.temperatureMeanC!];
     final precipList = [for (final r in data) if (r.precipitationSumMm != null) r.precipitationSumMm!];
 
     final totalCases = casesList.isEmpty ? null : casesList.reduce((a, b) => a + b);
+    final avgPop = popList.isEmpty ? null : popList.reduce((a, b) => a + b) / popList.length;
     final avgTemp = tempList.isEmpty ? null : tempList.reduce((a, b) => a + b) / tempList.length;
     final totalPrecip = precipList.isEmpty ? null : precipList.reduce((a, b) => a + b);
     final avgPrecip = precipList.isEmpty ? null : totalPrecip! / precipList.length;
@@ -48,6 +50,17 @@ class KpiSummaryCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 600;
+        final popSubtitle = avgPop != null
+            ? '${casesList.length} periods (Pop: ${NumberFormat.compact().format(avgPop)})'
+            : '${casesList.length} reported periods';
+
+        final peakSubtitle = peakRecord != null && peakRecord.caseCount != null
+            ? '${_numberFormat.format(peakRecord.caseCount!.round())} cases' +
+                (peakRecord.incidenceRatePer100k != null
+                    ? ' (${peakRecord.incidenceRatePer100k!.toStringAsFixed(1)}/100k)'
+                    : '')
+            : 'No peak data';
+
         return Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -56,7 +69,7 @@ class KpiSummaryCard extends StatelessWidget {
               width: isMobile ? (constraints.maxWidth - 12) / 2 : (constraints.maxWidth - 36) / 4,
               title: 'Total Cases',
               value: totalCases != null ? _numberFormat.format(totalCases.round()) : '—',
-              subtitle: '${casesList.length} reported periods',
+              subtitle: popSubtitle,
               icon: Icons.personal_injury_outlined,
               color: caseColor,
             ),
@@ -84,9 +97,7 @@ class KpiSummaryCard extends StatelessWidget {
               value: peakRecord != null && peakRecord.caseCount != null
                   ? peakRecord.period
                   : '—',
-              subtitle: peakRecord != null && peakRecord.caseCount != null
-                  ? '${_numberFormat.format(peakRecord.caseCount!.round())} cases'
-                  : 'No peak data',
+              subtitle: peakSubtitle,
               icon: Icons.trending_up_outlined,
               color: Colors.purple,
             ),

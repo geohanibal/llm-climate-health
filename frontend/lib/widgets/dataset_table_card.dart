@@ -43,6 +43,8 @@ class DatasetTableCard extends StatelessWidget {
           columns: const [
             DataColumn(label: Text('Period')),
             DataColumn(label: Text('Cases')),
+            DataColumn(label: Text('Population')),
+            DataColumn(label: Text('Incidence / 100k')),
             DataColumn(label: Text('Temp mean (°C)')),
             DataColumn(label: Text('Precip sum (mm)')),
           ],
@@ -51,6 +53,8 @@ class DatasetTableCard extends StatelessWidget {
                 (r) => DataRow(cells: [
                   DataCell(Text(r.period)),
                   DataCell(Text(Formatting.caseCount(r.caseCount))),
+                  DataCell(Text(Formatting.population(r.population))),
+                  DataCell(Text(Formatting.incidenceRate(r.incidenceRatePer100k))),
                   DataCell(Text(Formatting.temperature(r.temperatureMeanC))),
                   DataCell(Text(Formatting.precipitation(r.precipitationSumMm))),
                 ]),

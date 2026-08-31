@@ -17,6 +17,16 @@ class Formatting {
     return _caseCount.format(value.round());
   }
 
+  static String population(double? value) {
+    if (value == null) return '—';
+    return _caseCount.format(value.round());
+  }
+
+  static String incidenceRate(double? value) {
+    if (value == null) return '—';
+    return '${value.toStringAsFixed(2)} / 100k';
+  }
+
   static String temperature(double? value) {
     if (value == null) return '—';
     return '${value.toStringAsFixed(1)}°C';

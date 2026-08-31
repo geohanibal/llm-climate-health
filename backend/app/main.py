@@ -233,6 +233,7 @@ def _build_response(
     sources = [
         f"Climate data: {CLIMATE_SOURCES[req.climate_source]['citation']}",
         case_source_citation,
+        "Demographics & Population: World Bank Open Data (indicator SP.POP.TOTL) / UN World Population Prospects",
     ]
     return IntegrationResponse(
         request_echo=req,

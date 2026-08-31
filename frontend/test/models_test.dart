@@ -68,6 +68,8 @@ void main() {
           {
             'period': '2020-01',
             'case_count': 12.0,
+            'population': 71641484.0,
+            'incidence_rate_per_100k': 0.017,
             'temperature_mean_c': 26.5,
             'precipitation_sum_mm': 100.0,
           },
@@ -84,6 +86,8 @@ void main() {
       expect(result.explanationSource, 'llm');
       expect(result.data, hasLength(1));
       expect(result.data.first.caseCount, 12.0);
+      expect(result.data.first.population, 71641484.0);
+      expect(result.data.first.incidenceRatePer100k, 0.017);
       expect(result.cached, true);
     });
 

@@ -14,15 +14,37 @@ Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: SingleChildScroll
 void main() {
   testWidgets('renders series and their toggle chips when data is present', (tester) async {
     const data = [
-      PeriodRecord(period: '2020-01', caseCount: 5, temperatureMeanC: 26.0, precipitationSumMm: 120.0),
-      PeriodRecord(period: '2020-02', caseCount: 12, temperatureMeanC: 27.5, precipitationSumMm: 150.0),
-      PeriodRecord(period: '2020-03', caseCount: 3, temperatureMeanC: 25.1, precipitationSumMm: 80.0),
+      PeriodRecord(
+        period: '2020-01',
+        caseCount: 5,
+        population: 70000000,
+        incidenceRatePer100k: 0.007,
+        temperatureMeanC: 26.0,
+        precipitationSumMm: 120.0,
+      ),
+      PeriodRecord(
+        period: '2020-02',
+        caseCount: 12,
+        population: 70000000,
+        incidenceRatePer100k: 0.017,
+        temperatureMeanC: 27.5,
+        precipitationSumMm: 150.0,
+      ),
+      PeriodRecord(
+        period: '2020-03',
+        caseCount: 3,
+        population: 70000000,
+        incidenceRatePer100k: 0.004,
+        temperatureMeanC: 25.1,
+        precipitationSumMm: 80.0,
+      ),
     ];
 
     await tester.pumpWidget(_wrap(const CaseChartCard(data: data, resolution: 'month')));
 
     expect(find.text('Case counts & climate per month'), findsOneWidget);
     expect(find.text('Cases (left axis)'), findsOneWidget);
+    expect(find.text('Incidence / 100k'), findsOneWidget);
     expect(find.text('Temperature (right axis)'), findsOneWidget);
     expect(find.text('Precipitation'), findsOneWidget);
     expect(tester.takeException(), isNull);

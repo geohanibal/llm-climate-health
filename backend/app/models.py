@@ -29,6 +29,8 @@ class IntegrationRequest(BaseModel):
 class PeriodRecord(BaseModel):
     period: str
     case_count: float | None = None
+    population: float | None = None
+    incidence_rate_per_100k: float | None = None
     temperature_mean_c: float | None = None
     precipitation_sum_mm: float | None = None
 

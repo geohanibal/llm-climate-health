@@ -35,10 +35,13 @@ class DatasetExportService {
   }
 
   String toCsv(List<PeriodRecord> data) {
-    final buffer = StringBuffer('period,case_count,temperature_mean_c,precipitation_sum_mm\n');
+    final buffer = StringBuffer(
+      'period,case_count,population,incidence_rate_per_100k,temperature_mean_c,precipitation_sum_mm\n',
+    );
     for (final record in data) {
       buffer.writeln(
         '${record.period},${record.caseCount ?? ''},'
+        '${record.population ?? ''},${record.incidenceRatePer100k ?? ''},'
         '${record.temperatureMeanC ?? ''},${record.precipitationSumMm ?? ''}',
       );
     }

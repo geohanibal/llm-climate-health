@@ -17,6 +17,7 @@ from app.services.case_data import (
     get_case_data_from_url,
 )
 from app.services.climate import fetch_climate
+from app.services.population import get_population_data
 from app.services.tmd import fetch_tmd_climate
 from app.services.who_gho import fetch_who_gho_case_data
 
@@ -196,22 +197,41 @@ def run_integration(
             "as the mean annual total, and cases as the decade's total count."
         )
 
-    merged = pd.merge(case_agg, climate_df, on="period", how="outer").sort_values("period")
+    pop_df = get_population_data(region, start, end, resolution=resolution)
+
+    merged = pd.merge(case_agg, climate_df, on="period", how="outer")
+    if not pop_df.empty:
+        merged = pd.merge(merged, pop_df, on="period", how="left")
+    merged = merged.sort_values("period")
+
     steps.append(
         f"Temporally joined the {disease.label} and climate series on a "
         f"shared {_RESOLUTION_LABEL[resolution]} period key, producing "
         f"{len(merged)} aligned rows."
     )
+    if not pop_df.empty:
+        steps.append(
+            f"Linked demographic population series for {region} (World Bank / UN WPP) "
+            f"and calculated disease incidence rate per 100,000 population."
+        )
 
     def clean(value):
         return None if value is None or pd.isna(value) else float(value)
 
     records = []
     for _, row in merged.iterrows():
+        case_val = clean(row.get("value"))
+        pop_val = clean(row.get("population"))
+        incidence_val = None
+        if case_val is not None and pop_val is not None and pop_val > 0:
+            incidence_val = round((case_val / pop_val) * 100000.0, 3)
+
         records.append(
             PeriodRecord(
                 period=row["period"],
-                case_count=clean(row.get("value")),
+                case_count=case_val,
+                population=pop_val,
+                incidence_rate_per_100k=incidence_val,
                 temperature_mean_c=clean(row.get("temperature_2m_mean")),
                 precipitation_sum_mm=clean(row.get("precipitation_sum")),
             )

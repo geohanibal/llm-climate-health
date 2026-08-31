@@ -63,6 +63,8 @@ def build_prompt(
     sample = records[:3] + records[-3:] if len(records) > 6 else records
     sample_text = "\n".join(
         f"- {r.period}: case_count={r.case_count}, "
+        f"population={int(r.population) if r.population else 'N/A'}, "
+        f"incidence_per_100k={r.incidence_rate_per_100k}, "
         f"temp_mean_c={r.temperature_mean_c}, "
         f"precip_sum_mm={r.precipitation_sum_mm}"
         for r in sample
@@ -75,10 +77,10 @@ def build_prompt(
         "what was done and what the data shows. Mention that "
         "temperature/precipitation figures come from reanalysis (a "
         "physically consistent reconstruction of historical weather, not a "
-        "raw station reading), highlight any observable seasonal trends or "
-        "associations between weather conditions (e.g. wetter or warmer seasons) "
-        "and disease activity, and make clear this is descriptive "
-        "integrated data, not a disease prediction.\n\n"
+        "raw station reading), highlight any observable seasonal trends, "
+        "incidence rates per 100,000 population or associations between "
+        "weather conditions (e.g. wetter or warmer seasons) and disease activity, "
+        "and make clear this is descriptive integrated data, not a disease prediction.\n\n"
         f"Disease: {disease}\nRegion: {region}\n\n"
         "Pipeline steps performed:\n"
         + "\n".join(f"- {s}" for s in steps)
