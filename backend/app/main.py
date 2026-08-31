@@ -411,8 +411,7 @@ async def integrate_with_upload(
 
 
 # Serve the built Flutter web app (if present) so a single deployed
-# container can host both the API and the frontend on one URL. Mounted
-# last so it never shadows the /api/* routes registered above.
+# container or local server can host both the API and the frontend on one URL.
 _STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 if _STATIC_DIR.exists():
     app.mount("/", StaticFiles(directory=_STATIC_DIR, html=True), name="static")
