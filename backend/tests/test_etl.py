@@ -115,7 +115,7 @@ def test_run_integration_decadal_aggregation_averages_yearly_climate(mock_climat
             "precipitation_sum": [100.0, 200.0],
         }
     )
-    steps, records, resolution, audit = run_integration(
+    steps, records, resolution, audit, stat_summary = run_integration(
         "dengue",
         "Thailand",
         ["temperature", "precipitation"],
@@ -129,4 +129,5 @@ def test_run_integration_decadal_aggregation_averages_yearly_climate(mock_climat
     assert records[0].temperature_mean_c == 26.0
     assert records[0].precipitation_sum_mm == 150.0
     assert any("decade" in s for s in steps)
+    assert stat_summary is not None
 

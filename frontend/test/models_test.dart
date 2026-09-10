@@ -133,6 +133,58 @@ void main() {
       expect(result.transformationAudit!.totalRowsReceived, 10);
       expect(result.transformationAudit!.humanExplanation, 'AI audit summary.');
     });
+
+    test('decodes statistical_summary when present', () {
+      final result = IntegrationResult.fromJson({
+        'request_echo': {'disease': 'dengue', 'region': 'Thailand'},
+        'resolution': 'month',
+        'steps': <String>[],
+        'explanation': 'test explanation',
+        'data': <Map<String, dynamic>>[],
+        'sources': <String>[],
+        'statistical_summary': {
+          'sample_size': 24,
+          'peak_period': '2021-08',
+          'peak_cases': 1250.0,
+          'peak_incidence_per_100k': 1.82,
+          'mean_temperature_c': 28.3,
+          'mean_precipitation_mm': 175.4,
+          'total_cases': 8450.0,
+          'scientific_disclaimer': 'Methodological disclaimer text.',
+          'correlations': [
+            {
+              'variable': 'temperature',
+              'lag_periods': 0,
+              'pearson_r': 0.45,
+              'pearson_p': 0.02,
+              'spearman_rho': 0.42,
+              'spearman_p': 0.03,
+              'significant': true,
+              'sample_size': 24,
+            },
+            {
+              'variable': 'precipitation',
+              'lag_periods': 1,
+              'pearson_r': 0.65,
+              'pearson_p': 0.001,
+              'spearman_rho': 0.61,
+              'spearman_p': 0.002,
+              'significant': true,
+              'sample_size': 23,
+            },
+          ],
+        },
+      });
+
+      expect(result.statisticalSummary, isNotNull);
+      expect(result.statisticalSummary!.sampleSize, 24);
+      expect(result.statisticalSummary!.peakPeriod, '2021-08');
+      expect(result.statisticalSummary!.peakCases, 1250.0);
+      expect(result.statisticalSummary!.correlations, hasLength(2));
+      expect(result.statisticalSummary!.correlations[1].variable, 'precipitation');
+      expect(result.statisticalSummary!.correlations[1].lagPeriods, 1);
+      expect(result.statisticalSummary!.correlations[1].significant, isTrue);
+    });
   });
 
 

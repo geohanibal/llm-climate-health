@@ -11,7 +11,7 @@ from datetime import date
 from threading import Lock
 
 from app.config import GEMINI_API_KEY, GEMINI_MODEL
-from app.models import ParsedRequest, PeriodRecord
+from app.models import ParsedRequest, PeriodRecord, StatisticalSummary
 
 _client = None
 if GEMINI_API_KEY:
@@ -58,7 +58,11 @@ def _wait_for_rate_limit_slot() -> None:
 
 
 def build_prompt(
-    disease: str, region: str, steps: list[str], records: list[PeriodRecord]
+    disease: str,
+    region: str,
+    steps: list[str],
+    records: list[PeriodRecord],
+    statistical_summary: StatisticalSummary | None = None,
 ) -> str:
     sample = records[:3] + records[-3:] if len(records) > 6 else records
     sample_text = "\n".join(
@@ -69,28 +73,56 @@ def build_prompt(
         f"precip_sum_mm={r.precipitation_sum_mm}"
         for r in sample
     )
+
+    stat_text = ""
+    if statistical_summary:
+        corr_lines = []
+        for c in statistical_summary.correlations:
+            sig_flag = " [p<0.05, statistically significant]" if c.significant else ""
+            corr_lines.append(
+                f"- {c.variable} at Lag {c.lag_periods}: Pearson r={c.pearson_r} (p={c.pearson_p}), "
+                f"Spearman rho={c.spearman_rho} (p={c.spearman_p}){sig_flag}"
+            )
+        stat_text = (
+            f"\n\nFull-Series Statistical & Epidemiological Profile ({statistical_summary.sample_size} periods):\n"
+            f"- Total reported cases: {statistical_summary.total_cases}\n"
+            f"- Peak outbreak period: {statistical_summary.peak_period} ({statistical_summary.peak_cases} cases"
+            + (f", {statistical_summary.peak_incidence_per_100k} per 100k" if statistical_summary.peak_incidence_per_100k else "")
+            + ")\n"
+            f"- Mean temperature across series: {statistical_summary.mean_temperature_c} °C\n"
+            f"- Mean precipitation across series: {statistical_summary.mean_precipitation_mm} mm\n"
+            "Cross-correlations across time lags (evaluating delayed weather impacts):\n"
+            + ("\n".join(corr_lines) if corr_lines else "- No correlations computable")
+        )
+
     return (
         "You are explaining a climate-health data integration pipeline to a "
         "user who has no programming or climate-science background. Given "
-        "the processing steps and a sample of the resulting joined dataset "
-        "below, write a short (4-6 sentence) plain-language explanation of "
-        "what was done and what the data shows. Mention that "
+        "the processing steps, full-series statistical profile, and sample of "
+        "the resulting joined dataset below, write a short (4-6 sentence) plain-language "
+        "explanation of what was done and what the data reveals. Mention that "
         "temperature/precipitation figures come from reanalysis (a "
         "physically consistent reconstruction of historical weather, not a "
         "raw station reading), highlight any observable seasonal trends, "
         "incidence rates per 100,000 population or associations between "
-        "weather conditions (e.g. wetter or warmer seasons) and disease activity, "
-        "and make clear this is descriptive integrated data, not a disease prediction.\n\n"
+        "weather conditions and disease activity (specifically note which time lag "
+        "shows the strongest association), and make clear this is descriptive "
+        "integrated data, not a disease prediction.\n\n"
         f"Disease: {disease}\nRegion: {region}\n\n"
         "Pipeline steps performed:\n"
         + "\n".join(f"- {s}" for s in steps)
+        + stat_text
         + "\n\nSample of joined data (each row is one time period):\n"
         + sample_text
     )
 
 
 def explain_pipeline(
-    disease: str, region: str, steps: list[str], records: list[PeriodRecord]
+    disease: str,
+    region: str,
+    steps: list[str],
+    records: list[PeriodRecord],
+    statistical_summary: StatisticalSummary | None = None,
 ) -> tuple[str, str]:
     """Returns (explanation_text, source) where source is "llm" or
     "fallback" — the caller surfaces this to the user so a canned string is
@@ -98,7 +130,7 @@ def explain_pipeline(
     if _client is None:
         return FALLBACK_EXPLANATION, "fallback"
 
-    prompt = build_prompt(disease, region, steps, records)
+    prompt = build_prompt(disease, region, steps, records, statistical_summary=statistical_summary)
 
     try:
         _wait_for_rate_limit_slot()

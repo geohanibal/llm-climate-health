@@ -50,6 +50,29 @@ class DataTransformationAudit(BaseModel):
     human_explanation: str = ""
 
 
+class CorrelationMetric(BaseModel):
+    variable: str
+    lag_periods: int
+    pearson_r: float | None = None
+    pearson_p: float | None = None
+    spearman_rho: float | None = None
+    spearman_p: float | None = None
+    significant: bool = False
+    sample_size: int = 0
+
+
+class StatisticalSummary(BaseModel):
+    sample_size: int
+    correlations: list[CorrelationMetric] = Field(default_factory=list)
+    peak_period: str | None = None
+    peak_cases: float | None = None
+    peak_incidence_per_100k: float | None = None
+    mean_temperature_c: float | None = None
+    mean_precipitation_mm: float | None = None
+    total_cases: float | None = None
+    scientific_disclaimer: str = ""
+
+
 class IntegrationResponse(BaseModel):
     request_echo: IntegrationRequest
     resolution: Literal["month", "year", "decade"]
@@ -61,6 +84,7 @@ class IntegrationResponse(BaseModel):
     cached: bool = False
     last_verified: str
     transformation_audit: DataTransformationAudit | None = None
+    statistical_summary: StatisticalSummary | None = None
 
 
 class DiscoveredSource(BaseModel):

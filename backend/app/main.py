@@ -27,6 +27,8 @@ from app.config import (
     DISEASES_WITH_DATA,
     POPULATION_SOURCES,
     REGIONS,
+    TMD_API_UID,
+    TMD_API_UKEY,
 )
 from pydantic import BaseModel
 
@@ -36,6 +38,7 @@ from app.models import (
     IntegrationRequest,
     IntegrationResponse,
     ParsedRequest,
+    StatisticalSummary,
 )
 from app.services import cache
 from app.services.etl import run_integration
@@ -216,8 +219,11 @@ def _build_response(
     last_verified: str,
     uploaded_file_name: str | None = None,
     transformation_audit: DataTransformationAudit | None = None,
+    statistical_summary: StatisticalSummary | None = None,
 ) -> IntegrationResponse:
-    explanation, explanation_source = explain_pipeline(req.disease, req.region, steps, records)
+    explanation, explanation_source = explain_pipeline(
+        req.disease, req.region, steps, records, statistical_summary=statistical_summary
+    )
 
     if req.case_data_source == "builtin":
         case_source_citation = f"Case counts: {DISEASES[req.disease].citation}"
@@ -253,6 +259,7 @@ def _build_response(
         cached=cached,
         last_verified=last_verified,
         transformation_audit=transformation_audit,
+        statistical_summary=statistical_summary,
     )
 
 
@@ -284,6 +291,11 @@ def integrate(req: IntegrationRequest):
             if hit.get("transformation_audit")
             else None
         )
+        cached_stats = (
+            StatisticalSummary(**hit["statistical_summary"])
+            if hit.get("statistical_summary")
+            else None
+        )
         return _build_response(
             req,
             hit["steps"],
@@ -292,9 +304,10 @@ def integrate(req: IntegrationRequest):
             True,
             hit["last_verified"],
             transformation_audit=cached_audit,
+            statistical_summary=cached_stats,
         )
 
-    steps, records, resolution, audit_data = _run_integration_or_502(
+    steps, records, resolution, audit_data, stat_summary = _run_integration_or_502(
         req.disease,
         req.region,
         req.variables,
@@ -333,10 +346,20 @@ def integrate(req: IntegrationRequest):
             "transformation_audit": (
                 transformation_audit.model_dump() if transformation_audit else None
             ),
+            "statistical_summary": (
+                stat_summary.model_dump() if stat_summary else None
+            ),
         },
     )
     return _build_response(
-        req, steps, records, resolution, False, last_verified, transformation_audit=transformation_audit
+        req,
+        steps,
+        records,
+        resolution,
+        False,
+        last_verified,
+        transformation_audit=transformation_audit,
+        statistical_summary=stat_summary,
     )
 
 
@@ -372,7 +395,7 @@ async def integrate_with_upload(
         raise HTTPException(
             413, f"Uploaded file exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit."
         )
-    steps, records, resolution, audit_data = _run_integration_or_502(
+    steps, records, resolution, audit_data, stat_summary = _run_integration_or_502(
         req.disease,
         req.region,
         req.variables,
@@ -407,6 +430,7 @@ async def integrate_with_upload(
         cache.now_iso(),
         uploaded_file_name=file.filename,
         transformation_audit=transformation_audit,
+        statistical_summary=stat_summary,
     )
 
 

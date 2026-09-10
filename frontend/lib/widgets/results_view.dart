@@ -15,6 +15,7 @@ import 'kpi_summary_card.dart';
 import 'pipeline_steps_card.dart';
 import 'report_download_bar.dart';
 import 'sources_card.dart';
+import 'statistical_summary_card.dart';
 
 class ResultsView extends StatelessWidget {
   final IntegrationResult result;
@@ -44,6 +45,13 @@ class ResultsView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         KpiSummaryCard(data: result.data, resolution: result.resolution),
+        if (result.statisticalSummary != null) ...[
+          const SizedBox(height: 16),
+          StatisticalSummaryCard(
+            stats: result.statisticalSummary!,
+            resolution: result.resolution,
+          ),
+        ],
         const SizedBox(height: 16),
         CaseChartCard(data: result.data, resolution: result.resolution),
         const SizedBox(height: 16),

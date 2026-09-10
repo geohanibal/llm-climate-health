@@ -18,6 +18,7 @@ from app.services.case_data import (
 )
 from app.services.climate import fetch_climate
 from app.services.population import get_population_data
+from app.services.statistics import compute_statistics
 from app.services.tmd import fetch_tmd_climate
 from app.services.who_gho import fetch_who_gho_case_data
 
@@ -240,5 +241,23 @@ def run_integration(
         )
 
     transformation_audit_data = case_df.attrs.get("transformation_audit")
-    return steps, records, resolution, transformation_audit_data
+    stat_summary = compute_statistics(records, resolution)
+    if stat_summary.correlations:
+        sig_corrs = [c for c in stat_summary.correlations if c.significant]
+        if sig_corrs:
+            sig_desc = ", ".join(
+                f"{c.variable} at Lag {c.lag_periods} (r={c.pearson_r}, p={c.pearson_p})"
+                for c in sig_corrs[:3]
+            )
+            steps.append(
+                f"Conducted cross-correlation analysis across time lags (Lags 0-3). "
+                f"Identified statistically significant associations (p < 0.05): {sig_desc}."
+            )
+        else:
+            steps.append(
+                "Conducted cross-correlation analysis across time lags (Lags 0-3). "
+                "No statistically significant bivariate association was detected at alpha=0.05."
+            )
+
+    return steps, records, resolution, transformation_audit_data, stat_summary
 
