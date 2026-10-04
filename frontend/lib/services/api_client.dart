@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../models/chat_models.dart';
 import '../models/discovered_source.dart';
 import '../models/integration_request_params.dart';
 import '../models/integration_result.dart';
@@ -54,6 +55,25 @@ class ApiClient {
     _throwIfNotOk(response);
     return ParsedRequest.fromJson(_decodeJsonObject(response));
   }
+
+  /// Sends conversation messages and UI state context to the Copilot AI assistant,
+  /// receiving an intelligent, multilingual response with suggested actions/prompts.
+  Future<ChatResponse> sendChatMessage({
+    required List<ChatMessage> messages,
+    ChatContext? context,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$backendBaseUrl/api/chat'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'messages': messages.map((m) => m.toJson()).toList(),
+        if (context != null) 'context': context.toJson(),
+      }),
+    );
+    _throwIfNotOk(response);
+    return ChatResponse.fromJson(_decodeJsonObject(response));
+  }
+
 
   /// Searches WHO GHO and HDX for real, citable case-data sources for a
   /// disease/region, so the user can pick one instead of being limited to

@@ -33,6 +33,8 @@ from app.config import (
 from pydantic import BaseModel
 
 from app.models import (
+    ChatRequest,
+    ChatResponse,
     DataTransformationAudit,
     DiscoveredSource,
     IntegrationRequest,
@@ -41,6 +43,7 @@ from app.models import (
     StatisticalSummary,
 )
 from app.services import cache
+from app.services.chat import process_chat
 from app.services.etl import run_integration
 from app.services.llm import (
     explain_data_transformation,
@@ -133,6 +136,15 @@ def parse_request_endpoint(body: ParseRequestBody):
         )
     except RuntimeError as exc:
         raise HTTPException(503, str(exc)) from exc
+
+
+@app.post("/api/chat", response_model=ChatResponse)
+def chat_endpoint(body: ChatRequest):
+    """Conversational endpoint for the Climate-Health Copilot assistant.
+    Features multilingual response (replies in the user's language),
+    domain expertise, UI context awareness, and safe form actions."""
+    return process_chat(body)
+
 
 
 @app.get("/api/search-case-sources", response_model=list[DiscoveredSource])

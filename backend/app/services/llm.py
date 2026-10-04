@@ -24,6 +24,15 @@ def is_llm_available() -> bool:
     return _client is not None
 
 
+def get_client():
+    return _client
+
+
+def wait_for_rate_limit_slot() -> None:
+    _wait_for_rate_limit_slot()
+
+
+
 FALLBACK_EXPLANATION = (
     "This dataset combines monthly disease case counts from the selected "
     "surveillance source with monthly climate figures derived from a "

@@ -294,6 +294,12 @@ class RequestFormCardState extends State<RequestFormCard> {
     });
   }
 
+  String get currentDisease => _disease;
+  String? get currentRegion => _region;
+  DateTime get currentStartDate => _startDate;
+  DateTime get currentEndDate => _endDate;
+
+
   void _submit() {
     if (_region == null) {
       setState(

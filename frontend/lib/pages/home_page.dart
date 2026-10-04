@@ -1,16 +1,21 @@
 /// Top-level page: loads platform options from the backend, hosts the
-/// request form, and renders the results once an integration run completes.
+/// request form, renders the results once an integration run completes,
+/// and hosts the Climate-Health Copilot AI assistant drawer.
 ///
 /// Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 library;
+
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../core/responsive.dart';
 import '../models/integration_request_params.dart';
 import '../models/integration_result.dart';
+import '../models/parsed_request.dart';
 import '../models/platform_options.dart';
 import '../services/api_client.dart';
+import '../widgets/chat_copilot_drawer.dart';
 import '../widgets/error_card.dart';
 import '../widgets/natural_language_card.dart';
 import '../widgets/request_form_card.dart';
@@ -26,6 +31,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final ApiClient _api = const ApiClient();
   final GlobalKey<RequestFormCardState> _formKey = GlobalKey<RequestFormCardState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   PlatformOptions? _options;
   String? _optionsError;
@@ -37,6 +43,8 @@ class _HomePageState extends State<HomePage> {
   bool _isParsing = false;
   String? _parseError;
   String? _parseNotes;
+
+  bool _isDesktopChatOpen = false;
 
   @override
   void initState() {
@@ -70,6 +78,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _handleApplyPrefillFromChat(ParsedRequest parsed) {
+    _formKey.currentState?.applyPrefill(parsed);
+    setState(() => _parseNotes = parsed.notes);
+  }
+
   Future<void> _handleSubmit(IntegrationRequestParams params) async {
     setState(() {
       _isSubmitting = true;
@@ -86,23 +99,82 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Widget _buildCopilotDrawer({required VoidCallback onClose}) {
+    return ChatCopilotDrawer(
+      options: _options,
+      activeResult: _result,
+      currentDisease: _formKey.currentState?.currentDisease,
+      currentRegion: _formKey.currentState?.currentRegion,
+      currentStartDate: _formKey.currentState?.currentStartDate,
+      currentEndDate: _formKey.currentState?.currentEndDate,
+      onApplyPrefill: _handleApplyPrefillFromChat,
+      onClose: onClose,
+    );
+  }
+
+  void _toggleChat(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    if (width >= 1100) {
+      setState(() => _isDesktopChatOpen = !_isDesktopChatOpen);
+    } else {
+      if (_scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
+        Navigator.of(context).pop();
+      } else {
+        _scaffoldKey.currentState?.openEndDrawer();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isWideScreen = screenWidth >= 1100;
+    final showSplitChat = isWideScreen && _isDesktopChatOpen;
+
     return Scaffold(
-      // The full platform name is the hero banner's headline below — the
-      // app bar repeats just a short form so the two don't render the
-      // exact same sentence twice on screen.
+      key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('Climate-Health Platform'),
         centerTitle: false,
+        actions: [
+          FilledButton.tonalIcon(
+            onPressed: () => _toggleChat(context),
+            icon: const Icon(Icons.auto_awesome, size: 16),
+            label: Text(
+              showSplitChat ? 'დახურვა / Close' : 'AI Copilot',
+            ),
+            style: FilledButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+          const SizedBox(width: 16),
+        ],
       ),
+      endDrawer: isWideScreen
+          ? null
+          : Drawer(
+              width: math.min(screenWidth * 0.92, 440),
+              child: _buildCopilotDrawer(
+                onClose: () => Navigator.of(context).pop(),
+              ),
+            ),
+      floatingActionButton: showSplitChat
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _toggleChat(context),
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('Climate-Health Copilot'),
+              tooltip: 'გახსენით AI თანაშემწე / Open Copilot',
+            ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
-          return Center(
+          final availableWidth = showSplitChat ? width - 440 : width;
+
+          final mainContent = Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: Responsive.maxContentWidth(width) ?? double.infinity,
+                maxWidth: Responsive.maxContentWidth(availableWidth) ?? double.infinity,
               ),
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(Responsive.pagePadding(width)),
@@ -116,6 +188,24 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+          );
+
+          if (!showSplitChat) {
+            return mainContent;
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: mainContent),
+              SizedBox(
+                width: 440,
+                height: constraints.maxHeight,
+                child: _buildCopilotDrawer(
+                  onClose: () => setState(() => _isDesktopChatOpen = false),
+                ),
+              ),
+            ],
           );
         },
       ),

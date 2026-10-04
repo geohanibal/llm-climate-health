@@ -118,3 +118,53 @@ class ParsedRequest(BaseModel):
     aggregation: Literal["native", "yearly", "decadal"] | None = None
     climate_source: Literal["open-meteo-era5", "nasa-power", "tmd"] | None = None
     notes: str
+
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class FormPrefillAction(BaseModel):
+    disease: str | None = None
+    region: str | None = None
+    variables: list[Literal["temperature", "precipitation"]] | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    aggregation: Literal["native", "yearly", "decadal"] | None = None
+    climate_source: Literal["open-meteo-era5", "nasa-power", "tmd"] | None = None
+
+
+class ActiveResultSummary(BaseModel):
+    disease: str | None = None
+    region: str | None = None
+    resolution: str | None = None
+    sample_size: int | None = None
+    total_cases: float | None = None
+    peak_period: str | None = None
+    peak_cases: float | None = None
+    peak_incidence_per_100k: float | None = None
+    mean_temperature_c: float | None = None
+    mean_precipitation_mm: float | None = None
+    correlations_summary: list[str] | None = None
+    explanation: str | None = None
+
+
+class ChatContext(BaseModel):
+    current_disease: str | None = None
+    current_region: str | None = None
+    current_start_date: str | None = None
+    current_end_date: str | None = None
+    active_result: ActiveResultSummary | None = None
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage]
+    context: ChatContext | None = None
+
+
+class ChatResponse(BaseModel):
+    reply: str
+    suggested_action: FormPrefillAction | None = None
+    suggested_prompts: list[str] = Field(default_factory=list)
+
