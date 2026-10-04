@@ -27,6 +27,7 @@ class CaseChartCard extends StatefulWidget {
 
 class _CaseChartCardState extends State<CaseChartCard> {
   static const _resolutionLabel = {
+    'day': 'day',
     'month': 'month',
     'year': 'year',
     'decade': 'decade',

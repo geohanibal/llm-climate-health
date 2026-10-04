@@ -92,7 +92,7 @@ class ApiClient {
   }
 
   Future<IntegrationResult> runIntegration(IntegrationRequestParams params) async {
-    if (params.caseDataSource == 'custom_upload') {
+    if (params.caseDataSource == 'custom_upload' || params.climateSource == 'custom_upload') {
       return _runIntegrationWithUpload(params);
     }
     return _runIntegrationJson(params);
@@ -136,14 +136,28 @@ class ApiClient {
       ..fields['end_date'] = _formatDate(params.endDate)
       ..fields['aggregation'] = params.aggregation
       ..fields['climate_source'] = params.climateSource
-      ..fields['population_source'] = params.populationSource
-      ..files.add(
+      ..fields['case_data_source'] = params.caseDataSource
+      ..fields['population_source'] = params.populationSource;
+
+    if (params.uploadedFileBytes != null) {
+      request.files.add(
         http.MultipartFile.fromBytes(
           'file',
           params.uploadedFileBytes!,
           filename: params.uploadedFileName ?? 'cases.csv',
         ),
       );
+    }
+
+    if (params.climateUploadBytes != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'climate_file',
+          params.climateUploadBytes!,
+          filename: params.climateUploadFileName ?? 'weather.csv',
+        ),
+      );
+    }
 
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);

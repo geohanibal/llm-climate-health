@@ -350,4 +350,28 @@ void main() {
     expect(submitted!.region, 'Thailand');
     expect(submitted!.caseDataSource, 'builtin');
   });
+
+  testWidgets('submit shows a validation error when custom_upload climate has no file picked', (tester) async {
+    final key = GlobalKey<RequestFormCardState>();
+    final options = _options(
+      climateSources: const [
+        DataSourceInfo(id: 'open-meteo-era5', label: 'Open-Meteo', citation: 'cite'),
+        DataSourceInfo(id: 'custom_upload', label: 'Custom Weather CSV', citation: 'cite'),
+      ],
+    );
+
+    await tester.pumpWidget(_wrap(options, formKey: key));
+    await tester.pumpAndSettle();
+
+    key.currentState!.applyPrefill(const ParsedRequest(climateSource: 'custom_upload', notes: 'test'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose Weather CSV'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Run integration'));
+    await tester.tap(find.text('Run integration'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Upload a CSV file for the custom weather source.'), findsOneWidget);
+  });
 }

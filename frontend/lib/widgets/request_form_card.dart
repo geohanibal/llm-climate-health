@@ -69,6 +69,8 @@ class RequestFormCardState extends State<RequestFormCard> {
   final TextEditingController _customUrlController = TextEditingController();
   Uint8List? _uploadedBytes;
   String? _uploadedFileName;
+  Uint8List? _climateUploadBytes;
+  String? _climateUploadFileName;
 
   String? _validationError;
 
@@ -247,6 +249,19 @@ class RequestFormCardState extends State<RequestFormCard> {
     });
   }
 
+  Future<void> _pickClimateFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    setState(() {
+      _climateUploadBytes = result.files.single.bytes;
+      _climateUploadFileName = result.files.single.name;
+    });
+  }
+
   Future<void> _pickRegionOnMap() async {
     final selected = await showDialog<String>(
       context: context,
@@ -321,6 +336,10 @@ class RequestFormCardState extends State<RequestFormCard> {
       setState(() => _validationError = 'Upload a CSV file for the custom data source.');
       return;
     }
+    if (_climateSource == 'custom_upload' && _climateUploadBytes == null && _uploadedBytes == null) {
+      setState(() => _validationError = 'Upload a CSV file for the custom weather source.');
+      return;
+    }
     if (_caseDataSource == 'who_gho' && _whoIndicatorCode == null) {
       setState(() => _validationError = 'Search and pick a WHO indicator first.');
       return;
@@ -342,6 +361,10 @@ class RequestFormCardState extends State<RequestFormCard> {
             _caseDataSource == 'custom_url' ? _customUrlController.text.trim() : null,
         uploadedFileBytes: _caseDataSource == 'custom_upload' ? _uploadedBytes : null,
         uploadedFileName: _caseDataSource == 'custom_upload' ? _uploadedFileName : null,
+        climateUploadBytes:
+            _climateSource == 'custom_upload' ? (_climateUploadBytes ?? _uploadedBytes) : null,
+        climateUploadFileName:
+            _climateSource == 'custom_upload' ? (_climateUploadFileName ?? _uploadedFileName) : null,
         whoIndicatorCode: _caseDataSource == 'who_gho' ? _whoIndicatorCode : null,
         whoIndicatorName: _caseDataSource == 'who_gho' ? _whoIndicatorName : null,
       ),
@@ -383,6 +406,7 @@ class RequestFormCardState extends State<RequestFormCard> {
           ),
           const SizedBox(height: 16),
           _buildClimateSourceDropdown(),
+          if (_climateSource == 'custom_upload') _buildClimateUploadPicker(),
           const SizedBox(height: 16),
           _buildPopulationSourceDropdown(),
           const SizedBox(height: 16),
@@ -510,6 +534,7 @@ class RequestFormCardState extends State<RequestFormCard> {
         : (widget.options.diseases[_disease]?.nativeResolution ?? 'year');
     final labels = {
       'native': nativeResolution == 'month' ? 'As reported (monthly)' : 'As reported (yearly)',
+      'daily': 'Daily (day-by-day)',
       'yearly': 'Yearly',
       'decadal': 'Decadal',
     };
@@ -745,6 +770,40 @@ class RequestFormCardState extends State<RequestFormCard> {
           ),
           const SizedBox(width: 12),
           if (_uploadedFileName != null) Text(_uploadedFileName!),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClimateUploadPicker() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: _pickClimateFile,
+                icon: const Icon(Icons.cloud_upload_outlined),
+                label: const Text('Choose Weather CSV'),
+              ),
+              const SizedBox(width: 12),
+              if (_climateUploadFileName != null)
+                Expanded(
+                  child: Text(
+                    _climateUploadFileName!,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Upload local meteorological station observations with date, temperature, and/or precipitation columns.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+          ),
         ],
       ),
     );

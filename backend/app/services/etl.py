@@ -23,18 +23,18 @@ from app.services.tmd import fetch_tmd_climate
 from app.services.who_gho import fetch_who_gho_case_data
 
 # Internal, resolution-agnostic vocabulary used throughout this module.
-_RESOLUTION_LABEL = {"month": "monthly", "year": "yearly", "decade": "decadal"}
+_RESOLUTION_LABEL = {"day": "daily", "month": "monthly", "year": "yearly", "decade": "decadal"}
 
 
 def _target_resolution(native_resolution: str, aggregation: str) -> str:
     """Resolve the user's requested aggregation against what the chosen
-    case-data source actually supports — you cannot go finer than its
-    native resolution (e.g. malaria/cholera, and every WHO GHO indicator,
-    have no monthly case counts)."""
+    case-data source actually supports."""
     if aggregation == "decadal":
         return "decade"
     if aggregation == "yearly":
         return "year"
+    if aggregation == "daily":
+        return "day"
     return "month" if native_resolution == "month" else "year"
 
 
@@ -55,6 +55,8 @@ def _period_label(series: pd.Series, resolution: str) -> pd.Series:
         return (series.dt.year // 10 * 10).astype(str) + "s"
     if resolution == "year":
         return series.dt.strftime("%Y")
+    if resolution == "day":
+        return series.dt.strftime("%Y-%m-%d")
     return series.dt.strftime("%Y-%m")
 
 
@@ -121,6 +123,7 @@ def run_integration(
     upload_content: bytes | None = None,
     who_indicator_code: str | None = None,
     who_indicator_name: str | None = None,
+    climate_upload_content: bytes | None = None,
 ):
     disease = DISEASES[disease_key]
     steps: list[str] = []
@@ -159,16 +162,67 @@ def run_integration(
     resolution = _target_resolution(native_resolution, aggregation)
 
     case_df = case_df.copy()
+    has_daily_input = (
+        case_data_source in ("custom_upload", "custom_url")
+        and len(case_df) > 0
+        and (case_df["period_start"].dt.day > 1).any()
+    )
     if case_df.empty:
         case_agg = case_df.assign(period=pd.Series(dtype="object"))[["period", "value"]]
+    elif resolution == "day" and not has_daily_input and len(case_df) > 0:
+        daily_rows = []
+        for _, row in case_df.iterrows():
+            p_start = pd.Timestamp(row["period_start"])
+            if native_resolution == "month":
+                days_in_period = int(p_start.days_in_month)
+                p_end = p_start + pd.DateOffset(days=days_in_period - 1)
+            else:
+                days_in_period = 366 if p_start.is_leap_year else 365
+                p_end = p_start + pd.DateOffset(days=days_in_period - 1)
+            daily_val = (
+                round(row["value"] / days_in_period, 3)
+                if pd.notna(row["value"])
+                else None
+            )
+            cur_day = p_start
+            while cur_day <= p_end:
+                if pd.Timestamp(start) <= cur_day <= pd.Timestamp(end):
+                    daily_rows.append({"period": cur_day.strftime("%Y-%m-%d"), "value": daily_val})
+                cur_day += pd.DateOffset(days=1)
+        if daily_rows:
+            case_agg = pd.DataFrame(daily_rows)
+            steps.append(
+                f"Distributed {disease.label} surveillance cases evenly across days in each "
+                f"{native_resolution} to match the requested daily temporal resolution."
+            )
+        else:
+            case_df["period"] = _period_label(case_df["period_start"], resolution)
+            case_agg = case_df.groupby("period", as_index=False)["value"].sum()
     else:
         case_df["period"] = _period_label(case_df["period_start"], resolution)
         case_agg = case_df.groupby("period", as_index=False)["value"].sum()
 
-    climate_fetch_resolution = "month" if resolution == "month" else "year"
+    climate_fetch_resolution = "day" if resolution == "day" else ("month" if resolution == "month" else "year")
     if climate_source == "tmd":
         climate_df = fetch_tmd_climate(
             region, variables, start, end, resolution=climate_fetch_resolution
+        )
+    elif climate_source == "custom_upload":
+        content_to_use = climate_upload_content or upload_content
+        if not content_to_use:
+            raise ValueError("No CSV file uploaded for climate data source 'custom_upload'.")
+        climate_df = fetch_climate(
+            region,
+            variables,
+            start,
+            end,
+            source="custom_upload",
+            resolution=climate_fetch_resolution,
+            upload_content=content_to_use,
+        )
+        steps.append(
+            f"Parsed user-uploaded meteorological CSV dataset for {', '.join(variables)} "
+            f"and aligned to {_RESOLUTION_LABEL[climate_fetch_resolution]} resolution."
         )
     else:
         climate_df = fetch_climate(

@@ -130,6 +130,10 @@ CLIMATE_SOURCES = {
         "citation": "Thai Meteorological Department, data.tmd.go.th — official "
         "national meteorological data for Thailand",
     },
+    "custom_upload": {
+        "label": "Custom Weather CSV (User-uploaded meteorological data)",
+        "citation": "User-supplied meteorological station or sensor observation dataset (CSV)",
+    },
 }
 
 # Climate sources with national/regional (rather than global) coverage.
@@ -168,4 +172,4 @@ POPULATION_SOURCES = {
     },
 }
 
-AGGREGATIONS = ["native", "yearly", "decadal"]
+AGGREGATIONS = ["native", "daily", "yearly", "decadal"]

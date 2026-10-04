@@ -21,6 +21,8 @@ class IntegrationRequestParams {
   final String? customSourceUrl;
   final Uint8List? uploadedFileBytes;
   final String? uploadedFileName;
+  final Uint8List? climateUploadBytes;
+  final String? climateUploadFileName;
   final String? whoIndicatorCode;
   final String? whoIndicatorName;
 
@@ -37,6 +39,8 @@ class IntegrationRequestParams {
     this.customSourceUrl,
     this.uploadedFileBytes,
     this.uploadedFileName,
+    this.climateUploadBytes,
+    this.climateUploadFileName,
     this.whoIndicatorCode,
     this.whoIndicatorName,
   });

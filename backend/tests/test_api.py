@@ -208,4 +208,29 @@ def test_integrate_end_to_end_dengue_thailand():
     body = resp.json()
     assert body["resolution"] == "month"
     assert body["explanation_source"] in ("llm", "fallback")
+
+
+def test_integrate_upload_custom_weather_file():
+    weather_csv = b"date,temperature,precipitation\n2020-01-01,25.0,5.0\n2020-01-02,26.0,0.0\n"
+    resp = client.post(
+        "/api/integrate/upload",
+        data={
+            "disease": "dengue",
+            "region": "Thailand",
+            "variables": "temperature,precipitation",
+            "start_date": "2020-01-01",
+            "end_date": "2020-01-02",
+            "aggregation": "daily",
+            "climate_source": "custom_upload",
+            "case_data_source": "builtin",
+        },
+        files={"climate_file": ("meteo_station.csv", io.BytesIO(weather_csv), "text/csv")},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["resolution"] == "day"
+    assert "meteo_station.csv" in body["sources"][0]
+    assert len(body["data"]) == 2
+    assert body["data"][0]["temperature_mean_c"] == 25.0
+
     assert len(body["data"]) > 0

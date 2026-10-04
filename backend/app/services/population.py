@@ -127,4 +127,21 @@ def get_population_data(
 
         return pd.DataFrame(months)
 
+    if resolution == "day":
+        # Daily resolution: each day YYYY-MM-DD gets the population for that year
+        year_to_pop = dict(zip(filtered["year"], filtered["population"]))
+        current = pd.Timestamp(start)
+        end_ts = pd.Timestamp(end)
+        days = []
+        while current <= end_ts:
+            period_str = current.strftime("%Y-%m-%d")
+            pop = year_to_pop.get(current.year)
+            if pop is None and year_to_pop:
+                nearest_year = min(year_to_pop.keys(), key=lambda y: abs(y - current.year))
+                pop = year_to_pop[nearest_year]
+            days.append({"period": period_str, "population": pop})
+            current += pd.DateOffset(days=1)
+        return pd.DataFrame(days)
+
     return pd.DataFrame(columns=["period", "population"])
+

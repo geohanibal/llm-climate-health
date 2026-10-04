@@ -18,8 +18,8 @@ class IntegrationRequest(BaseModel):
     start_date: date
     end_date: date
     scenario: Literal["historical"] = "historical"
-    aggregation: Literal["native", "yearly", "decadal"] = "native"
-    climate_source: Literal["open-meteo-era5", "nasa-power", "tmd"] = "open-meteo-era5"
+    aggregation: Literal["native", "daily", "yearly", "decadal"] = "native"
+    climate_source: Literal["open-meteo-era5", "nasa-power", "tmd", "custom_upload"] = "open-meteo-era5"
     case_data_source: Literal["builtin", "custom_url", "custom_upload", "who_gho"] = "builtin"
     population_source: Literal["worldbank", "un_wpp"] = "worldbank"
     custom_source_url: str | None = None
@@ -75,7 +75,7 @@ class StatisticalSummary(BaseModel):
 
 class IntegrationResponse(BaseModel):
     request_echo: IntegrationRequest
-    resolution: Literal["month", "year", "decade"]
+    resolution: Literal["day", "month", "year", "decade"]
     steps: list[str]
     explanation: str
     explanation_source: Literal["llm", "fallback"]
@@ -115,8 +115,8 @@ class ParsedRequest(BaseModel):
     variables: list[Literal["temperature", "precipitation"]] | None = None
     start_date: date | None = None
     end_date: date | None = None
-    aggregation: Literal["native", "yearly", "decadal"] | None = None
-    climate_source: Literal["open-meteo-era5", "nasa-power", "tmd"] | None = None
+    aggregation: Literal["native", "daily", "yearly", "decadal"] | None = None
+    climate_source: Literal["open-meteo-era5", "nasa-power", "tmd", "custom_upload"] | None = None
     notes: str
 
 
@@ -131,8 +131,8 @@ class FormPrefillAction(BaseModel):
     variables: list[Literal["temperature", "precipitation"]] | None = None
     start_date: str | None = None
     end_date: str | None = None
-    aggregation: Literal["native", "yearly", "decadal"] | None = None
-    climate_source: Literal["open-meteo-era5", "nasa-power", "tmd"] | None = None
+    aggregation: Literal["native", "daily", "yearly", "decadal"] | None = None
+    climate_source: Literal["open-meteo-era5", "nasa-power", "tmd", "custom_upload"] | None = None
 
 
 class ActiveResultSummary(BaseModel):

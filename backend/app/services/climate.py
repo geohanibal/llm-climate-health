@@ -24,9 +24,122 @@ NASA_POWER_FIELDS = {
 
 
 def _period_key(dt: pd.Series, resolution: str) -> pd.Series:
+    if resolution == "decade":
+        return (dt.dt.year // 10 * 10).astype(str) + "s"
     if resolution == "year":
         return dt.dt.strftime("%Y")
+    if resolution == "day":
+        return dt.dt.strftime("%Y-%m-%d")
     return dt.dt.strftime("%Y-%m")
+
+
+TEMP_ALIASES = [
+    "temperature_2m_mean",
+    "temperature_mean_c",
+    "temperature",
+    "temp",
+    "t2m",
+    "tmean",
+    "temp_mean",
+    "air_temp",
+    "air_temperature",
+]
+PRECIP_ALIASES = [
+    "precipitation_sum",
+    "precipitation_sum_mm",
+    "precipitation",
+    "precip",
+    "rain",
+    "rainfall",
+    "prcp",
+    "prectotcorr",
+]
+DATE_ALIASES = [
+    "date",
+    "time",
+    "period",
+    "datetime",
+    "timestamp",
+    "day",
+    "month",
+    "year",
+]
+
+
+def _find_matching_column(columns: list[str], aliases: list[str]) -> str | None:
+    col_map = {str(c).lower().strip(): str(c) for c in columns}
+    # Exact match first
+    for alias in aliases:
+        if alias in col_map:
+            return col_map[alias]
+    # Substring match second
+    for col_clean, orig_col in col_map.items():
+        for alias in aliases:
+            if alias in col_clean:
+                return orig_col
+    return None
+
+
+def fetch_custom_upload_climate(
+    content: bytes,
+    variables: list[str],
+    start: date,
+    end: date,
+    resolution: str = "month",
+) -> pd.DataFrame:
+    """Parses a user-supplied meteorological station CSV dataset (with date,
+    temperature, and/or precipitation columns) and aligns it to the target
+    temporal resolution."""
+    import io
+
+    try:
+        raw = pd.read_csv(io.BytesIO(content), on_bad_lines="skip")
+    except Exception:
+        raw = pd.read_csv(io.BytesIO(content), sep=None, engine="python", on_bad_lines="skip")
+
+    cols = list(raw.columns)
+    date_col = _find_matching_column(cols, DATE_ALIASES)
+    if not date_col:
+        raise ValueError(
+            f"Could not find a date/time column in the uploaded weather CSV (columns: {cols}). "
+            "Please include a column named 'date', 'time', or 'period'."
+        )
+
+    temp_col = _find_matching_column(cols, TEMP_ALIASES) if "temperature" in variables else None
+    precip_col = _find_matching_column(cols, PRECIP_ALIASES) if "precipitation" in variables else None
+
+    if not temp_col and not precip_col:
+        raise ValueError(
+            f"Could not find recognizable weather columns (temperature or precipitation) in uploaded CSV (columns: {cols}). "
+            "Expected columns such as 'temperature', 'temp', 'precipitation', 'rain'."
+        )
+
+    raw["time"] = pd.to_datetime(raw[date_col], errors="coerce")
+    valid = raw.dropna(subset=["time"]).copy()
+
+    # Filter date range
+    mask = (valid["time"].dt.date >= start) & (valid["time"].dt.date <= end)
+    filtered = valid.loc[mask].copy()
+    if filtered.empty:
+        res_cols = ["period"]
+        if temp_col:
+            res_cols.append("temperature_2m_mean")
+        if precip_col:
+            res_cols.append("precipitation_sum")
+        return pd.DataFrame(columns=res_cols)
+
+    filtered["period"] = _period_key(filtered["time"], resolution)
+
+    agg = {}
+    if temp_col:
+        filtered["temperature_2m_mean"] = pd.to_numeric(filtered[temp_col], errors="coerce")
+        agg["temperature_2m_mean"] = "mean"
+    if precip_col:
+        filtered["precipitation_sum"] = pd.to_numeric(filtered[precip_col], errors="coerce")
+        agg["precipitation_sum"] = lambda s: s.sum(min_count=1)
+
+    grouped = filtered.groupby("period", as_index=False).agg(agg)
+    return grouped.round(2)
 
 
 def _fetch_open_meteo_daily(lat: float, lon: float, variables: list[str], start: date, end: date):
@@ -87,10 +200,16 @@ def fetch_climate(
     end: date,
     source: str = "open-meteo-era5",
     resolution: str = "month",
+    upload_content: bytes | None = None,
 ) -> pd.DataFrame:
-    """Fetch daily reanalysis-based climate data for a region's reference
-    point and aggregate to the requested resolution ("month" or "year"):
+    """Fetch daily reanalysis-based or user-uploaded climate data for a region's reference
+    point and aggregate to the requested resolution ("day", "month", or "year"):
     temperature as the period mean, precipitation as the period sum."""
+    if source == "custom_upload":
+        if not upload_content:
+            raise ValueError("No uploaded file provided for climate data source 'custom_upload'.")
+        return fetch_custom_upload_climate(upload_content, variables, start, end, resolution)
+
     coords = REGIONS[region]
     if source == "nasa-power":
         daily = _fetch_nasa_power_daily(coords["lat"], coords["lon"], variables, start, end)

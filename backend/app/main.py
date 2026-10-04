@@ -230,6 +230,7 @@ def _build_response(
     cached: bool,
     last_verified: str,
     uploaded_file_name: str | None = None,
+    climate_uploaded_file_name: str | None = None,
     transformation_audit: DataTransformationAudit | None = None,
     statistical_summary: StatisticalSummary | None = None,
 ) -> IntegrationResponse:
@@ -250,13 +251,19 @@ def _build_response(
     else:
         case_source_citation = f"Case counts: user-uploaded file '{uploaded_file_name}'"
 
+    if req.climate_source == "custom_upload":
+        climate_name = climate_uploaded_file_name or uploaded_file_name or "uploaded_weather.csv"
+        climate_citation = f"Climate data: user-uploaded meteorological CSV file '{climate_name}'"
+    else:
+        climate_citation = f"Climate data: {CLIMATE_SOURCES[req.climate_source]['citation']}"
+
     pop_source = POPULATION_SOURCES.get(req.population_source, {})
     pop_citation = pop_source.get(
         "citation",
         "World Bank Group (2024), World Development Indicators: Population, total (SP.POP.TOTL)",
     )
     sources = [
-        f"Climate data: {CLIMATE_SOURCES[req.climate_source]['citation']}",
+        climate_citation,
         case_source_citation,
         f"Demographics & Population: {pop_citation}",
     ]
@@ -384,11 +391,22 @@ async def integrate_with_upload(
     end_date: str = Form(...),
     aggregation: str = Form("native"),
     climate_source: str = Form("open-meteo-era5"),
+    case_data_source: str = Form("custom_upload"),
     population_source: str = Form("worldbank"),
-    file: UploadFile = File(...),
+    file: UploadFile | None = File(None),
+    climate_file: UploadFile | None = File(None),
 ):
-    """Same pipeline as /api/integrate, but the case-count series comes from
-    a user-uploaded CSV instead of a built-in scientific source."""
+    """Same pipeline as /api/integrate, but data series (case counts and/or climate observations)
+    come from user-uploaded CSV files instead of built-in scientific sources."""
+    if not file and not climate_file:
+        raise HTTPException(
+            400, "At least one CSV file (case counts or climate observations) must be uploaded."
+        )
+
+    actual_case_source = case_data_source
+    if file and actual_case_source == "builtin":
+        actual_case_source = "custom_upload"
+
     req = IntegrationRequest(
         disease=disease,
         region=region,
@@ -397,16 +415,34 @@ async def integrate_with_upload(
         end_date=end_date,
         aggregation=aggregation,
         climate_source=climate_source,
-        case_data_source="custom_upload",
+        case_data_source=actual_case_source,
         population_source=population_source,
     )
     _validate_common(req)
 
-    content = await file.read()
-    if len(content) > _MAX_UPLOAD_BYTES:
-        raise HTTPException(
-            413, f"Uploaded file exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit."
-        )
+    content: bytes | None = None
+    uploaded_file_name: str | None = None
+    if file:
+        content = await file.read()
+        uploaded_file_name = file.filename
+        if len(content) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                413, f"Uploaded file exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit."
+            )
+
+    climate_content: bytes | None = None
+    climate_file_name: str | None = None
+    if climate_file:
+        climate_content = await climate_file.read()
+        climate_file_name = climate_file.filename
+        if len(climate_content) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                413, f"Uploaded climate file exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit."
+            )
+    elif climate_source == "custom_upload" and content:
+        climate_content = content
+        climate_file_name = uploaded_file_name
+
     steps, records, resolution, audit_data, stat_summary = _run_integration_or_502(
         req.disease,
         req.region,
@@ -415,9 +451,10 @@ async def integrate_with_upload(
         req.end_date,
         aggregation=req.aggregation,
         climate_source=req.climate_source,
-        case_data_source="custom_upload",
+        case_data_source=req.case_data_source,
         population_source=req.population_source,
         upload_content=content,
+        climate_upload_content=climate_content,
     )
     transformation_audit = None
     if audit_data:
@@ -440,7 +477,8 @@ async def integrate_with_upload(
         resolution,
         False,
         cache.now_iso(),
-        uploaded_file_name=file.filename,
+        uploaded_file_name=uploaded_file_name,
+        climate_uploaded_file_name=climate_file_name,
         transformation_audit=transformation_audit,
         statistical_summary=stat_summary,
     )

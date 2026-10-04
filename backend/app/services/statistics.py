@@ -134,9 +134,12 @@ def compute_statistics(records: Sequence[PeriodRecord], resolution: str) -> Stat
     has_incidence = df["incidence_rate_per_100k"].dropna().count() >= 3
     target_col = "incidence_rate_per_100k" if has_incidence else "case_count"
 
-    # Lags: monthly resolution supports up to 3-period lag (1-3 months).
+    # Lags: daily supports up to 7-period lag (1-7 days).
+    # Monthly supports up to 3-period lag (1-3 months).
     # Yearly supports lag 0 and 1. Decadal supports only lag 0.
-    if resolution == "month":
+    if resolution == "day":
+        max_lag = 7
+    elif resolution == "month":
         max_lag = 3
     elif resolution == "year":
         max_lag = 1

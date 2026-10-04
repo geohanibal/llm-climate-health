@@ -22,6 +22,11 @@ def test_period_key_year():
     assert list(_period_key(series, "year")) == ["2020", "2021"]
 
 
+def test_period_key_day():
+    series = pd.to_datetime(pd.Series(["2020-01-15", "2020-01-16"]))
+    assert list(_period_key(series, "day")) == ["2020-01-15", "2020-01-16"]
+
+
 def _mock_response(payload: dict) -> MagicMock:
     resp = MagicMock()
     resp.raise_for_status = MagicMock()
@@ -106,3 +111,65 @@ def test_fetch_climate_nasa_power_aggregates_to_month(mock_get):
         resolution="month",
     )
     assert set(df["period"]) == {"2020-01", "2020-02"}
+
+
+@patch("app.services.climate.requests.get")
+def test_fetch_climate_open_meteo_daily_resolution(mock_get):
+    mock_get.return_value = _mock_response(
+        {
+            "daily": {
+                "time": ["2020-01-01", "2020-01-02"],
+                "temperature_2m_mean": [20.5, 21.3],
+                "precipitation_sum": [4.2, 0.0],
+            }
+        }
+    )
+    df = fetch_climate(
+        "Thailand",
+        ["temperature", "precipitation"],
+        date(2020, 1, 1),
+        date(2020, 1, 2),
+        source="open-meteo-era5",
+        resolution="day",
+    )
+    assert list(df["period"]) == ["2020-01-01", "2020-01-02"]
+    assert df.iloc[0]["temperature_2m_mean"] == 20.5
+    assert df.iloc[0]["precipitation_sum"] == 4.2
+
+
+def test_fetch_custom_upload_climate_daily_and_monthly():
+    csv_bytes = (
+        b"date,temp,rain\n"
+        b"2023-05-01,25.0,10.0\n"
+        b"2023-05-02,27.0,0.0\n"
+        b"2023-06-01,30.0,5.0\n"
+    )
+    # Test day resolution
+    df_day = fetch_climate(
+        "Thailand",
+        ["temperature", "precipitation"],
+        date(2023, 5, 1),
+        date(2023, 5, 2),
+        source="custom_upload",
+        resolution="day",
+        upload_content=csv_bytes,
+    )
+    assert list(df_day["period"]) == ["2023-05-01", "2023-05-02"]
+    assert df_day.iloc[0]["temperature_2m_mean"] == 25.0
+    assert df_day.iloc[0]["precipitation_sum"] == 10.0
+
+    # Test month resolution
+    df_month = fetch_climate(
+        "Thailand",
+        ["temperature", "precipitation"],
+        date(2023, 5, 1),
+        date(2023, 6, 30),
+        source="custom_upload",
+        resolution="month",
+        upload_content=csv_bytes,
+    )
+    assert list(df_month["period"]) == ["2023-05", "2023-06"]
+    may = df_month[df_month["period"] == "2023-05"].iloc[0]
+    assert may["temperature_2m_mean"] == 26.0  # mean of 25 and 27
+    assert may["precipitation_sum"] == 10.0  # sum of 10 and 0
+
