@@ -60,15 +60,15 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
       ChatMessage(
         role: 'assistant',
         content:
-            "👋 **გამარჯობა! მე ვარ Climate-Health Copilot.**\n\n"
-            "თქვენი ინტელექტუალური ასისტენტი კლიმატისა და ჯანდაცვის მონაცემთა ინტეგრაციის პლატფორმაში.\n\n"
-            "მკითხეთ **ნებისმიერ ენაზე** (ქართულად, Deutsch, English):\n"
-            "• რა დაავადებებისა და რეგიონების მონაცემებია ხელმისაწვდომი;\n"
-            "• როგორ მუშაობს ERA5 კლიმატური რეკონსტრუქცია;\n"
-            "• რატომ ჩნდება დროითი დაგვიანება (Lag 1-3) ნალექსა და დაავადების აფეთქებას შორის;\n"
-            "• როგორ მოამზადოთ საკუთარი CSV ფაილი;\n"
-            "• ან მთხოვეთ ფორმის ავტომატური კონფიგურაცია!\n\n"
-            "*(I will always reply in the exact same language you use! / Ich antworte in Ihrer Sprache.)*",
+            "👋 **Hello! I am the Climate-Health Copilot.**\n\n"
+            "Your intelligent research assistant for this Climate-Health Data Integration Platform.\n\n"
+            "You can ask me in **any language** (English, Deutsch, or ქართულად):\n"
+            "• Available diseases (Dengue, Malaria, Cholera) and geographic coverage;\n"
+            "• How ERA5 climate reanalysis works (temperature & precipitation);\n"
+            "• Biological vector breeding cycles and why lagged correlations (Lag 1-3) matter;\n"
+            "• How to prepare your custom CSV file for upload;\n"
+            "• Or ask me to automatically populate the query form for you!\n\n"
+            "*(Deutsch: Ich antworte in Ihrer Sprache. / ქართულად: შეგიძლიათ ქართულადაც მომწეროთ.)*",
       ),
     );
     _updateDefaultPrompts();
@@ -78,16 +78,16 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
     if (widget.activeResult != null) {
       final res = widget.activeResult!;
       _currentPrompts = [
-        "📊 გააანალიზე ეკრანზე არსებული შედეგები",
-        "🦟 რატომ არის Lagged კორელაცია მნიშვნელოვანი?",
-        "🌡️ ტემპერატურის თუ ნალექის გავლენაა მეტი ${res.region}-ში?",
-        "Explain the active results in English",
+        "📊 Analyze active results on screen",
+        "🦟 Why is lagged cross-correlation important?",
+        "🌡️ Which weather variable has higher impact in ${res.region}?",
+        "🇬🇪 ქართულად ამიხსენი მიღებული შედეგები",
       ];
     } else {
       _currentPrompts = [
-        "🌍 რა მონაცემებია ტაილანდზე?",
-        "📋 დამიყენე ფორმა დენგეზე ტაილანდში (2018-2022)",
-        "🔬 რას ნიშნავს ERA5 Reanalysis?",
+        "🌍 What data is available for Thailand?",
+        "📋 Set form for Dengue in Thailand (2018-2022)",
+        "🔬 What is ERA5 Reanalysis vs station data?",
         "Welche Krankheiten werden unterstützt?",
       ];
     }
@@ -329,7 +329,7 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
           const SizedBox(width: 5),
           Flexible(
             child: Text(
-              'აქტიური მონაცემები: ${res.disease} • ${res.region}',
+              'Active Data: ${res.disease} • ${res.region}',
               style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w600),
               overflow: TextOverflow.ellipsis,
             ),
@@ -340,16 +340,17 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
 
     if (widget.currentDisease != null) {
       return Text(
-        'ფორმა: ${widget.currentDisease} • ${widget.currentRegion ?? ""}',
+        'Form: ${widget.currentDisease} • ${widget.currentRegion ?? ""}',
         style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
         overflow: TextOverflow.ellipsis,
       );
     }
 
     return Text(
-      'მრავალენოვანი სამეცნიერო ასისტენტი',
+      'Multilingual Research AI Assistant',
       style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
     );
+
   }
 
   Widget _buildMessageBubble(ChatMessage msg, ColorScheme colorScheme) {
@@ -434,7 +435,7 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
               Icon(Icons.tune, size: 18, color: colorScheme.primary),
               const SizedBox(width: 6),
               Text(
-                'შემოთავაზებული პარამეტრები / Suggested Query',
+                'Suggested Query Parameters',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -451,12 +452,12 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
               if (action.disease != null)
                 Chip(
                   visualDensity: VisualDensity.compact,
-                  label: Text('დაავადება: ${action.disease}', style: const TextStyle(fontSize: 11)),
+                  label: Text('Disease: ${action.disease}', style: const TextStyle(fontSize: 11)),
                 ),
               if (action.region != null)
                 Chip(
                   visualDensity: VisualDensity.compact,
-                  label: Text('რეგიონი: ${action.region}', style: const TextStyle(fontSize: 11)),
+                  label: Text('Region: ${action.region}', style: const TextStyle(fontSize: 11)),
                 ),
               if (action.startDate != null && action.endDate != null)
                 Chip(
@@ -475,12 +476,12 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
             icon: const Icon(Icons.arrow_forward, size: 16),
-            label: const Text('ფორმაში გადატანა / Apply to Form', style: TextStyle(fontSize: 12)),
+            label: const Text('Apply to Form', style: TextStyle(fontSize: 12)),
             onPressed: () {
               widget.onApplyPrefill(action.toParsedRequest());
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('პარამეტრები გადატანილია ფორმაში! შეგიძლიათ გაუშვათ ინტეგრაცია.'),
+                  content: Text('Parameters applied to form! You can now review and run the integration.'),
                   duration: Duration(seconds: 3),
                 ),
               );
@@ -623,7 +624,7 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  'Copilot ფიქრობს...',
+                  'Copilot is thinking...',
                   style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                 ),
               ],
@@ -676,7 +677,7 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
               maxLines: null,
               keyboardType: TextInputType.multiline,
               decoration: InputDecoration(
-                hintText: 'ჩაწერეთ შეკითხვა (ქართულად, Deutsch, English)...',
+                hintText: 'Ask a question (English, ქართულად, Deutsch)...',
                 hintStyle: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 border: OutlineInputBorder(

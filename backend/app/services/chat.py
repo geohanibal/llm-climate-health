@@ -2,14 +2,18 @@
 
 Provides a domain-aware, multilingual conversational AI assistant that understands
 the thesis platform's data, ETL pipeline, statistical analysis, and current UI state.
+Supports Google Gemini cloud models and local Ollama instances (e.g. llama3.2).
 
 Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 """
 
 import json
+import os
 import re
 from datetime import date
 from typing import Any
+
+import requests
 
 from app.config import (
     AGGREGATIONS,
@@ -31,7 +35,7 @@ from app.services.llm import get_client, wait_for_rate_limit_slot
 
 
 def _detect_language_fallback(text: str) -> str:
-    """Heuristic for fallback messages when Gemini is unavailable."""
+    """Heuristic for fallback messages when LLMs are unavailable."""
     if re.search(r"[\u10A0-\u10FF]", text):
         return "ka"
     german_indicators = ["hallo", "wie", "was", "daten", "klima", "dengue", "warum", "deutsch", "bitte"]
@@ -41,11 +45,26 @@ def _detect_language_fallback(text: str) -> str:
     return "en"
 
 
-def _generate_fallback_response(user_text: str, context: ChatContext | None) -> ChatResponse:
+def _generate_fallback_response(
+    user_text: str, context: ChatContext | None, error_detail: str | None = None
+) -> ChatResponse:
     lang = _detect_language_fallback(user_text)
     has_result = context is not None and context.active_result is not None
 
+    quota_issue = error_detail and ("402" in error_detail or "RESOURCE_EXHAUSTED" in error_detail or "credits are depleted" in error_detail)
+
     if lang == "ka":
+        if quota_issue:
+            status_note = (
+                "\n\n---\n"
+                "⚠️ **Gemini API-ს კვოტა ამოწურულია (Error 402: Credits Depleted).**\n"
+                "ცოცხალი, ულიმიტო პასუხებისთვის გაქვთ 2 მარტივი გზა:\n"
+                "1. **უფასო Gemini გასაღები:** აიღეთ უფასო API გასაღები [Google AI Studio](https://aistudio.google.com/apikey)-დან და ჩაწერეთ `backend/.env`-ში;\n"
+                "2. **ლოკალური ხელსაწყო (Ollama):** დააყენეთ Ollama თქვენს კომპიუტერზე (`ollama run llama3.2`) და ბექენდი მას ავტომატურად დაუკავშირდება ლოკალურად!"
+            )
+        else:
+            status_note = "\n\n*(შენიშვნა: AI სერვისი ამჟამად მუშაობს ოფლაინ რეჟიმში. მონაცემები ამოღებულია პირდაპირ ეკრანის შედეგებიდან.)*"
+
         if has_result and context and context.active_result:
             r = context.active_result
             reply = (
@@ -53,9 +72,8 @@ def _generate_fallback_response(user_text: str, context: ChatContext | None) -> 
                 f"- **სულ დაფიქსირებული შემთხვევები:** {int(r.total_cases) if r.total_cases else 'N/A'}\n"
                 f"- **პიკური პერიოდი:** {r.peak_period} ({int(r.peak_cases) if r.peak_cases else 'N/A'} შემთხვევა)\n"
                 f"- **საშუალო ტემპერატურა:** {r.mean_temperature_c or 'N/A'} °C\n"
-                f"- **საშუალო ნალექი:** {r.mean_precipitation_mm or 'N/A'} მმ\n\n"
-                "*(შენიშვნა: AI სერვისი ამჟამად მუშაობს ოფლაინ რეჟიმში, Gemini API გასაღების გარეშე. "
-                "მონაცემები ამოღებულია პირდაპირ ეკრანის შედეგებიდან.)*"
+                f"- **საშუალო ნალექი:** {r.mean_precipitation_mm or 'N/A'} მმ\n"
+                f"{status_note}"
             )
             prompts = ["როგორ მუშაობს Lagged კორელაცია?", "რა მონაცემთა წყაროებია ხელმისაწვდომი?"]
         else:
@@ -65,8 +83,8 @@ def _generate_fallback_response(user_text: str, context: ChatContext | None) -> 
                 "- დაავადებებისა (დენგე, მალარია, ქოლერა) და რეგიონების არჩევაში;\n"
                 "- ERA5 კლიმატური მონაცემების (ტემპერატურა, ნალექი) განმარტებაში;\n"
                 "- დროითი დაგვიანების (Lagged cross-correlation) ბიოლოგიური მნიშვნელობის გაგებაში;\n"
-                "- ფორმის ავტომატურ შევსებაში.\n\n"
-                "*(შენიშვნა: სრული გენერაციული პასუხებისთვის სერვერზე კონფიგურირებული უნდა იყოს GEMINI_API_KEY.)*"
+                "- ფორმის ავტომატურ შევსებაში.\n"
+                f"{status_note}"
             )
             prompts = [
                 "რა მონაცემებია ხელმისაწვდომი ტაილანდზე?",
@@ -74,6 +92,17 @@ def _generate_fallback_response(user_text: str, context: ChatContext | None) -> 
                 "დამიყენე ფორმა დენგეზე ტაილანდში (2018-2022)",
             ]
     elif lang == "de":
+        if quota_issue:
+            status_note = (
+                "\n\n---\n"
+                "⚠️ **Hinweis: Das Gemini-API-Guthaben ist erschöpft (Fehler 402: Credits Depleted).**\n"
+                "Optionen für unbegrenzte KI-Antworten:\n"
+                "1. **Kostenloser Gemini-Schlüssel:** Erstellen Sie einen Schlüssel unter [Google AI Studio](https://aistudio.google.com/apikey) und tragen Sie ihn in `backend/.env` ein.\n"
+                "2. **Lokales LLM (Ollama):** Starten Sie Ollama auf diesem Rechner (`ollama run llama3.2`), die Plattform verbindet sich automatisch lokal!"
+            )
+        else:
+            status_note = "\n\n*(Hinweis: Der AI-Dienst läuft im Offline-Modus.)*"
+
         if has_result and context and context.active_result:
             r = context.active_result
             reply = (
@@ -81,8 +110,8 @@ def _generate_fallback_response(user_text: str, context: ChatContext | None) -> 
                 f"- **Gesamtfälle:** {int(r.total_cases) if r.total_cases else 'N/A'}\n"
                 f"- **Höchststand:** {r.peak_period} ({int(r.peak_cases) if r.peak_cases else 'N/A'} Fälle)\n"
                 f"- **Durchschnittstemperatur:** {r.mean_temperature_c or 'N/A'} °C\n"
-                f"- **Durchschnittsniederschlag:** {r.mean_precipitation_mm or 'N/A'} mm\n\n"
-                "*(Hinweis: Der AI-Dienst läuft derzeit im Offline-Modus ohne konfigurierten GEMINI_API_KEY.)*"
+                f"- **Durchschnittsniederschlag:** {r.mean_precipitation_mm or 'N/A'} mm\n"
+                f"{status_note}"
             )
             prompts = ["Was bedeutet zeitverzögerte Korrelation (Lag)?", "Welche Datenquellen werden genutzt?"]
         else:
@@ -93,7 +122,8 @@ def _generate_fallback_response(user_text: str, context: ChatContext | None) -> 
                 "- Auswahl von Krankheiten (Dengue, Malaria, Cholera) und Regionen\n"
                 "- Erklärung von ERA5-Reanalysedaten und biologischen Zusammenhängen (z. B. Überträgerzyklen)\n"
                 "- Interpretation von Kreuzkorrelationen mit Zeitverzögerung (Lags 0–3)\n"
-                "- Automatisches Ausfüllen des Abfrageformulars."
+                "- Automatisches Ausfüllen des Abfrageformulars.\n"
+                f"{status_note}"
             )
             prompts = [
                 "Welche Daten gibt es für Thailand?",
@@ -101,6 +131,17 @@ def _generate_fallback_response(user_text: str, context: ChatContext | None) -> 
                 "Formular für Dengue in Thailand (2018-2022) vorbereiten",
             ]
     else:
+        if quota_issue:
+            status_note = (
+                "\n\n---\n"
+                "⚠️ **Note: The configured Gemini API key quota is depleted (Error 402: Credits Depleted).**\n"
+                "To get live, generated responses you have two easy options:\n"
+                "1. **Free Gemini Key:** Generate a free API key at [Google AI Studio](https://aistudio.google.com/apikey) and put it in `backend/.env` as `GEMINI_API_KEY=...`;\n"
+                "2. **Local AI Engine (Ollama):** Install and run Ollama on your computer (`ollama run llama3.2`). The backend will automatically detect and connect to it locally with zero cost and no rate limits!"
+            )
+        else:
+            status_note = "\n\n*(Note: Running in offline fallback mode with current data from your active screen.)*"
+
         if has_result and context and context.active_result:
             r = context.active_result
             reply = (
@@ -108,8 +149,8 @@ def _generate_fallback_response(user_text: str, context: ChatContext | None) -> 
                 f"- **Total Cases:** {int(r.total_cases) if r.total_cases else 'N/A'}\n"
                 f"- **Peak Outbreak:** {r.peak_period} ({int(r.peak_cases) if r.peak_cases else 'N/A'} cases)\n"
                 f"- **Mean Temperature:** {r.mean_temperature_c or 'N/A'} °C\n"
-                f"- **Mean Precipitation:** {r.mean_precipitation_mm or 'N/A'} mm\n\n"
-                "*(Note: AI service is currently running in offline fallback mode without an active GEMINI_API_KEY.)*"
+                f"- **Mean Precipitation:** {r.mean_precipitation_mm or 'N/A'} mm\n"
+                f"{status_note}"
             )
             prompts = ["How does lagged correlation work?", "What climate data sources are used?"]
         else:
@@ -120,7 +161,8 @@ def _generate_fallback_response(user_text: str, context: ChatContext | None) -> 
                 "- Selecting diseases (Dengue, Malaria, Cholera) and regions with verified data coverage;\n"
                 "- Understanding ERA5 climate reanalysis vs raw station readings;\n"
                 "- Interpreting lagged cross-correlations and vector breeding biology;\n"
-                "- Automatically populating the query form for you."
+                "- Automatically populating the query form for you.\n"
+                f"{status_note}"
             )
             prompts = [
                 "What data is available for Thailand?",
@@ -141,10 +183,10 @@ def _build_system_instruction() -> str:
     return f"""You are the Climate-Health AI Copilot, an expert scientific assistant for the LLM-driven Climate-Health Data Integration Platform (Sergi Koniashvili's bachelor thesis in Informatics, University of Bremen).
 
 ### CRITICAL LANGUAGE RULE:
-Always detect the language of the user's latest query (e.g., Georgian, German, English, etc.) and respond in the EXACT SAME LANGUAGE with natural, grammatically correct phrasing.
+Always detect the language of the user's latest query (e.g., English, Georgian, German, etc.) and respond in the EXACT SAME LANGUAGE with natural, grammatically correct phrasing.
+- If the user writes in English, reply in English.
 - If the user writes in Georgian (ქართული), your entire response must be in fluent Georgian.
 - If the user writes in German (Deutsch), your entire response must be in fluent academic German.
-- If the user writes in English, reply in English.
 Keep technical/scientific abbreviations intact (e.g. ERA5, ECMWF, WHO GHO, HDX, OpenDengue, Pearson r, p-value, incidence per 100,000).
 
 ### PLATFORM DOMAIN KNOWLEDGE:
@@ -239,15 +281,36 @@ def _sanitize_action(raw_action: Any) -> FormPrefillAction | None:
     )
 
 
+def _call_ollama(full_prompt: str) -> dict | None:
+    """Attempts to call a local Ollama instance if available at localhost:11434."""
+    ollama_host = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")
+    ollama_model = os.environ.get("OLLAMA_MODEL", "llama3.2")
+    try:
+        resp = requests.post(
+            f"{ollama_host}/api/generate",
+            json={
+                "model": ollama_model,
+                "prompt": full_prompt,
+                "stream": False,
+                "format": "json",
+            },
+            timeout=25,
+        )
+        if resp.status_code == 200:
+            raw = resp.json().get("response", "")
+            return json.loads(raw)
+    except Exception:
+        pass
+    return None
+
+
 def process_chat(req: ChatRequest) -> ChatResponse:
-    """Processes a user chat message with context awareness and Gemini LLM."""
+    """Processes a user chat message with context awareness, Gemini LLM,
+    and automatic Ollama fallback support."""
     client = get_client()
     latest_user_message = next(
         (m.content for m in reversed(req.messages) if m.role == "user"), ""
     )
-
-    if client is None:
-        return _generate_fallback_response(latest_user_message, req.context)
 
     # Format context for prompt
     context_str = "CURRENT APPLICATION STATE / CONTEXT:\n"
@@ -282,29 +345,46 @@ def process_chat(req: ChatRequest) -> ChatResponse:
         f"Respond to the latest user message. Remember to reply in the EXACT SAME LANGUAGE as the user."
     )
 
-    try:
-        wait_for_rate_limit_slot()
-        resp = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=full_prompt,
-            config={"response_mime_type": "application/json"},
-        )
-        data = json.loads(resp.text)
-        reply = str(data.get("reply", "")).strip()
-        if not reply:
-            return _generate_fallback_response(latest_user_message, req.context)
+    gemini_error = None
 
-        raw_action = data.get("suggested_action")
-        action = _sanitize_action(raw_action)
+    # 1. Try Gemini cloud if client is configured
+    if client is not None:
+        try:
+            wait_for_rate_limit_slot()
+            resp = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=full_prompt,
+                config={"response_mime_type": "application/json"},
+            )
+            data = json.loads(resp.text)
+            reply = str(data.get("reply", "")).strip()
+            if reply:
+                raw_action = data.get("suggested_action")
+                action = _sanitize_action(raw_action)
+                raw_prompts = data.get("suggested_prompts", [])
+                prompts = [str(p).strip() for p in raw_prompts if isinstance(p, (str, int))]
+                return ChatResponse(
+                    reply=reply,
+                    suggested_action=action,
+                    suggested_prompts=prompts[:4],
+                )
+        except Exception as exc:
+            gemini_error = str(exc)
 
-        raw_prompts = data.get("suggested_prompts", [])
-        prompts = [str(p).strip() for p in raw_prompts if isinstance(p, (str, int))]
+    # 2. Try local Ollama if available
+    ollama_data = _call_ollama(full_prompt)
+    if ollama_data and isinstance(ollama_data, dict):
+        reply = str(ollama_data.get("reply", "")).strip()
+        if reply:
+            raw_action = ollama_data.get("suggested_action")
+            action = _sanitize_action(raw_action)
+            raw_prompts = ollama_data.get("suggested_prompts", [])
+            prompts = [str(p).strip() for p in raw_prompts if isinstance(p, (str, int))]
+            return ChatResponse(
+                reply=reply,
+                suggested_action=action,
+                suggested_prompts=prompts[:4],
+            )
 
-        return ChatResponse(
-            reply=reply,
-            suggested_action=action,
-            suggested_prompts=prompts[:4],
-        )
-    except Exception as exc:
-        fallback = _generate_fallback_response(latest_user_message, req.context)
-        return fallback
+    # 3. Fallback with honest error disclosure
+    return _generate_fallback_response(latest_user_message, req.context, error_detail=gemini_error)

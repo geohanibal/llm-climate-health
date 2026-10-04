@@ -153,7 +153,7 @@ void main() {
         ),
       );
 
-      expect(find.textContaining('აქტიური მონაცემები: dengue • Thailand'), findsOneWidget);
+      expect(find.textContaining('Active Data: dengue • Thailand'), findsOneWidget);
     });
 
     testWidgets('tapping close calls onClose callback', (tester) async {
