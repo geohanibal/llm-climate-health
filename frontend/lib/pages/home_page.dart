@@ -45,6 +45,7 @@ class _HomePageState extends State<HomePage> {
   String? _parseNotes;
 
   bool _isDesktopChatOpen = false;
+  bool _isChatExpanded = false;
 
   @override
   void initState() {
@@ -109,6 +110,8 @@ class _HomePageState extends State<HomePage> {
       currentEndDate: _formKey.currentState?.currentEndDate,
       onApplyPrefill: _handleApplyPrefillFromChat,
       onClose: onClose,
+      isExpanded: _isChatExpanded,
+      onToggleExpand: () => setState(() => _isChatExpanded = !_isChatExpanded),
     );
   }
 
@@ -153,7 +156,9 @@ class _HomePageState extends State<HomePage> {
       endDrawer: isWideScreen
           ? null
           : Drawer(
-              width: math.min(screenWidth * 0.92, 440),
+              width: _isChatExpanded
+                  ? math.min(screenWidth * 0.96, 850.0)
+                  : math.min(screenWidth * 0.92, 440.0),
               child: _buildCopilotDrawer(
                 onClose: () => Navigator.of(context).pop(),
               ),
@@ -169,7 +174,10 @@ class _HomePageState extends State<HomePage> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
-          final availableWidth = showSplitChat ? width - 440 : width;
+          final chatWidth = _isChatExpanded
+              ? math.min(width * 0.65, 860.0)
+              : 440.0;
+          final availableWidth = showSplitChat ? width - chatWidth : width;
 
           final mainContent = Center(
             child: ConstrainedBox(
@@ -198,8 +206,10 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: mainContent),
-              SizedBox(
-                width: 440,
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                width: chatWidth,
                 height: constraints.maxHeight,
                 child: _buildCopilotDrawer(
                   onClose: () => setState(() => _isDesktopChatOpen = false),

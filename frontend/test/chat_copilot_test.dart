@@ -179,5 +179,63 @@ void main() {
       await tester.tap(find.byIcon(Icons.close));
       expect(closed, isTrue);
     });
+
+    testWidgets('renders maximize button and calls onToggleExpand callback', (tester) async {
+      bool toggled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ChatCopilotDrawer(
+              options: null,
+              activeResult: null,
+              currentDisease: null,
+              currentRegion: null,
+              currentStartDate: null,
+              currentEndDate: null,
+              isExpanded: false,
+              onToggleExpand: () => toggled = true,
+              onApplyPrefill: (_) {},
+              onClose: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.fullscreen_rounded), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.fullscreen_rounded));
+      expect(toggled, isTrue);
+    });
+
+    testWidgets('renders prompt chips scroll controls and allows expanding to Wrap', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ChatCopilotDrawer(
+              options: null,
+              activeResult: null,
+              currentDisease: null,
+              currentRegion: null,
+              currentStartDate: null,
+              currentEndDate: null,
+              onApplyPrefill: (_) {},
+              onClose: () {},
+            ),
+          ),
+        ),
+      );
+
+      // In welcome state, default chips are present
+      expect(find.byIcon(Icons.chevron_left), findsOneWidget);
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      expect(find.byIcon(Icons.unfold_more), findsOneWidget);
+
+      // Tap unfold_more to expand prompts
+      await tester.tap(find.byIcon(Icons.unfold_more));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('სავარაუდო კითხვები'), findsOneWidget);
+      expect(find.byIcon(Icons.expand_less), findsOneWidget);
+    });
   });
 }

@@ -4,6 +4,8 @@
 /// Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 library;
 
+import 'dart:math' as math;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../models/chat_models.dart';
@@ -21,6 +23,8 @@ class ChatCopilotDrawer extends StatefulWidget {
   final DateTime? currentEndDate;
   final ValueChanged<ParsedRequest> onApplyPrefill;
   final VoidCallback onClose;
+  final bool isExpanded;
+  final VoidCallback? onToggleExpand;
 
   const ChatCopilotDrawer({
     super.key,
@@ -32,6 +36,8 @@ class ChatCopilotDrawer extends StatefulWidget {
     required this.currentEndDate,
     required this.onApplyPrefill,
     required this.onClose,
+    this.isExpanded = false,
+    this.onToggleExpand,
   });
 
   @override
@@ -47,6 +53,8 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
   List<String> _currentPrompts = [];
+  final ScrollController _chipsScrollController = ScrollController();
+  bool _arePromptsExpanded = false;
 
   @override
   void initState() {
@@ -105,6 +113,7 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
+    _chipsScrollController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -302,6 +311,15 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
             tooltip: 'ახალი საუბარი / Clear chat',
             onPressed: _isLoading ? null : () => setState(_initWelcome),
           ),
+          if (widget.onToggleExpand != null)
+            IconButton(
+              icon: Icon(
+                widget.isExpanded ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+                size: 22,
+              ),
+              tooltip: widget.isExpanded ? 'სტანდარტული ზომა / Standard width' : 'გადიდება / Expand chat',
+              onPressed: widget.onToggleExpand,
+            ),
           IconButton(
             icon: const Icon(Icons.close, size: 20),
             tooltip: 'დახურვა / Close',
@@ -636,29 +654,164 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
   }
 
   Widget _buildQuickChips(ColorScheme colorScheme) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _currentPrompts.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final prompt = _currentPrompts[index];
-          return ActionChip(
-            label: Text(
-              prompt,
-              style: TextStyle(
-                fontSize: 11.5,
-                color: colorScheme.primary,
-                fontWeight: FontWeight.w500,
+    if (_currentPrompts.isEmpty) return const SizedBox.shrink();
+
+    if (_arePromptsExpanded) {
+      return Container(
+        constraints: const BoxConstraints(maxHeight: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'სავარაუდო კითხვები / Suggested questions:',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const Spacer(),
+                InkWell(
+                  onTap: () => setState(() => _arePromptsExpanded = false),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'აკეცვა / Collapse',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Icon(Icons.expand_less, size: 16, color: colorScheme.primary),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _currentPrompts.map((prompt) {
+                    return ActionChip(
+                      label: Text(
+                        prompt,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      tooltip: prompt,
+                      backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.35),
+                      side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.25)),
+                      onPressed: () => _sendMessage(prompt),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
-            backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
-            side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.2)),
-            onPressed: () => _sendMessage(prompt),
-          );
-        },
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      height: 46,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left, size: 18),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 24, minHeight: 32),
+            tooltip: 'Scroll left',
+            onPressed: () {
+              if (_chipsScrollController.hasClients) {
+                _chipsScrollController.animateTo(
+                  math.max(0, _chipsScrollController.offset - 180),
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                );
+              }
+            },
+          ),
+          Expanded(
+            child: ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(
+                dragDevices: {
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.mouse,
+                  PointerDeviceKind.trackpad,
+                  PointerDeviceKind.stylus,
+                },
+              ),
+              child: ListView.separated(
+                controller: _chipsScrollController,
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: _currentPrompts.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final prompt = _currentPrompts[index];
+                  return ActionChip(
+                    label: Text(
+                      prompt,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    tooltip: prompt,
+                    backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.2)),
+                    onPressed: () => _sendMessage(prompt),
+                  );
+                },
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, size: 18),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 24, minHeight: 32),
+            tooltip: 'Scroll right',
+            onPressed: () {
+              if (_chipsScrollController.hasClients) {
+                _chipsScrollController.animateTo(
+                  _chipsScrollController.offset + 180,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                );
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.unfold_more, size: 18),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 26, minHeight: 32),
+            tooltip: 'ყველა კითხვის ნახვა / Show all prompts',
+            onPressed: () => setState(() => _arePromptsExpanded = true),
+          ),
+        ],
       ),
     );
   }
