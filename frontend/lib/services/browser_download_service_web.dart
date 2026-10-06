@@ -39,4 +39,8 @@ class BrowserDownloadService {
     anchor.remove();
     web.URL.revokeObjectURL(url);
   }
+
+  void openUrl(String url) {
+    web.window.open(url, '_blank');
+  }
 }

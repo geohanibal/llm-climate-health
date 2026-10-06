@@ -598,7 +598,10 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
       currentEndDate: endStr,
       activeResult: resultSummary,
       language: I18n.currentLanguage.code,
-      literatureSource: activeLiterature.value.id,
+      literatureSource: activeLiterature.value == LiteratureCorpus.custom &&
+              activeLiterature.customLiteratureTitle != null
+          ? 'custom: ${activeLiterature.customLiteratureTitle} - ${activeLiterature.customLiteratureSummary ?? ""}'
+          : activeLiterature.value.id,
     );
   }
 
@@ -982,8 +985,12 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
                       const Icon(Icons.menu_book_outlined, size: 14, color: Colors.amber),
                       const SizedBox(width: 4),
                       Text(
-                        '📚 ${corpus.getLocalizedLabel(lang)}',
+                        corpus == LiteratureCorpus.custom && activeLiterature.customLiteratureTitle != null
+                            ? '📚 ${activeLiterature.customLiteratureTitle}'
+                            : '📚 ${corpus.getLocalizedLabel(lang)}',
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(width: 2),
                       const Icon(Icons.arrow_drop_down, size: 14),

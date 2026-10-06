@@ -31,7 +31,8 @@ enum LiteratureCorpus {
   who('who', 'WHO Guidelines (ეპიდემიოლოგია & ვექტორები)', 'WHO Guidelines (Epidemiology & Vectors)', 'WHO-Richtlinien (Epidemiologie & Vektoren)'),
   lancet('lancet', 'Lancet Countdown (კლიმატის ცვლილება)', 'Lancet Countdown (Climate Change)', 'Lancet Countdown (Klimawandel)'),
   ipcc('ipcc', 'IPCC AR6 WGII (გრძელვადიანი რისკები)', 'IPCC AR6 WGII (Long-Term Risks)', 'IPCC AR6 WGII (Langzeitrisiken)'),
-  mordecai('mordecai', 'Vector Thermal Biology (Mordecai et al.)', 'Vector Thermal Biology (Mordecai et al.)', 'Vektor-Thermalbiologie (Mordecai et al.)');
+  mordecai('mordecai', 'Vector Thermal Biology (Mordecai et al.)', 'Vector Thermal Biology (Mordecai et al.)', 'Vektor-Thermalbiologie (Mordecai et al.)'),
+  custom('custom', 'მორგებული ლიტერატურა (Custom)', 'Custom Literature', 'Eigene Literatur');
 
   final String id;
   final String labelKa;
@@ -72,9 +73,16 @@ class AppLocaleController extends ValueNotifier<AppLanguage> {
 class LiteratureController extends ValueNotifier<LiteratureCorpus> {
   LiteratureController([super.value = LiteratureCorpus.all]);
 
-  void setCorpus(LiteratureCorpus corpus) {
+  String? customLiteratureTitle;
+  String? customLiteratureSummary;
+
+  void setCorpus(LiteratureCorpus corpus, {String? customTitle, String? customSummary}) {
+    customLiteratureTitle = customTitle;
+    customLiteratureSummary = customSummary;
     if (value != corpus) {
       value = corpus;
+    } else {
+      notifyListeners();
     }
   }
 }
@@ -127,6 +135,32 @@ class I18n {
       'literatureDifferencesTitle': 'რა განსხვავებებია ამ ლიტერატურას შორის?',
       'literatureDifferencesText':
           '• WHO: აქცენტი კლინიკურ მეთვალყურეობაზე, ეპიდემიის ზღვრებსა და გადაუდებელ ვექტორულ კონტროლზე.\n• Lancet Countdown: გლობალური კლიმატის ცვლილების როლი, გადაცემის ხელსაყრელობა (R0) და მოსახლეობის მოწყვლადობა.\n• IPCC AR6: გრძელვადიანი კლიმატური სცენარები, ექსტრემალური ნალექები და კომპლექსური რისკები.\n• Mordecai et al.: კოღოს თერმული ბიოლოგია, ოპტიმალური ტემპერატურა (24-29°C) და 1-3 თვიანი დროითი დაყოვნება (Lags).',
+      'addLiterature': 'ლიტერატურის დამატება',
+      'addCustomLiterature': 'საკუთარი ლიტერატურის დამატება',
+      'customLiteratureTitle': 'დაამატე ახალი სამეცნიერო წყარო',
+      'customLiteratureSubtitle': 'მიუთითეთ კვლევის პარამეტრები ან ატვირთეთ დოკუმენტი AI ანალიზში ჩასართავად',
+      'literatureTitleField': 'სათაური / Title',
+      'literatureAuthorsField': 'ავტორები / ორგანიზაცია',
+      'literatureYearField': 'გამოცემის წელი',
+      'literatureJournalField': 'ჟურნალი / გამოცემა',
+      'literatureUrlField': 'DOI ან ვებ/PDF ბმული (არასავალდებულო)',
+      'literatureFocusField': 'კვლევის ფოკუსი და რეზიუმე (Abstract)',
+      'literatureDifferencesField': 'როლი ანალიზში და განსხვავება (Relevance / Differences)',
+      'attachFile': 'ფაილის მიბმა (.pdf / .txt / .md)',
+      'fileAttached': 'მიბმული ფაილი:',
+      'saveLiterature': 'ლიტერატურის შენახვა',
+      'downloadLiteraturePdf': 'PDF გადმოწერა',
+      'readFullLiterature': 'სრული შინაარსი & დეტალები',
+      'officialSource': 'ორიგინალი წყარო',
+      'deleteLiterature': 'წაშლა',
+      'customBadge': 'მორგებული',
+      'copyCitation': 'ციტირების კოპირება',
+      'citationCopied': 'ციტირება დაკოპირდა ბუფერში!',
+      'literatureAddedSuccess': 'ახალი ლიტერატურა წარმატებით დაემატა!',
+      'abstractTab': 'მიმოხილვა & ფოკუსი',
+      'methodologyTab': 'მეთოდოლოგია & მონაცემები',
+      'keyFindingsTab': 'ძირითადი მიგნებები & ზღვრები',
+      'citationTab': 'აკადემიური ციტირება',
       'activeLiteratureBadge': 'ლიტერატურა',
       'runSearchNow': 'ძებნის გაშვება',
       'runSearchDirectly': 'ძებნის დაწყება',
@@ -219,6 +253,32 @@ class I18n {
       'literatureDifferencesTitle': 'What are the key differences between these sources?',
       'literatureDifferencesText':
           '• WHO: Focuses on clinical surveillance, outbreak alert thresholds, and urgent vector control.\n• Lancet Countdown: Focuses on macro-climate attribution, transmission suitability (R0), and vulnerability metrics.\n• IPCC AR6: Focuses on multi-decadal climate scenarios, extreme precipitation, and compound risks.\n• Mordecai et al.: Focuses on mosquito thermal biology, optimal temperature curves (24-29°C), and 1-3 month biological lags.',
+      'addLiterature': 'Add Literature',
+      'addCustomLiterature': 'Add Custom Scientific Literature',
+      'customLiteratureTitle': 'Add New Scientific Source',
+      'customLiteratureSubtitle': 'Specify study parameters or attach documents to ground AI analysis',
+      'literatureTitleField': 'Title',
+      'literatureAuthorsField': 'Authors / Organization',
+      'literatureYearField': 'Year',
+      'literatureJournalField': 'Journal / Publisher',
+      'literatureUrlField': 'DOI or Web/PDF URL (optional)',
+      'literatureFocusField': 'Research Focus & Abstract',
+      'literatureDifferencesField': 'Relevance to Climate-Health & Methodology',
+      'attachFile': 'Attach File (.pdf / .txt / .md)',
+      'fileAttached': 'Attached file:',
+      'saveLiterature': 'Save Literature',
+      'downloadLiteraturePdf': 'Download PDF Digest',
+      'readFullLiterature': 'Read Full Text & Details',
+      'officialSource': 'Official Source / Paper',
+      'deleteLiterature': 'Delete',
+      'customBadge': 'Custom',
+      'copyCitation': 'Copy Citation',
+      'citationCopied': 'Citation copied to clipboard!',
+      'literatureAddedSuccess': 'Custom literature added successfully!',
+      'abstractTab': 'Abstract & Focus',
+      'methodologyTab': 'Methodology & Data',
+      'keyFindingsTab': 'Key Findings & Thresholds',
+      'citationTab': 'Academic Citation',
       'activeLiteratureBadge': 'Literature',
       'runSearchNow': 'Run Search Now',
       'runSearchDirectly': 'Start Search',
@@ -311,6 +371,32 @@ class I18n {
       'literatureDifferencesTitle': 'Was sind die Hauptunterschiede zwischen diesen Quellen?',
       'literatureDifferencesText':
           '• WHO: Schwerpunkt auf klinischer Überwachung, Ausbruchsschwellenwerten und Vektorkontrolle.\n• Lancet Countdown: Schwerpunkt auf makroklimatischer Attribution, Übertragungseignung (R0) und Vulnerabilität.\n• IPCC AR6: Schwerpunkt auf mehrdekadischen Klimaszenarien, Extremniederschlägen und Verbundrisiken.\n• Mordecai et al.: Schwerpunkt auf thermischer Vektorbiologie, optimalen Temperaturen (24-29°C) und 1-3 Monaten Verzögerung (Lags).',
+      'addLiterature': 'Literatur hinzufügen',
+      'addCustomLiterature': 'Eigene wissenschaftliche Literatur hinzufügen',
+      'customLiteratureTitle': 'Neue wissenschaftliche Quelle hinzufügen',
+      'customLiteratureSubtitle': 'Studienparameter angeben oder Dokumente für die KI-Analyse anfügen',
+      'literatureTitleField': 'Titel',
+      'literatureAuthorsField': 'Autoren / Organisation',
+      'literatureYearField': 'Jahr',
+      'literatureJournalField': 'Journal / Verlag',
+      'literatureUrlField': 'DOI oder Web/PDF-URL (optional)',
+      'literatureFocusField': 'Forschungsfokus & Abstract',
+      'literatureDifferencesField': 'Relevanz für Klima-Gesundheit & Methodik',
+      'attachFile': 'Datei anhängen (.pdf / .txt / .md)',
+      'fileAttached': 'Angehängte Datei:',
+      'saveLiterature': 'Literatur speichern',
+      'downloadLiteraturePdf': 'PDF-Zusammenfassung herunterladen',
+      'readFullLiterature': 'Volltext & Details lesen',
+      'officialSource': 'Offizielle Quelle / Paper',
+      'deleteLiterature': 'Löschen',
+      'customBadge': 'Benutzerdefiniert',
+      'copyCitation': 'Zitation kopieren',
+      'citationCopied': 'Zitation in Zwischenablage kopiert!',
+      'literatureAddedSuccess': 'Literatur erfolgreich hinzugefügt!',
+      'abstractTab': 'Abstract & Fokus',
+      'methodologyTab': 'Methodik & Daten',
+      'keyFindingsTab': 'Wichtigste Erkenntnisse & Schwellenwerte',
+      'citationTab': 'Akademische Zitation',
       'activeLiteratureBadge': 'Literatur',
       'runSearchNow': 'Suche jetzt starten',
       'runSearchDirectly': 'Suche starten',

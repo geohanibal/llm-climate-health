@@ -30,6 +30,9 @@ class _FakeDownloadService implements BrowserDownloadService {
     lastMimeType = mimeType;
     lastFileName = fileName;
   }
+
+  @override
+  void openUrl(String url) {}
 }
 
 void main() {

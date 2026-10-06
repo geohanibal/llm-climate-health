@@ -20,4 +20,8 @@ class BrowserDownloadService {
   void downloadText(String content, String mimeType, String fileName) {
     throw UnsupportedError('File downloads are only available when running as a web app.');
   }
+
+  void openUrl(String url) {
+    // No-op on Dart VM / tests
+  }
 }

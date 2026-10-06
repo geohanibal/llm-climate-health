@@ -1,7 +1,8 @@
 /// Scientific Literature & Knowledge Base dialog for the Climate-Health Platform.
 /// Displays the peer-reviewed scientific corpora used for grounding AI analysis,
 /// explains In-Context Grounding vs. AI Training, allows switching the active corpus,
-/// and provides comparison shortcuts for the AI Copilot.
+/// adding custom literature, viewing full in-app digests, downloading PDFs, and
+/// comparing differences in the AI Copilot.
 ///
 /// Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis, University of Bremen)
 library;
@@ -9,157 +10,11 @@ library;
 import 'package:flutter/material.dart';
 
 import '../core/localization.dart';
-
-class LiteratureItem {
-  final LiteratureCorpus corpus;
-  final String tag;
-  final String title;
-  final String authors;
-  final String year;
-  final String journal;
-  final String citation;
-  final String focusKa;
-  final String focusEn;
-  final String focusDe;
-  final String differencesKa;
-  final String differencesEn;
-  final String differencesDe;
-  final IconData icon;
-
-  const LiteratureItem({
-    required this.corpus,
-    required this.tag,
-    required this.title,
-    required this.authors,
-    required this.year,
-    required this.journal,
-    required this.citation,
-    required this.focusKa,
-    required this.focusEn,
-    required this.focusDe,
-    required this.differencesKa,
-    required this.differencesEn,
-    required this.differencesDe,
-    required this.icon,
-  });
-
-  String getFocus(AppLanguage lang) {
-    switch (lang) {
-      case AppLanguage.ka:
-        return focusKa;
-      case AppLanguage.de:
-        return focusDe;
-      case AppLanguage.en:
-        return focusEn;
-    }
-  }
-
-  String getDifferences(AppLanguage lang) {
-    switch (lang) {
-      case AppLanguage.ka:
-        return differencesKa;
-      case AppLanguage.de:
-        return differencesDe;
-      case AppLanguage.en:
-        return differencesEn;
-    }
-  }
-}
-
-final List<LiteratureItem> kScientificCorpora = [
-  const LiteratureItem(
-    corpus: LiteratureCorpus.who,
-    tag: 'WHO 2020 / 2024',
-    title: 'Global Vector Control Response & Epidemic Preparedness',
-    authors: 'World Health Organization (WHO)',
-    year: '2020',
-    journal: 'WHO Technical Report Series & Guidelines',
-    citation:
-        'World Health Organization. (2020). Global vector control response 2017–2030. WHO Guidelines Approved by the Guidelines Review Committee.',
-    focusKa:
-        'კლინიკური მეთვალყურეობა, ეპიდემიოლოგიური ზღვრები (outbreak alert thresholds) და გადაუდებელი ვექტორული ინტერვენციები.',
-    focusEn:
-        'Clinical disease surveillance, epidemiological outbreak alert thresholds, and immediate vector control interventions.',
-    focusDe:
-        'Klinische Krankheitsüberwachung, epidemiologische Ausbruchsschwellenwerte und sofortige Vektorkontrollmaßnahmen.',
-    differencesKa:
-        'აქცენტი კეთდება რეალურ-დროის შემთხვევების რეგისტრაციაზე, საზოგადოებრივი ჯანდაცვის რეაგირებაზე და ლოკალურ ზღვრულ მაჩვენებლებზე.',
-    differencesEn:
-        'Emphasizes operational public health actions, case reporting protocols, and immediate larval reduction rather than climate projections.',
-    differencesDe:
-        'Konzentriert sich auf operative Maßnahmen des öffentlichen Gesundheitswesens und Meldeschwellen anstelle von Klimaprojektionen.',
-    icon: Icons.local_hospital_outlined,
-  ),
-  const LiteratureItem(
-    corpus: LiteratureCorpus.lancet,
-    tag: 'The Lancet 2023',
-    title: 'The 2023 Report of the Lancet Countdown on Health and Climate Change',
-    authors: 'Romanello, M., Di Napoli, C., Drummond, P., et al.',
-    year: '2023',
-    journal: 'The Lancet, 402(10419), 2346-2394',
-    citation:
-        'Romanello, M., et al. (2023). The 2023 report of the Lancet Countdown on health and climate change: the imperative for a health-centred response. The Lancet, 402(10419), 2346-2394.',
-    focusKa:
-        'კლიმატის ცვლილების ატრიბუცია, დაავადების გადაცემის ეკოლოგიური ხელსაყრელობის (R0) ზრდა და მოსახლეობის მოწყვლადობა.',
-    focusEn:
-        'Climate change attribution, shifts in environmental transmission suitability (R0), and population exposure metrics.',
-    focusDe:
-        'Klimawandel-Attribution, Veränderungen der Umweltübertragungseignung (R0) und Exposition der Bevölkerung.',
-    differencesKa:
-        'ფოკუსირებულია გლობალურ და რეგიონულ ტენდენციებზე, ტემპერატურისა და ნალექების ცვლილების გავლენაზე გადამტანების გავრცელების არეალზე.',
-    differencesEn:
-        'Focuses on macro-level climate attribution, quantifying how anthropogenic global warming increases transmission suitability.',
-    differencesDe:
-        'Fokussiert auf Makro-Klimaattribution und quantifiziert, wie die Erwärmung die Übertragungseignung global erhöht.',
-    icon: Icons.public_outlined,
-  ),
-  const LiteratureItem(
-    corpus: LiteratureCorpus.ipcc,
-    tag: 'IPCC AR6 2022',
-    title: 'Climate Change 2022: Impacts, Adaptation and Vulnerability (Chapter 7: Health)',
-    authors: 'Intergovernmental Panel on Climate Change (IPCC WGII)',
-    year: '2022',
-    journal: 'Cambridge University Press',
-    citation:
-        'IPCC. (2022). Climate Change 2022: Impacts, Adaptation and Vulnerability. Contribution of Working Group II to the Sixth Assessment Report. Cambridge Univ. Press.',
-    focusKa:
-        'გრძელვადიანი კლიმატური პროექციები (2030–2100), ექსტრემალური ნალექები, წყალდიდობები და კომპლექსური რისკები (Compound hazards).',
-    focusEn:
-        'Multi-decadal climate projections (2030–2100), extreme rainfall events, floodings, and compound cascading health risks.',
-    focusDe:
-        'Mehrdekadische Klimaprojektionen (2030–2100), Starkregenereignisse, Überschwemmungen und kaskadierende Gesundheitsrisiken.',
-    differencesKa:
-        'იკვლევს მრავალათწლიან სცენარებს (SSPs) და ადაპტაციის პოლიტიკას, განსხვავებით ყოველთვიური ეპიდემიოლოგიური რყევებისგან.',
-    differencesEn:
-        'Evaluates multi-decadal Shared Socioeconomic Pathways (SSPs) and structural resilience rather than monthly surveillance cycles.',
-    differencesDe:
-        'Bewertet mehrdekadische sozioökonomische Pfade (SSPs) und Anpassungsresilienz anstelle monatlicher Überwachungszyklen.',
-    icon: Icons.shield_outlined,
-  ),
-  const LiteratureItem(
-    corpus: LiteratureCorpus.mordecai,
-    tag: 'Ecology Letters 2019',
-    title: 'Thermal Biology of Mosquito-Borne Disease',
-    authors: 'Mordecai, E. A., Caldwell, J. M., Grossman, M. K., et al.',
-    year: '2019',
-    journal: 'Ecology Letters, 22(10), 1690-1708',
-    citation:
-        'Mordecai, E. A., et al. (2019). Thermal biology of mosquito-borne disease. Ecology Letters, 22(10), 1690-1708.',
-    focusKa:
-        'კოღოს თერმული ბიოლოგია, არაწრფივი ოპტიმალური ტემპერატურა (24°C–29°C) და 1–3 თვიანი ბიოლოგიური დროითი დაყოვნება (Lags).',
-    focusEn:
-        'Mosquito thermal biology, non-linear optimal temperature curves (24°C–29°C), and 1–3 month biological transmission lags.',
-    focusDe:
-        'Thermale Biologie von Stechmücken, nicht-lineare optimale Temperaturkurven (24°C–29°C) und 1–3 monatige biologische Verzögerungen (Lags).',
-    differencesKa:
-        'უზრუნველყოფს ფიზიოლოგიურ მტკიცებულებას იმისა, თუ რატომ მოქმედებს წვიმა და ტემპერატურა დაგვიანებით (Lag 1-3 თვე) დაავადების შემთხვევებზე.',
-    differencesEn:
-        'Provides mechanistic biological proof for why precipitation and warmth drive disease peaks after a 1–3 month lag (breeding cycle).',
-    differencesDe:
-        'Liefert den mechanistischen biologischen Beweis für zeitverzögerte Effekte (Lags 1–3 Monate) zwischen Niederschlag und Fallzahlen.',
-    icon: Icons.biotech_outlined,
-  ),
-];
+import '../models/literature_item.dart';
+import '../services/browser_download_service.dart';
+import '../services/literature_pdf_service.dart';
+import 'add_literature_dialog.dart';
+import 'literature_reader_dialog.dart';
 
 class LiteratureKnowledgeDialog extends StatefulWidget {
   final ValueChanged<String>? onCompareInChat;
@@ -188,16 +43,112 @@ class LiteratureKnowledgeDialog extends StatefulWidget {
 
 class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
   late LiteratureCorpus _selectedCorpus;
+  final LiteraturePdfService _pdfService = const LiteraturePdfService();
+  final BrowserDownloadService _downloadService = const BrowserDownloadService();
+  final CustomLiteratureStore _customStore = CustomLiteratureStore.instance;
 
   @override
   void initState() {
     super.initState();
     _selectedCorpus = activeLiterature.value;
+    _customStore.addListener(_onStoreChanged);
   }
 
-  void _applyCorpus(LiteratureCorpus corpus) {
+  @override
+  void dispose() {
+    _customStore.removeListener(_onStoreChanged);
+    super.dispose();
+  }
+
+  void _onStoreChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _applyCorpus(LiteratureCorpus corpus, {String? customTitle, String? customSummary}) {
     setState(() => _selectedCorpus = corpus);
-    activeLiterature.setCorpus(corpus);
+    activeLiterature.setCorpus(corpus, customTitle: customTitle, customSummary: customSummary);
+  }
+
+  void _applyItem(LiteratureItem item) {
+    if (item.isCustom) {
+      _applyCorpus(
+        LiteratureCorpus.custom,
+        customTitle: item.title,
+        customSummary: item.focusEn.isNotEmpty ? item.focusEn : item.focusKa,
+      );
+    } else {
+      _applyCorpus(item.corpus);
+    }
+  }
+
+  Future<void> _openAddLiterature() async {
+    final newItem = await AddLiteratureDialog.show(context);
+    if (newItem != null && mounted) {
+      _applyItem(newItem);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(I18n.t('literatureAddedSuccess')),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    }
+  }
+
+  Future<void> _downloadItemPdf(LiteratureItem item, AppLanguage lang) async {
+    try {
+      await _pdfService.downloadLiteraturePdf(item: item, lang: lang);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              lang == AppLanguage.ka
+                  ? 'PDF დაიჯესტი გადმოწერილია!'
+                  : lang == AppLanguage.de
+                      ? 'PDF-Zusammenfassung heruntergeladen!'
+                      : 'PDF digest downloaded successfully!',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  void _confirmDeleteCustomItem(LiteratureItem item) {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(I18n.t('deleteLiterature')),
+        content: Text('${item.title} - ${I18n.t('deleteLiterature')}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(I18n.t('close')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+            child: Text(I18n.t('deleteLiterature')),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed == true && mounted) {
+        _customStore.removeCustomItem(item.id);
+        if (_selectedCorpus == LiteratureCorpus.custom) {
+          _applyCorpus(LiteratureCorpus.all);
+        }
+      }
+    });
   }
 
   @override
@@ -206,7 +157,9 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
     final colorScheme = theme.colorScheme;
     final lang = I18n.currentLanguage;
     final size = MediaQuery.sizeOf(context);
-    final dialogWidth = size.width > 900 ? 860.0 : size.width * 0.95;
+    final dialogWidth = size.width > 920 ? 880.0 : size.width * 0.95;
+
+    final allItems = [...kScientificCorpora, ..._customStore.customItems];
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -238,21 +191,41 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
                     _buildCorpusSelector(context, colorScheme, lang),
                     const SizedBox(height: 24),
 
-                    // Section: Literature Corpora Cards
+                    // Section: Literature Corpora Cards Header with Add Button
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.library_books_outlined, size: 20, color: colorScheme.primary),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.library_books_outlined, size: 20, color: colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  I18n.t('literatureKnowledge'),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Text(
-                          I18n.t('literatureKnowledge'),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        FilledButton.icon(
+                          onPressed: _openAddLiterature,
+                          icon: const Icon(Icons.add_rounded, size: 16),
+                          label: Text(I18n.t('addLiterature')),
+                          style: FilledButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    ...kScientificCorpora.map((item) => _buildCorpusCard(context, item, lang)),
+                    const SizedBox(height: 14),
+
+                    ...allItems.map((item) => _buildCorpusCard(context, item, lang)),
 
                     const SizedBox(height: 20),
                     // Section: Differences explanation
@@ -404,11 +377,12 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
   Widget _buildCorpusCard(BuildContext context, LiteratureItem item, AppLanguage lang) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isSelected = _selectedCorpus == item.corpus;
+    final isSelected = (_selectedCorpus == item.corpus) ||
+        (item.isCustom && _selectedCorpus == LiteratureCorpus.custom);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isSelected
             ? colorScheme.primaryContainer.withOpacity(0.12)
@@ -425,7 +399,7 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(item.icon, size: 20, color: isSelected ? colorScheme.primary : Colors.grey[400]),
+              Icon(item.icon, size: 22, color: isSelected ? colorScheme.primary : Colors.grey[400]),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -448,6 +422,24 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
                             ),
                           ),
                         ),
+                        if (item.isCustom) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              I18n.t('customBadge'),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ),
+                        ],
                         const Spacer(),
                         if (isSelected)
                           Container(
@@ -476,16 +468,23 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
                               ],
                             ),
                           ),
+                        if (item.isCustom)
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                            tooltip: I18n.t('deleteLiterature'),
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () => _confirmDeleteCustomItem(item),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
                       item.title,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      '${item.authors} • ${item.journal}',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+                      '${item.authors} • ${item.journal} (${item.year})',
+                      style: TextStyle(fontSize: 11.5, color: Colors.grey[400]),
                     ),
                   ],
                 ),
@@ -494,7 +493,7 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
           ),
           const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.black26,
               borderRadius: BorderRadius.circular(8),
@@ -514,23 +513,63 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
                   item.citation,
                   style: TextStyle(fontSize: 10, color: Colors.grey[500], fontStyle: FontStyle.italic),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
-              TextButton(
-                onPressed: () => _applyCorpus(item.corpus),
-                style: TextButton.styleFrom(
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Actions Toolbar
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              // Read Full Text / Details button
+              OutlinedButton.icon(
+                onPressed: () => LiteratureReaderDialog.show(context, item),
+                icon: const Icon(Icons.menu_book_rounded, size: 14),
+                label: Text(I18n.t('readFullLiterature')),
+                style: OutlinedButton.styleFrom(
                   visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                ),
+              ),
+              // Download PDF Digest button
+              OutlinedButton.icon(
+                onPressed: () => _downloadItemPdf(item, lang),
+                icon: const Icon(Icons.picture_as_pdf_outlined, size: 14),
+                label: Text(I18n.t('downloadLiteraturePdf')),
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                ),
+              ),
+              // External Official Publication link if available
+              if (item.url != null)
+                TextButton.icon(
+                  onPressed: () => _downloadService.openUrl(item.url!),
+                  icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                  label: Text(I18n.t('officialSource')),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  ),
+                ),
+              // Select button
+              FilledButton.tonal(
+                onPressed: () => _applyItem(item),
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 ),
                 child: Text(
                   isSelected
