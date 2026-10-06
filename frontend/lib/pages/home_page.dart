@@ -48,11 +48,18 @@ class _HomePageState extends State<HomePage> {
 
   bool _isDesktopChatOpen = false;
   bool _isChatExpanded = false;
+  final ValueNotifier<String?> _copilotMessageNotifier = ValueNotifier<String?>(null);
 
   @override
   void initState() {
     super.initState();
     _loadOptions();
+  }
+
+  @override
+  void dispose() {
+    _copilotMessageNotifier.dispose();
+    super.dispose();
   }
 
   Future<void> _loadOptions() async {
@@ -130,6 +137,7 @@ class _HomePageState extends State<HomePage> {
       onClose: onClose,
       isExpanded: _isChatExpanded,
       onToggleExpand: () => setState(() => _isChatExpanded = !_isChatExpanded),
+      externalMessageNotifier: _copilotMessageNotifier,
     );
   }
 
@@ -167,6 +175,7 @@ class _HomePageState extends State<HomePage> {
                 } else if (!isWideScreen && !(_scaffoldKey.currentState?.isEndDrawerOpen ?? false)) {
                   _scaffoldKey.currentState?.openEndDrawer();
                 }
+                _copilotMessageNotifier.value = prompt;
               },
             ),
             icon: const Icon(Icons.menu_book_outlined, size: 16),

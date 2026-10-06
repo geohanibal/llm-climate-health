@@ -33,6 +33,7 @@ class ChatCopilotDrawer extends StatefulWidget {
   final VoidCallback onClose;
   final bool isExpanded;
   final VoidCallback? onToggleExpand;
+  final ValueNotifier<String?>? externalMessageNotifier;
 
   const ChatCopilotDrawer({
     super.key,
@@ -50,6 +51,7 @@ class ChatCopilotDrawer extends StatefulWidget {
     required this.onClose,
     this.isExpanded = false,
     this.onToggleExpand,
+    this.externalMessageNotifier,
   });
 
   @override
@@ -75,6 +77,20 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
   void initState() {
     super.initState();
     _initWelcome();
+    widget.externalMessageNotifier?.addListener(_handleExternalMessage);
+    if (widget.externalMessageNotifier?.value != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleExternalMessage();
+      });
+    }
+  }
+
+  void _handleExternalMessage() {
+    final msg = widget.externalMessageNotifier?.value;
+    if (msg != null && msg.trim().isNotEmpty) {
+      widget.externalMessageNotifier?.value = null;
+      _sendMessage(msg);
+    }
   }
 
   void _initWelcome() {
@@ -190,6 +206,15 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
   @override
   void didUpdateWidget(covariant ChatCopilotDrawer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.externalMessageNotifier != widget.externalMessageNotifier) {
+      oldWidget.externalMessageNotifier?.removeListener(_handleExternalMessage);
+      widget.externalMessageNotifier?.addListener(_handleExternalMessage);
+      if (widget.externalMessageNotifier?.value != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _handleExternalMessage();
+        });
+      }
+    }
     if (oldWidget.activeResult != widget.activeResult) {
       _updateDefaultPrompts();
       if (widget.activeResult != null) {
@@ -529,6 +554,7 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
 
   @override
   void dispose() {
+    widget.externalMessageNotifier?.removeListener(_handleExternalMessage);
     _textController.dispose();
     _scrollController.dispose();
     _chipsScrollController.dispose();

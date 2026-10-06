@@ -518,5 +518,53 @@ void main() {
       // Reset to Georgian
       appLocale.setLanguage(AppLanguage.ka);
     });
+
+    testWidgets('externalMessageNotifier triggers sending message in Copilot', (tester) async {
+      final notifier = ValueNotifier<String?>(null);
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/chat') {
+          return http.Response(
+            jsonEncode({
+              'reply': 'Scientific literature differences comparison response',
+              'suggested_action': null,
+              'suggested_prompts': <String>[],
+            }),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      await http.runWithClient(() async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: ChatCopilotDrawer(
+                options: null,
+                activeResult: null,
+                currentDisease: 'dengue',
+                currentRegion: 'Thailand',
+                currentStartDate: null,
+                currentEndDate: null,
+                onApplyPrefill: (_) {},
+                onClose: () {},
+                externalMessageNotifier: notifier,
+              ),
+            ),
+          ),
+        );
+
+        expect(find.textContaining('comparison response'), findsNothing);
+
+        // Fire message through notifier
+        notifier.value = 'Compare literature';
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Compare literature', findRichText: true), findsOneWidget);
+        expect(find.textContaining('comparison response', findRichText: true), findsOneWidget);
+      }, () => mockClient);
+    });
   });
 }
