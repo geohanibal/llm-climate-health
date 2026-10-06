@@ -157,6 +157,7 @@ class ChatContext(BaseModel):
     current_end_date: str | None = None
     active_result: ActiveResultSummary | None = None
     language: str | None = None
+    literature_source: str | None = None
 
 
 class ChatRequest(BaseModel):

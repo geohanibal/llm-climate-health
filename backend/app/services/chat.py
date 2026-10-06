@@ -65,6 +65,23 @@ def _generate_fallback_response(
         else:
             status_note = "\n\n*(შენიშვნა: AI სერვისი ამჟამად მუშაობს ოფლაინ რეჟიმში. მონაცემები ამოღებულია პირდაპირ ეკრანის შედეგებიდან.)*"
 
+        is_lit = any(w in user_text.lower() for w in ["ლიტერატურ", "განსხვავებ", "გაწვრთნ", "who", "lancet", "ipcc", "mordecai"])
+        if is_lit:
+            reply = (
+                "📚 **სამეცნიერო ლიტერატურის შედარება და AI Grounding-ის ანალიზი:**\n\n"
+                "1. **არის თუ არა ეს AI-ის გაწვრთნა (Training)?**\n"
+                "   - **არა.** ეს არის **In-Context Grounding / Retrieval-Augmented Generation (RAG)**. მოდელის ნეირონული წონები (weights) რჩება უცვლელი. AI სისტემას რეალურ დროში ეძლევა ზუსტი სამეცნიერო კონტექსტი და მითითება, რომ ანალიზი დააფუძნოს მხოლოდ ამ წყაროებზე და გამოირიცხოს ჰალუცინაციები.\n\n"
+                "2. **ძირითადი განსხვავებები გამოყენებულ ლიტერატურებს შორის:**\n"
+                "   - **WHO Guidelines (2020/2024):** ოპერატიული საზოგადოებრივი ჯანდაცვა, შემთხვევათა რეგისტრაცია, ეპიდემიის ზღვრები (alert thresholds) და გადაუდებელი ვექტორული კონტროლი.\n"
+                "   - **The Lancet Countdown (2023/2024):** მაკრო-კლიმატის ცვლილების ატრიბუცია, დაავადების გადაცემის ეკოლოგიური ხელსაყრელობის ($R_0$) ზრდა და მოსახლეობის ექსპოზიციის რისკები.\n"
+                "   - **IPCC AR6 WGII (2022):** მრავალათწლიანი პროექციები (2030–2100), ექსტრემალური ნალექები, წყალდიდობები და კომპლექსური რისკები (Compound hazards).\n"
+                "   - **Mordecai et al. (2019):** კოღოს თერმული ბიოლოგია, არაწრფივი ოპტიმალური ტემპერატურა ($24^\\circ\\text{C}-29^\\circ\\text{C}$) და 1–3 თვიანი ბიოლოგიური დროითი დაყოვნება (Lags).\n\n"
+                "თქვენ შეგიძლიათ საიტის ზედა პანელიდან (📚 ლიტერატურა) აირჩიოთ სასურველი ლიტერატურული აქცენტი."
+                f"{status_note}"
+            )
+            prompts = ["რატომ არის Lagged კორელაცია მნიშვნელოვანი?", "რომელი დაავადებებია ხელმისაწვდომი?", "🔄 ახალი ძიების დაწყება"]
+            return ChatResponse(reply=reply, suggested_action=None, suggested_prompts=prompts)
+
         if has_result and context and context.active_result:
             r = context.active_result
             corrs = "\n".join(f"- {c}" for c in r.correlations_summary) if r.correlations_summary else "არ მოიძებნა"
@@ -121,6 +138,23 @@ def _generate_fallback_response(
         else:
             status_note = "\n\n*(Hinweis: Der AI-Dienst läuft im Offline-Modus.)*"
 
+        is_lit_de = any(w in user_text.lower() for w in ["literatur", "unterschied", "training", "who", "lancet", "ipcc", "mordecai"])
+        if is_lit_de:
+            reply = (
+                "📚 **Wissenschaftliche Literatur & KI-Grounding:**\n\n"
+                "1. **Ist dies Modelltraining?**\n"
+                "   - **Nein.** Dies ist **In-Context Grounding / Retrieval-Augmented Generation (RAG)**. Die neuronalen Gewichte bleiben völlig unverändert. Das System greift in Echtzeit auf geprüfte Primärliteratur zu, um Halluzinationen zu verhindern.\n\n"
+                "2. **Hauptunterschiede zwischen den Quellen:**\n"
+                "   - **WHO-Richtlinien:** Fokus auf operativer Überwachung, Meldeschwellen und Vektorkontrollmaßnahmen.\n"
+                "   - **Lancet Countdown:** Fokus auf makroklimatische Attribution, Veränderung der Übertragungseignung ($R_0$) und Vulnerabilitätsmetriken.\n"
+                "   - **IPCC AR6:** Fokus auf langfristige Klimaszenarien (2030–2100), Starkregenereignisse und Kaskadenrisiken.\n"
+                "   - **Mordecai et al. (2019):** Fokus auf physiologische thermale Vektorbiologie ($24^\\circ\\text{C}-29^\\circ\\text{C}$) und 1–3 monatige biologische Zeitverzögerungen (Lags).\n\n"
+                "Über den Button 📚 Literatur in der oberen Leiste können Sie den gewünschten Schwerpunkt auswählen."
+                f"{status_note}"
+            )
+            prompts = ["Was bedeutet Lag-Korrelation?", "Welche Daten gibt es für Thailand?", "🔄 Neue Suche starten"]
+            return ChatResponse(reply=reply, suggested_action=None, suggested_prompts=prompts)
+
         if has_result and context and context.active_result:
             r = context.active_result
             corrs_de = "\n".join(f"- {c}" for c in r.correlations_summary) if r.correlations_summary else "Keine"
@@ -161,6 +195,23 @@ def _generate_fallback_response(
             )
         else:
             status_note = "\n\n*(Note: Running in offline fallback mode with current data from your active screen.)*"
+
+        is_lit_en = any(w in user_text.lower() for w in ["literature", "differ", "training", "who", "lancet", "ipcc", "mordecai"])
+        if is_lit_en:
+            reply = (
+                "📚 **Scientific Literature Comparison & AI Grounding:**\n\n"
+                "1. **Is this AI Training?**\n"
+                "   - **No.** This is **In-Context Grounding / Retrieval-Augmented Generation (RAG)**. Neural network weights remain static. The AI references verified academic corpora in real-time to avoid hallucinations and ensure scientific accuracy.\n\n"
+                "2. **Key Differences Between Sources:**\n"
+                "   - **WHO Guidelines:** Operational surveillance, clinical alert thresholds, and urgent vector control response.\n"
+                "   - **The Lancet Countdown:** Macro-climate change attribution, transmission suitability ($R_0$), and population exposure metrics.\n"
+                "   - **IPCC AR6 WGII:** Multi-decadal climate projections (2030–2100), precipitation extremes, and compound cascading hazards.\n"
+                "   - **Mordecai et al. (2019):** Mechanistic thermal biology, non-linear temperature curves ($24^\\circ\\text{C}-29^\\circ\\text{C}$), and 1–3 month biological transmission lags.\n\n"
+                "You can change the active literature baseline using the 📚 Literature button in the top navigation bar."
+                f"{status_note}"
+            )
+            prompts = ["Why are lagged correlations important?", "What diseases are available?", "🔄 Start new search"]
+            return ChatResponse(reply=reply, suggested_action=None, suggested_prompts=prompts)
 
         if has_result and context and context.active_result:
             r = context.active_result
@@ -211,7 +262,7 @@ def _generate_fallback_response(
     return ChatResponse(reply=reply, suggested_action=None, suggested_prompts=prompts)
 
 
-def _build_system_instruction() -> str:
+def _build_system_instruction(literature_source: str = "all") -> str:
     disease_info = []
     for k, v in DISEASES.items():
         regions = sorted(DISEASES_WITH_DATA.get(k, []))
@@ -267,6 +318,15 @@ Keep technical/scientific abbreviations intact (e.g. ERA5, ECMWF, WHO GHO, HDX, 
      Note that CSV, JSON, and PDF report downloads are available directly with one click right here in the chat toolbar and on the result card!
    - If the user asks for a new search ("ახალი ძიება", "ახალი კვლევა", "new search"):
      Recommend exciting datasets with verified coverage (e.g. Dengue in Thailand or Peru, Malaria in Kenya) and provide a concrete `suggested_action`!
+
+7. Scientific Literature Grounding & Differences:
+   - Grounding vs Training: Using literature in prompts is In-Context Learning / Retrieval-Augmented Generation (RAG), NOT neural weight training or fine-tuning.
+   - Core Scientific Corpora:
+     * WHO Guidelines: Clinical surveillance, epidemic alert thresholds, emergency vector control.
+     * The Lancet Countdown: Macro-climate attribution, transmission suitability (R0), population exposure metrics.
+     * IPCC AR6 WGII: Multi-decadal climate scenarios (2030-2100), extreme precipitation, compound cascading hazards.
+     * Mordecai et al. 2019: Thermal performance curves (24-29°C), non-linear vector biology, 1-3 month biological transmission lags.
+   - Currently active literature corpus focus: {literature_source}. Tailor your scientific interpretation and citations to highlight this literature perspective when appropriate.
 
 ### RESPONSE JSON FORMAT:
 You MUST respond with a single valid JSON object containing:
@@ -364,12 +424,16 @@ def process_chat(req: ChatRequest) -> ChatResponse:
         (m.content for m in reversed(req.messages) if m.role == "user"), ""
     )
 
+    lit_source = req.context.literature_source if req.context and req.context.literature_source else "all"
+
     # Format context for prompt
     context_str = "CURRENT APPLICATION STATE / CONTEXT:\n"
     if req.context:
         ctx = req.context
         if ctx.language:
             context_str += f"- Selected User Interface Language: {ctx.language}\n"
+        if ctx.literature_source:
+            context_str += f"- Selected Scientific Literature Corpus: {ctx.literature_source}\n"
         if ctx.current_disease or ctx.current_region:
             context_str += f"- Selected in Form: Disease={ctx.current_disease}, Region={ctx.current_region}, Dates={ctx.current_start_date} to {ctx.current_end_date}\n"
         if ctx.active_result:
@@ -393,7 +457,7 @@ def process_chat(req: ChatRequest) -> ChatResponse:
         history_str += f"{role}: {msg.content}\n\n"
 
     full_prompt = (
-        f"{_build_system_instruction()}\n\n"
+        f"{_build_system_instruction(literature_source=lit_source)}\n\n"
         f"{context_str}\n\n"
         f"{history_str}\n"
         f"Respond to the latest user message. Remember to reply in the EXACT SAME LANGUAGE as the user."

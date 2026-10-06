@@ -16,6 +16,7 @@ import '../models/platform_options.dart';
 import '../services/api_client.dart';
 import '../services/dataset_export_service.dart';
 import '../services/report_pdf_service.dart';
+import 'literature_knowledge_dialog.dart';
 
 class ChatCopilotDrawer extends StatefulWidget {
   final PlatformOptions? options;
@@ -160,26 +161,26 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
       switch (lang) {
         case AppLanguage.ka:
           _currentPrompts = [
+            "📚 შეადარე გამოყენებული სამეცნიერო ლიტერატურა",
             "🌍 რა მონაცემებია ხელმისაწვდომი ტაილანდზე?",
             "📋 დამიყენე ფორმა დენგეზე ტაილანდში (2018-2022)",
             "🔬 რა არის ERA5 reanalysis სადგურის მონაცემებთან შედარებით?",
-            "რომელი დაავადებებია მხარდაჭერილი?",
           ];
           break;
         case AppLanguage.de:
           _currentPrompts = [
+            "📚 Vergleiche die verwendete wissenschaftliche Literatur",
             "🌍 Welche Daten sind für Thailand verfügbar?",
             "📋 Formular für Dengue in Thailand (2018-2022) ausfüllen",
             "🔬 Was ist ERA5-Reanalyse im Vergleich zu Stationsdaten?",
-            "Welche Krankheiten werden unterstützt?",
           ];
           break;
         case AppLanguage.en:
           _currentPrompts = [
+            "📚 Compare scientific literature used for analysis",
             "🌍 What data is available for Thailand?",
             "📋 Set form for Dengue in Thailand (2018-2022)",
             "🔬 What is ERA5 Reanalysis vs station data?",
-            "Which diseases are supported?",
           ];
           break;
       }
@@ -571,6 +572,7 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
       currentEndDate: endStr,
       activeResult: resultSummary,
       language: I18n.currentLanguage.code,
+      literatureSource: activeLiterature.value.id,
     );
   }
 
@@ -653,6 +655,7 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
         children: [
           _buildHeader(context, colorScheme),
           if (widget.activeResult != null) _buildActiveResultActionBar(colorScheme),
+          _buildQuickSearchBar(colorScheme),
           const Divider(height: 1),
           Expanded(
             child: ListView.builder(
@@ -920,6 +923,77 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildQuickSearchBar(ColorScheme colorScheme) {
+    return ValueListenableBuilder<LiteratureCorpus>(
+      valueListenable: activeLiterature,
+      builder: (context, corpus, _) {
+        final lang = I18n.currentLanguage;
+        final hasFormTargets = widget.currentDisease != null &&
+            widget.currentRegion != null &&
+            widget.activeResult == null &&
+            !widget.isSearching &&
+            widget.onApplyAndSearch != null;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+          child: Row(
+            children: [
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => LiteratureKnowledgeDialog.show(
+                  context,
+                  onCompareInChat: (p) => _sendMessage(p),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.menu_book_outlined, size: 14, color: Colors.amber),
+                      const SizedBox(width: 4),
+                      Text(
+                        '📚 ${corpus.getLocalizedLabel(lang)}',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(Icons.arrow_drop_down, size: 14),
+                    ],
+                  ),
+                ),
+              ),
+              const Spacer(),
+              if (hasFormTargets)
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.play_arrow_rounded, size: 14),
+                  label: Text(
+                    '${I18n.t('applyAndSearch')}: ${widget.currentDisease}',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () {
+                    final parsed = ParsedRequest(
+                      disease: widget.currentDisease,
+                      region: widget.currentRegion,
+                      startDate: widget.currentStartDate,
+                      endDate: widget.currentEndDate,
+                      notes: 'Triggered from Copilot toolbar',
+                    );
+                    widget.onApplyAndSearch!(parsed);
+                  },
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

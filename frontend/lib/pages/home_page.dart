@@ -18,6 +18,7 @@ import '../models/platform_options.dart';
 import '../services/api_client.dart';
 import '../widgets/chat_copilot_drawer.dart';
 import '../widgets/error_card.dart';
+import '../widgets/literature_knowledge_dialog.dart';
 import '../widgets/natural_language_card.dart';
 import '../widgets/request_form_card.dart';
 import '../widgets/results_view.dart';
@@ -157,6 +158,24 @@ class _HomePageState extends State<HomePage> {
         title: Text(I18n.t('platformTitle')),
         centerTitle: false,
         actions: [
+          OutlinedButton.icon(
+            onPressed: () => LiteratureKnowledgeDialog.show(
+              context,
+              onCompareInChat: (prompt) {
+                if (!_isDesktopChatOpen && isWideScreen) {
+                  setState(() => _isDesktopChatOpen = true);
+                } else if (!isWideScreen && !(_scaffoldKey.currentState?.isEndDrawerOpen ?? false)) {
+                  _scaffoldKey.currentState?.openEndDrawer();
+                }
+              },
+            ),
+            icon: const Icon(Icons.menu_book_outlined, size: 16),
+            label: Text(I18n.t('literatureShort')),
+            style: OutlinedButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+          const SizedBox(width: 8),
           _buildLanguageSelector(context),
           const SizedBox(width: 8),
           FilledButton.tonalIcon(
