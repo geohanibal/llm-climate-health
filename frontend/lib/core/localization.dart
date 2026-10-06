@@ -166,6 +166,18 @@ class I18n {
       'activeLiteratureBadge': 'ლიტერატურა',
       'runSearchNow': 'ძებნის გაშვება',
       'runSearchDirectly': 'ძებნის დაწყება',
+      'aiExtractButton': 'AI ამოკითხვა',
+      'aiExtracting': 'AI აანალიზებს დოკუმენტს / ბმულს...',
+      'aiExtractSuccess': 'მონაცემები ავტომატურად შეივსო AI-ის მიერ!',
+      'aiOverwritePromptTitle': 'ჩავანაცვლოთ შევსებული მონაცემები AI ვერსიით?',
+      'aiOverwritePromptBody':
+          'თქვენ უკვე გაქვთ შევსებული ველები. გსურთ ჩაანაცვლოთ თქვენი მონაცემები AI-ის მიერ ამოკითხული ვერსიით, თუ დატოვოთ თქვენი შევსებული?',
+      'aiOverwriteAccept': 'AI ვერსიით ჩანაცვლება',
+      'aiOverwriteKeepMine': 'ჩემი ვერსიის დატოვება',
+      'aiExtractPreviewTitle': 'AI-ის მიერ ამოკითხული ვერსია',
+      'aiExtractError': 'AI ამოკითხვა ვერ მოხერხდა: ',
+      'aiExtractHint':
+          'მიუთითეთ ბმული ან ატვირთეთ PDF და AI ავტომატურად ამოიკითხავს სათაურს, ავტორებს, წელს და რეზიუმეს.',
 
       // Natural language card
       'naturalLanguageTitle': 'მოითხოვეთ ბუნებრივი ენით',
@@ -286,6 +298,18 @@ class I18n {
       'activeLiteratureBadge': 'Literature',
       'runSearchNow': 'Run Search Now',
       'runSearchDirectly': 'Start Search',
+      'aiExtractButton': 'AI Extract',
+      'aiExtracting': 'AI is analyzing document / link...',
+      'aiExtractSuccess': 'Metadata extracted and filled automatically by AI!',
+      'aiOverwritePromptTitle': 'Replace filled fields with AI version?',
+      'aiOverwritePromptBody':
+          'You have already entered some information. Would you like to overwrite your fields with the AI-extracted version, or keep your own?',
+      'aiOverwriteAccept': 'Replace with AI Version',
+      'aiOverwriteKeepMine': 'Keep My Version',
+      'aiExtractPreviewTitle': 'AI-Extracted Version',
+      'aiExtractError': 'AI extraction failed: ',
+      'aiExtractHint':
+          'Provide a link or upload a PDF, and AI will automatically extract title, authors, year, and abstract.',
 
       // Natural language card
       'naturalLanguageTitle': 'Describe what you need in plain language',
@@ -406,6 +430,18 @@ class I18n {
       'activeLiteratureBadge': 'Literatur',
       'runSearchNow': 'Suche jetzt starten',
       'runSearchDirectly': 'Suche starten',
+      'aiExtractButton': 'KI Extrahieren',
+      'aiExtracting': 'KI analysiert Dokument / Link...',
+      'aiExtractSuccess': 'Metadaten erfolgreich durch KI extrahiert und ausgefüllt!',
+      'aiOverwritePromptTitle': 'Ausgefüllte Felder durch KI-Version ersetzen?',
+      'aiOverwritePromptBody':
+          'Sie haben bereits Felder ausgefüllt. Möchten Sie Ihre Daten durch die von der KI extrahierte Version ersetzen oder Ihre eigene behalten?',
+      'aiOverwriteAccept': 'Mit KI-Version ersetzen',
+      'aiOverwriteKeepMine': 'Eigene Version behalten',
+      'aiExtractPreviewTitle': 'Von KI extrahierte Version',
+      'aiExtractError': 'KI-Extraktion fehlgeschlagen: ',
+      'aiExtractHint':
+          'Geben Sie einen Link an oder laden Sie ein PDF hoch, und die KI extrahiert Titel, Autoren, Jahr und Abstract.',
 
       // Natural language card
       'naturalLanguageTitle': 'In natürlicher Sprache beschreiben',

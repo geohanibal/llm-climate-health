@@ -341,3 +341,50 @@ class CustomLiteratureStore extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+/// Model representing structured scientific literature metadata extracted by AI.
+class LiteratureExtractionResult {
+  final String title;
+  final String authors;
+  final String year;
+  final String journal;
+  final String? url;
+  final String abstract;
+  final String differences;
+  final String status;
+
+  const LiteratureExtractionResult({
+    required this.title,
+    required this.authors,
+    required this.year,
+    required this.journal,
+    this.url,
+    required this.abstract,
+    required this.differences,
+    this.status = 'success',
+  });
+
+  factory LiteratureExtractionResult.fromJson(Map<String, dynamic> json) {
+    return LiteratureExtractionResult(
+      title: json['title'] as String? ?? '',
+      authors: json['authors'] as String? ?? '',
+      year: json['year']?.toString() ?? '',
+      journal: json['journal'] as String? ?? '',
+      url: json['url'] as String?,
+      abstract: json['abstract'] as String? ?? '',
+      differences: json['differences'] as String? ?? '',
+      status: json['status'] as String? ?? 'success',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'authors': authors,
+    'year': year,
+    'journal': journal,
+    'url': url,
+    'abstract': abstract,
+    'differences': differences,
+    'status': status,
+  };
+}

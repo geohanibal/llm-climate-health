@@ -12,23 +12,30 @@ import 'package:flutter/material.dart';
 
 import '../core/localization.dart';
 import '../models/literature_item.dart';
+import '../services/api_client.dart';
 
 class AddLiteratureDialog extends StatefulWidget {
   final ValueChanged<LiteratureItem>? onLiteratureAdded;
+  final ApiClient? apiClient;
 
   const AddLiteratureDialog({
     super.key,
     this.onLiteratureAdded,
+    this.apiClient,
   });
 
   static Future<LiteratureItem?> show(
     BuildContext context, {
     ValueChanged<LiteratureItem>? onLiteratureAdded,
+    ApiClient? apiClient,
   }) {
     return showDialog<LiteratureItem>(
       context: context,
       barrierDismissible: true,
-      builder: (context) => AddLiteratureDialog(onLiteratureAdded: onLiteratureAdded),
+      builder: (context) => AddLiteratureDialog(
+        onLiteratureAdded: onLiteratureAdded,
+        apiClient: apiClient,
+      ),
     );
   }
 
@@ -46,14 +53,38 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
   final _urlController = TextEditingController();
   final _focusController = TextEditingController();
   final _differencesController = TextEditingController();
+  final _urlFocusNode = FocusNode();
 
   String? _attachedFileName;
   Uint8List? _attachedFileBytes;
   String? _attachedFileContent;
   bool _isPickingFile = false;
+  bool _isExtracting = false;
+  String? _lastExtractedUrl;
+
+  ApiClient get _api => widget.apiClient ?? const ApiClient();
+
+  @override
+  void initState() {
+    super.initState();
+    _urlFocusNode.addListener(_onUrlFocusChanged);
+  }
+
+  void _onUrlFocusChanged() {
+    if (!_urlFocusNode.hasFocus) {
+      final url = _urlController.text.trim();
+      if ((url.startsWith('http://') || url.startsWith('https://')) &&
+          url != _lastExtractedUrl) {
+        _lastExtractedUrl = url;
+        _triggerAiExtraction(url: url);
+      }
+    }
+  }
 
   @override
   void dispose() {
+    _urlFocusNode.removeListener(_onUrlFocusChanged);
+    _urlFocusNode.dispose();
     _titleController.dispose();
     _authorsController.dispose();
     _yearController.dispose();
@@ -62,6 +93,231 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
     _focusController.dispose();
     _differencesController.dispose();
     super.dispose();
+  }
+
+  bool _areFieldsFilled() {
+    return _titleController.text.trim().isNotEmpty ||
+        _authorsController.text.trim().isNotEmpty ||
+        _journalController.text.trim().isNotEmpty ||
+        _focusController.text.trim().isNotEmpty ||
+        _differencesController.text.trim().isNotEmpty;
+  }
+
+  void _populateFieldsWithAi(LiteratureExtractionResult result) {
+    setState(() {
+      if (result.title.isNotEmpty) _titleController.text = result.title;
+      if (result.authors.isNotEmpty) _authorsController.text = result.authors;
+      if (result.year.isNotEmpty) _yearController.text = result.year;
+      if (result.journal.isNotEmpty) _journalController.text = result.journal;
+      if (result.url != null && result.url!.isNotEmpty) {
+        _urlController.text = result.url!;
+      }
+      if (result.abstract.isNotEmpty) _focusController.text = result.abstract;
+      if (result.differences.isNotEmpty) _differencesController.text = result.differences;
+    });
+  }
+
+  Future<void> _triggerAiExtraction({
+    Uint8List? fileBytes,
+    String? fileName,
+    String? url,
+  }) async {
+    final effectiveUrl = url?.trim();
+    if (fileBytes == null && (effectiveUrl == null || effectiveUrl.isEmpty)) {
+      return;
+    }
+
+    setState(() => _isExtracting = true);
+
+    try {
+      final result = await _api.extractLiterature(
+        fileBytes: fileBytes,
+        fileName: fileName,
+        url: effectiveUrl,
+      );
+
+      if (!mounted) return;
+      setState(() => _isExtracting = false);
+
+      if (_areFieldsFilled()) {
+        final shouldOverwrite = await _showOverwriteConfirmationDialog(result);
+        if (shouldOverwrite == true && mounted) {
+          _populateFieldsWithAi(result);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.auto_awesome, color: Colors.amberAccent, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(I18n.t('aiExtractSuccess'))),
+                ],
+              ),
+              backgroundColor: const Color(0xFF1B4D3E),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      } else {
+        _populateFieldsWithAi(result);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.auto_awesome, color: Colors.amberAccent, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(I18n.t('aiExtractSuccess'))),
+                ],
+              ),
+              backgroundColor: const Color(0xFF1B4D3E),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${I18n.t('aiExtractError')}$e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExtracting = false);
+      }
+    }
+  }
+
+  Future<bool?> _showOverwriteConfirmationDialog(LiteratureExtractionResult result) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.auto_awesome, color: Colors.amberAccent, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                I18n.t('aiOverwritePromptTitle'),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 550),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  I18n.t('aiOverwritePromptBody'),
+                  style: TextStyle(fontSize: 13, color: Colors.grey[300], height: 1.4),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.amberAccent.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.auto_awesome, size: 14, color: Colors.amberAccent),
+                          const SizedBox(width: 6),
+                          Text(
+                            I18n.t('aiExtractPreviewTitle'),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amberAccent,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      if (result.title.isNotEmpty) ...[
+                        Text(
+                          '${I18n.t('literatureTitleField')}:',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
+                        ),
+                        Text(result.title, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                      ],
+                      if (result.authors.isNotEmpty) ...[
+                        Text(
+                          '${I18n.t('literatureAuthorsField')}:',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
+                        ),
+                        Text('${result.authors} (${result.year})', style: const TextStyle(fontSize: 12)),
+                        const SizedBox(height: 6),
+                      ],
+                      if (result.journal.isNotEmpty) ...[
+                        Text(
+                          '${I18n.t('literatureJournalField')}:',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
+                        ),
+                        Text(result.journal, style: const TextStyle(fontSize: 12)),
+                        const SizedBox(height: 6),
+                      ],
+                      if (result.abstract.isNotEmpty) ...[
+                        Text(
+                          '${I18n.t('literatureFocusField')}:',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          result.abstract,
+                          style: const TextStyle(fontSize: 11.5, height: 1.3),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+            child: Text(I18n.t('aiOverwriteKeepMine')),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            icon: const Icon(Icons.check_rounded, size: 16),
+            label: Text(I18n.t('aiOverwriteAccept')),
+            style: FilledButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              backgroundColor: colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickFile() async {
@@ -88,6 +344,10 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
           _attachedFileBytes = file.bytes;
           _attachedFileContent = content;
         });
+
+        if (file.bytes != null) {
+          await _triggerAiExtraction(fileBytes: file.bytes, fileName: file.name);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -223,6 +483,65 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // AI Auto-Extraction Hint Banner
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.auto_awesome, size: 15, color: Colors.amberAccent),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                I18n.t('aiExtractHint'),
+                                style: TextStyle(fontSize: 11.5, color: Colors.grey[400]),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      if (_isExtracting)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.amberAccent.withOpacity(0.4)),
+                            ),
+                            child: Row(
+                              children: [
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.amberAccent,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    I18n.t('aiExtracting'),
+                                    style: const TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.amberAccent,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
                       // Title
                       TextFormField(
                         controller: _titleController,
@@ -290,12 +609,50 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
                       // DOI or URL
                       TextFormField(
                         controller: _urlController,
+                        focusNode: _urlFocusNode,
                         decoration: InputDecoration(
                           labelText: I18n.t('literatureUrlField'),
                           hintText: 'https://doi.org/... ან https://example.org/paper.pdf',
                           prefixIcon: const Icon(Icons.link_rounded),
+                          suffixIcon: Tooltip(
+                            message: I18n.t('aiExtractButton'),
+                            child: IconButton(
+                              icon: _isExtracting
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(
+                                      Icons.auto_awesome,
+                                      color: Colors.amberAccent,
+                                      size: 20,
+                                    ),
+                              onPressed: _isExtracting
+                                  ? null
+                                  : () {
+                                      final url = _urlController.text.trim();
+                                      if (url.isNotEmpty) {
+                                        _lastExtractedUrl = url;
+                                        _triggerAiExtraction(url: url);
+                                      } else if (_attachedFileBytes != null) {
+                                        _triggerAiExtraction(
+                                          fileBytes: _attachedFileBytes,
+                                          fileName: _attachedFileName,
+                                        );
+                                      }
+                                    },
+                            ),
+                          ),
                           border: const OutlineInputBorder(),
                         ),
+                        onFieldSubmitted: (val) {
+                          final url = val.trim();
+                          if (url.isNotEmpty && url != _lastExtractedUrl) {
+                            _lastExtractedUrl = url;
+                            _triggerAiExtraction(url: url);
+                          }
+                        },
                       ),
                       const SizedBox(height: 14),
 
@@ -342,7 +699,7 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
                         child: Row(
                           children: [
                             OutlinedButton.icon(
-                              onPressed: _isPickingFile ? null : _pickFile,
+                              onPressed: (_isPickingFile || _isExtracting) ? null : _pickFile,
                               icon: _isPickingFile
                                   ? const SizedBox(
                                       width: 14,
@@ -360,8 +717,11 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
                               child: _attachedFileName != null
                                   ? Row(
                                       children: [
-                                        const Icon(Icons.check_circle_rounded,
-                                            size: 16, color: Colors.greenAccent),
+                                        const Icon(
+                                          Icons.check_circle_rounded,
+                                          size: 16,
+                                          color: Colors.greenAccent,
+                                        ),
                                         const SizedBox(width: 6),
                                         Expanded(
                                           child: Text(
@@ -372,9 +732,24 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
                                           ),
                                         ),
                                         IconButton(
+                                          tooltip: I18n.t('aiExtractButton'),
+                                          icon: const Icon(
+                                            Icons.auto_awesome,
+                                            size: 16,
+                                            color: Colors.amberAccent,
+                                          ),
+                                          onPressed: _isExtracting
+                                              ? null
+                                              : () => _triggerAiExtraction(
+                                                    fileBytes: _attachedFileBytes,
+                                                    fileName: _attachedFileName,
+                                                  ),
+                                        ),
+                                        IconButton(
                                           icon: const Icon(Icons.close, size: 16),
                                           onPressed: () => setState(() {
                                             _attachedFileName = null;
+                                            _attachedFileBytes = null;
                                             _attachedFileContent = null;
                                           }),
                                         ),

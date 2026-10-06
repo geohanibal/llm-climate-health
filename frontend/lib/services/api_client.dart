@@ -4,6 +4,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -11,6 +12,7 @@ import '../models/chat_models.dart';
 import '../models/discovered_source.dart';
 import '../models/integration_request_params.dart';
 import '../models/integration_result.dart';
+import '../models/literature_item.dart';
 import '../models/parsed_request.dart';
 import '../models/platform_options.dart';
 
@@ -163,6 +165,33 @@ class ApiClient {
     final response = await http.Response.fromStream(streamed);
     _throwIfNotOk(response);
     return IntegrationResult.fromJson(_decodeJsonObject(response));
+  }
+
+  /// Sends a document file (PDF/TXT) or a literature URL to the AI extraction
+  /// service to automatically parse and return structured bibliographic metadata.
+  Future<LiteratureExtractionResult> extractLiterature({
+    Uint8List? fileBytes,
+    String? fileName,
+    String? url,
+  }) async {
+    final uri = Uri.parse('$backendBaseUrl/api/extract-literature');
+    final request = http.MultipartRequest('POST', uri);
+    if (url != null && url.trim().isNotEmpty) {
+      request.fields['url'] = url.trim();
+    }
+    if (fileBytes != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName ?? 'document.pdf',
+        ),
+      );
+    }
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    _throwIfNotOk(response);
+    return LiteratureExtractionResult.fromJson(_decodeJsonObject(response));
   }
 
   String _formatDate(DateTime d) =>

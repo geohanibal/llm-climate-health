@@ -51,6 +51,12 @@ from app.services.llm import (
     is_llm_available,
     parse_request,
 )
+from app.services.literature_extractor import (
+    LiteratureExtractionResult,
+    extract_literature_data,
+    extract_text_from_pdf_bytes,
+    fetch_url_content,
+)
 from app.services.source_discovery import search_case_sources
 from app.services.tmd import ConfigurationError
 
@@ -156,6 +162,48 @@ def chat_endpoint(body: ChatRequest):
     domain expertise, UI context awareness, and safe form actions."""
     return process_chat(body)
 
+
+@app.post("/api/extract-literature", response_model=LiteratureExtractionResult)
+async def extract_literature_endpoint(
+    file: UploadFile | None = File(None),
+    url: str | None = Form(None),
+):
+    """Analyzes an uploaded scientific PDF/document or literature URL and extracts structured
+    study metadata (title, authors, year, journal, abstract, climate-health relevance)."""
+    text_content = ""
+    pdf_meta: dict[str, Any] = {}
+    filename = file.filename if file else None
+
+    if file:
+        content = await file.read()
+        if len(content) > 20 * 1024 * 1024:
+            raise HTTPException(413, "Uploaded literature file exceeds 20 MB limit.")
+        if file.filename and file.filename.lower().endswith(".pdf"):
+            text_content, pdf_meta = extract_text_from_pdf_bytes(content)
+        else:
+            try:
+                text_content = content.decode("utf-8")
+            except UnicodeDecodeError:
+                text_content = content.decode("latin-1", errors="ignore")
+    elif url and url.strip():
+        try:
+            _, text_content, raw_bytes = fetch_url_content(url.strip())
+            if raw_bytes:
+                _, pdf_meta = extract_text_from_pdf_bytes(raw_bytes)
+        except Exception as exc:
+            raise HTTPException(400, f"Failed to retrieve literature from URL: {exc}")
+    else:
+        raise HTTPException(400, "Either a file or a URL must be provided for literature extraction.")
+
+    if not text_content.strip():
+        raise HTTPException(400, "Could not extract readable text from the provided document.")
+
+    return extract_literature_data(
+        text=text_content,
+        pdf_meta=pdf_meta,
+        url=url,
+        filename=filename,
+    )
 
 
 @app.get("/api/search-case-sources", response_model=list[DiscoveredSource])
