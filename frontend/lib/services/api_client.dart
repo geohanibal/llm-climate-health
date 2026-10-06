@@ -93,8 +93,29 @@ class ApiClient {
         .toList();
   }
 
+  /// Searches official World Bank demographic indicators and HDX demographic datasets
+  /// for the selected region and optional query keywords.
+  Future<List<DiscoveredSource>> searchPopulationSources(String region, [String? query]) async {
+    final qParams = <String, String>{'region': region};
+    if (query != null && query.trim().isNotEmpty) {
+      qParams['query'] = query.trim();
+    }
+    final uri = Uri.parse('$backendBaseUrl/api/search-population-sources').replace(
+      queryParameters: qParams,
+    );
+    final response = await http.get(uri);
+    _throwIfNotOk(response);
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+    return decoded
+        .map((e) => DiscoveredSource.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<IntegrationResult> runIntegration(IntegrationRequestParams params) async {
-    if (params.caseDataSource == 'custom_upload' || params.climateSource == 'custom_upload') {
+    if (params.caseDataSource == 'custom_upload' ||
+        params.climateSource == 'custom_upload' ||
+        params.populationSource == 'custom_upload' ||
+        params.populationUploadBytes != null) {
       return _runIntegrationWithUpload(params);
     }
     return _runIntegrationJson(params);
@@ -118,6 +139,9 @@ class ApiClient {
         'custom_source_url': params.customSourceUrl,
         'who_indicator_code': params.whoIndicatorCode,
         'who_indicator_name': params.whoIndicatorName,
+        'custom_population_url': params.customPopulationUrl,
+        'population_indicator_code': params.populationIndicatorCode,
+        'population_indicator_name': params.populationIndicatorName,
       }),
     );
     _throwIfNotOk(response);
@@ -141,6 +165,16 @@ class ApiClient {
       ..fields['case_data_source'] = params.caseDataSource
       ..fields['population_source'] = params.populationSource;
 
+    if (params.customPopulationUrl != null) {
+      request.fields['custom_population_url'] = params.customPopulationUrl!;
+    }
+    if (params.populationIndicatorCode != null) {
+      request.fields['population_indicator_code'] = params.populationIndicatorCode!;
+    }
+    if (params.populationIndicatorName != null) {
+      request.fields['population_indicator_name'] = params.populationIndicatorName!;
+    }
+
     if (params.uploadedFileBytes != null) {
       request.files.add(
         http.MultipartFile.fromBytes(
@@ -157,6 +191,16 @@ class ApiClient {
           'climate_file',
           params.climateUploadBytes!,
           filename: params.climateUploadFileName ?? 'weather.csv',
+        ),
+      );
+    }
+
+    if (params.populationUploadBytes != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'population_file',
+          params.populationUploadBytes!,
+          filename: params.populationUploadFileName ?? 'population.csv',
         ),
       );
     }

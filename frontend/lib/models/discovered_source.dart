@@ -28,6 +28,8 @@ class DiscoveredSource {
   });
 
   bool get isWhoGho => sourceType == 'who_gho';
+  bool get isWorldBank => sourceType == 'worldbank';
+  bool get isHdx => sourceType == 'hdx';
 
   factory DiscoveredSource.fromJson(Map<String, dynamic> json) {
     return DiscoveredSource(

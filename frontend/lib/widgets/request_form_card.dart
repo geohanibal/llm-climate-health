@@ -10,12 +10,14 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+import '../core/localization.dart';
 import '../core/responsive.dart';
 import '../models/data_source_info.dart';
 import '../models/integration_request_params.dart';
 import '../models/discovered_source.dart';
 import '../models/parsed_request.dart';
 import '../models/platform_options.dart';
+import 'population_search_dialog.dart';
 import 'section_card.dart';
 import 'source_search_dialog.dart';
 import 'world_map_dialog.dart';
@@ -66,11 +68,16 @@ class RequestFormCardState extends State<RequestFormCard> {
   // Disease the currently-picked WHO indicator was searched/selected for —
   // used by [_reconcileSources] to drop a stale pick (see its doc).
   String? _whoIndicatorDisease;
+  String? _populationIndicatorCode;
+  String? _populationIndicatorName;
   final TextEditingController _customUrlController = TextEditingController();
+  final TextEditingController _customPopulationUrlController = TextEditingController();
   Uint8List? _uploadedBytes;
   String? _uploadedFileName;
   Uint8List? _climateUploadBytes;
   String? _climateUploadFileName;
+  Uint8List? _populationUploadBytes;
+  String? _populationUploadFileName;
 
   String? _validationError;
 
@@ -83,6 +90,7 @@ class RequestFormCardState extends State<RequestFormCard> {
   @override
   void dispose() {
     _customUrlController.dispose();
+    _customPopulationUrlController.dispose();
     super.dispose();
   }
 
@@ -262,6 +270,55 @@ class RequestFormCardState extends State<RequestFormCard> {
     });
   }
 
+  void _onPopulationSourceChanged(String source) {
+    final previous = _populationSource;
+    setState(() => _populationSource = source);
+    if (source == 'worldbank_indicator') {
+      _openPopulationSearch(revertTo: previous);
+    }
+  }
+
+  Future<void> _openPopulationSearch({String? revertTo}) async {
+    if (_region == null) {
+      setState(() => _validationError = 'Pick a region first, then search for demographic indicators.');
+      if (revertTo != null) setState(() => _populationSource = revertTo);
+      return;
+    }
+    final picked = await showDialog<DiscoveredSource>(
+      context: context,
+      builder: (context) => PopulationSearchDialog(region: _region!),
+    );
+    if (picked == null) {
+      if (revertTo != null && _populationIndicatorCode == null) {
+        setState(() => _populationSource = revertTo);
+      }
+      return;
+    }
+    setState(() {
+      if (picked.isWorldBank && picked.indicatorCode != null) {
+        _populationSource = 'worldbank_indicator';
+        _populationIndicatorCode = picked.indicatorCode;
+        _populationIndicatorName = picked.title;
+      } else {
+        _populationSource = 'custom_url';
+        _customPopulationUrlController.text = picked.resourceUrl ?? picked.datasetUrl;
+      }
+    });
+  }
+
+  Future<void> _pickPopulationFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    setState(() {
+      _populationUploadBytes = result.files.single.bytes;
+      _populationUploadFileName = result.files.single.name;
+    });
+  }
+
   Future<void> _pickRegionOnMap() async {
     final selected = await showDialog<String>(
       context: context,
@@ -357,6 +414,18 @@ class RequestFormCardState extends State<RequestFormCard> {
       setState(() => _validationError = 'Search and pick a WHO indicator first.');
       return;
     }
+    if (_populationSource == 'worldbank_indicator' && _populationIndicatorCode == null) {
+      setState(() => _validationError = 'Search and pick a demographic indicator first.');
+      return;
+    }
+    if (_populationSource == 'custom_url' && _customPopulationUrlController.text.trim().isEmpty) {
+      setState(() => _validationError = 'Enter a URL for the custom population data source.');
+      return;
+    }
+    if (_populationSource == 'custom_upload' && _populationUploadBytes == null) {
+      setState(() => _validationError = 'Upload a CSV file for the custom population data source.');
+      return;
+    }
     setState(() => _validationError = null);
 
     widget.onSubmit(
@@ -380,6 +449,16 @@ class RequestFormCardState extends State<RequestFormCard> {
             _climateSource == 'custom_upload' ? (_climateUploadFileName ?? _uploadedFileName) : null,
         whoIndicatorCode: _caseDataSource == 'who_gho' ? _whoIndicatorCode : null,
         whoIndicatorName: _caseDataSource == 'who_gho' ? _whoIndicatorName : null,
+        customPopulationUrl:
+            _populationSource == 'custom_url' ? _customPopulationUrlController.text.trim() : null,
+        populationIndicatorCode:
+            _populationSource == 'worldbank_indicator' ? _populationIndicatorCode : null,
+        populationIndicatorName:
+            _populationSource == 'worldbank_indicator' ? _populationIndicatorName : null,
+        populationUploadBytes:
+            _populationSource == 'custom_upload' ? _populationUploadBytes : null,
+        populationUploadFileName:
+            _populationSource == 'custom_upload' ? _populationUploadFileName : null,
       ),
     );
   }
@@ -417,11 +496,18 @@ class RequestFormCardState extends State<RequestFormCard> {
               _buildAggregationDropdown(),
             ],
           ),
+          if (_aggregation == 'daily') ...[
+            const SizedBox(height: 10),
+            _buildDailyDownscalingNotice(),
+          ],
           const SizedBox(height: 16),
           _buildClimateSourceDropdown(),
           if (_climateSource == 'custom_upload') _buildClimateUploadPicker(),
           const SizedBox(height: 16),
           _buildPopulationSourceDropdown(),
+          if (_populationSource == 'worldbank_indicator') _buildPopulationIndicatorStatus(),
+          if (_populationSource == 'custom_url') _buildCustomPopulationUrlField(),
+          if (_populationSource == 'custom_upload') _buildPopulationUploadPicker(),
           const SizedBox(height: 16),
           Text('Case-count data source', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 4),
@@ -584,29 +670,50 @@ class RequestFormCardState extends State<RequestFormCard> {
   }
 
   Widget _buildPopulationSourceDropdown() {
-    final popOptions = widget.options.populationSources;
-    final items = popOptions.isNotEmpty
-        ? popOptions
-        : [
-            const DataSourceInfo(
-              id: 'worldbank',
-              label: 'World Bank Open Data (SP.POP.TOTL)',
-              citation: 'World Bank Group (2024), World Development Indicators: Population, total (SP.POP.TOTL), data.worldbank.org',
-            ),
-            const DataSourceInfo(
-              id: 'un_wpp',
-              label: 'United Nations Population Division (UN WPP 2024)',
-              citation: 'United Nations, Department of Economic and Social Affairs, Population Division (2024). World Population Prospects 2024 (population.un.org)',
-            ),
-          ];
+    final defaultOptions = [
+      const DataSourceInfo(
+        id: 'worldbank',
+        label: 'World Bank (Total Population - SP.POP.TOTL)',
+        citation: 'World Bank Group (2024), World Development Indicators: Population, total (SP.POP.TOTL), data.worldbank.org',
+      ),
+      const DataSourceInfo(
+        id: 'un_wpp',
+        label: 'United Nations Population Division (UN WPP 2024)',
+        citation: 'United Nations, Department of Economic and Social Affairs, Population Division (2024). World Population Prospects 2024 (population.un.org)',
+      ),
+      const DataSourceInfo(
+        id: 'worldbank_indicator',
+        label: 'Search Online (World Bank Indicators & HDX)',
+        citation: 'Official World Bank Demographic Indicators & HDX Datasets',
+      ),
+      const DataSourceInfo(
+        id: 'custom_upload',
+        label: 'Upload custom CSV file (custom_upload)',
+        citation: 'User-uploaded demographic CSV',
+      ),
+      const DataSourceInfo(
+        id: 'custom_url',
+        label: 'Custom Demographic URL (custom_url)',
+        citation: 'User-provided demographic URL',
+      ),
+    ];
+
+    final sourceMap = <String, DataSourceInfo>{};
+    for (final opt in defaultOptions) {
+      sourceMap[opt.id] = opt;
+    }
+    for (final opt in widget.options.populationSources) {
+      sourceMap[opt.id] = opt;
+    }
+    final items = sourceMap.values.toList();
 
     return DropdownButtonFormField<String>(
       initialValue: _populationSource,
       isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'Population data source (demographics)',
-        border: OutlineInputBorder(),
-        helperText: 'Trusted international demographic source for incidence rate calculation',
+      decoration: InputDecoration(
+        labelText: I18n.t('populationSource'),
+        border: const OutlineInputBorder(),
+        helperText: 'Demographic source for calculating disease incidence per 100,000',
       ),
       items: items
           .map((s) => DropdownMenuItem(
@@ -614,7 +721,137 @@ class RequestFormCardState extends State<RequestFormCard> {
                 child: Text(s.label, overflow: TextOverflow.ellipsis),
               ))
           .toList(),
-      onChanged: (v) => setState(() => _populationSource = v!),
+      onChanged: (v) => _onPopulationSourceChanged(v!),
+    );
+  }
+
+  Widget _buildPopulationIndicatorStatus() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.indigo.withAlpha(20),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.indigo.withAlpha(60)),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              _populationIndicatorCode != null ? Icons.verified_outlined : Icons.search,
+              size: 18,
+              color: Colors.indigo,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _populationIndicatorCode != null
+                    ? '${_populationIndicatorName ?? _populationIndicatorCode} ($_populationIndicatorCode)'
+                    : I18n.t('searchPopulationHint'),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: _populationIndicatorCode != null ? FontWeight.w600 : FontWeight.normal,
+                  color: Colors.indigo.shade900,
+                ),
+              ),
+            ),
+            FilledButton.tonal(
+              onPressed: () => _openPopulationSearch(),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                visualDensity: VisualDensity.compact,
+              ),
+              child: Text(_populationIndicatorCode != null ? I18n.t('change') : I18n.t('searchPopulationOnline')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPopulationUploadPicker() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        children: [
+          OutlinedButton.icon(
+            onPressed: _pickPopulationFile,
+            icon: const Icon(Icons.upload_file),
+            label: Text(I18n.t('uploadPopulationCsv')),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _populationUploadFileName != null
+                ? Chip(
+                    label: Text(_populationUploadFileName!, overflow: TextOverflow.ellipsis),
+                    avatar: const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                    onDeleted: () => setState(() {
+                      _populationUploadBytes = null;
+                      _populationUploadFileName = null;
+                    }),
+                  )
+                : const Text('No population file chosen (CSV with year/date and population)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomPopulationUrlField() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: TextFormField(
+        controller: _customPopulationUrlController,
+        decoration: InputDecoration(
+          labelText: I18n.t('customPopulationUrl'),
+          hintText: I18n.t('customPopulationUrlHint'),
+          border: const OutlineInputBorder(),
+          isDense: true,
+          prefixIcon: const Icon(Icons.link),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDailyDownscalingNotice() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.amber.withAlpha(25),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.amber.shade400.withAlpha(120)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 20, color: Colors.amber.shade800),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  I18n.t('dailyDownscalingWarningTitle'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber.shade900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  I18n.t('dailyDownscalingWarningBody'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.brown.shade900,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

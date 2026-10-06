@@ -234,3 +234,45 @@ def test_integrate_upload_custom_weather_file():
     assert body["data"][0]["temperature_mean_c"] == 25.0
 
     assert len(body["data"]) > 0
+
+
+def test_search_population_sources_api():
+    resp = client.get("/api/search-population-sources?region=Thailand&query=urban")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert any("Urban" in s["title"] for s in data)
+
+
+def test_integrate_upload_custom_population_file():
+    pop_csv = b"year,population\n2020,70000000\n2021,71000000\n"
+    weather_csv = b"date,temperature,precipitation\n2020-01-01,25.0,5.0\n2020-01-02,26.0,0.0\n"
+    cases_csv = b"date,cases\n2020-01-01,100\n2020-01-02,120\n"
+    resp = client.post(
+        "/api/integrate/upload",
+        data={
+            "disease": "dengue",
+            "region": "Thailand",
+            "variables": "temperature,precipitation",
+            "start_date": "2020-01-01",
+            "end_date": "2020-01-02",
+            "aggregation": "daily",
+            "climate_source": "custom_upload",
+            "case_data_source": "custom_upload",
+            "population_source": "custom_upload",
+        },
+        files={
+            "file": ("cases.csv", io.BytesIO(cases_csv), "text/csv"),
+            "climate_file": ("weather.csv", io.BytesIO(weather_csv), "text/csv"),
+            "population_file": ("my_pop.csv", io.BytesIO(pop_csv), "text/csv"),
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "my_pop.csv" in body["sources"][2]
+    assert len(body["data"]) == 2
+    assert body["data"][0]["population"] == 70000000.0
+    # Incidence = (100 / 70000000) * 100000 = 0.143
+    assert body["data"][0]["incidence_rate_per_100k"] == 0.143
+

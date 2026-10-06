@@ -57,6 +57,7 @@ from app.services.literature_extractor import (
     extract_text_from_pdf_bytes,
     fetch_url_content,
 )
+from app.services.population import search_population_sources
 from app.services.source_discovery import search_case_sources
 from app.services.tmd import ConfigurationError
 
@@ -220,6 +221,15 @@ def search_case_sources_endpoint(disease: str, region: str):
     return search_case_sources(DISEASES[disease].label, region)
 
 
+@app.get("/api/search-population-sources", response_model=list[DiscoveredSource])
+def search_population_sources_endpoint(region: str, query: str = ""):
+    """Searches official World Bank demographic indicators and HDX demographic
+    datasets for the given region and search query."""
+    if region not in REGIONS:
+        raise HTTPException(400, f"Region '{region}' is not available in this demo yet.")
+    return search_population_sources(REGIONS[region]["label"], query)
+
+
 def _validate_common(req: IntegrationRequest) -> None:
     if req.region not in REGIONS:
         raise HTTPException(400, f"Region '{req.region}' is not available in this demo yet.")
@@ -262,6 +272,16 @@ def _validate_for_builtin_source(req: IntegrationRequest) -> None:
             "who_indicator_code is required when case_data_source='who_gho' — "
             "call GET /api/search-case-sources first to pick one.",
         )
+    if req.population_source == "custom_url" and not req.custom_population_url:
+        raise HTTPException(
+            400, "custom_population_url is required when population_source='custom_url'."
+        )
+    if req.population_source == "worldbank_indicator" and not req.population_indicator_code:
+        raise HTTPException(
+            400,
+            "population_indicator_code is required when population_source='worldbank_indicator' — "
+            "call GET /api/search-population-sources first to pick one.",
+        )
 
 
 def _run_integration_or_502(*args, **kwargs):
@@ -290,6 +310,7 @@ def _build_response(
     last_verified: str,
     uploaded_file_name: str | None = None,
     climate_uploaded_file_name: str | None = None,
+    population_uploaded_file_name: str | None = None,
     transformation_audit: DataTransformationAudit | None = None,
     statistical_summary: StatisticalSummary | None = None,
 ) -> IntegrationResponse:
@@ -316,11 +337,22 @@ def _build_response(
     else:
         climate_citation = f"Climate data: {CLIMATE_SOURCES[req.climate_source]['citation']}"
 
-    pop_source = POPULATION_SOURCES.get(req.population_source, {})
-    pop_citation = pop_source.get(
-        "citation",
-        "World Bank Group (2024), World Development Indicators: Population, total (SP.POP.TOTL)",
-    )
+    if req.population_source == "custom_upload":
+        pop_file_display = population_uploaded_file_name or uploaded_file_name or "population.csv"
+        pop_citation = f"User-uploaded demographic file '{pop_file_display}'"
+    elif req.population_source == "custom_url":
+        pop_citation = f"User-provided demographic URL: {req.custom_population_url}"
+    elif req.population_source == "worldbank_indicator":
+        ind_desc = req.population_indicator_name or req.population_indicator_code
+        pop_citation = (
+            f"World Bank Open Data, indicator {req.population_indicator_code} — {ind_desc} (api.worldbank.org)"
+        )
+    else:
+        pop_source = POPULATION_SOURCES.get(req.population_source, {})
+        pop_citation = pop_source.get(
+            "citation",
+            "World Bank Group (2024), World Development Indicators: Population, total (SP.POP.TOTL)",
+        )
     sources = [
         climate_citation,
         case_source_citation,
@@ -343,7 +375,7 @@ def _build_response(
 
 @app.post("/api/integrate", response_model=IntegrationResponse)
 def integrate(req: IntegrationRequest):
-    if req.case_data_source == "custom_upload":
+    if req.case_data_source == "custom_upload" or req.population_source == "custom_upload":
         raise HTTPException(
             400, "Use POST /api/integrate/upload (multipart) for the custom_upload source."
         )
@@ -361,6 +393,8 @@ def integrate(req: IntegrationRequest):
         population_source=req.population_source,
         custom_source_url=req.custom_source_url,
         who_indicator_code=req.who_indicator_code,
+        custom_population_url=req.custom_population_url,
+        population_indicator_code=req.population_indicator_code,
     )
     hit = cache.get(cache_key)
     if hit is not None:
@@ -398,6 +432,9 @@ def integrate(req: IntegrationRequest):
         custom_source_url=req.custom_source_url,
         who_indicator_code=req.who_indicator_code,
         who_indicator_name=req.who_indicator_name,
+        custom_population_url=req.custom_population_url,
+        population_indicator_code=req.population_indicator_code,
+        population_indicator_name=req.population_indicator_name,
     )
     transformation_audit = None
     if audit_data:
@@ -452,19 +489,27 @@ async def integrate_with_upload(
     climate_source: str = Form("open-meteo-era5"),
     case_data_source: str = Form("custom_upload"),
     population_source: str = Form("worldbank"),
+    custom_population_url: str | None = Form(None),
+    population_indicator_code: str | None = Form(None),
+    population_indicator_name: str | None = Form(None),
     file: UploadFile | None = File(None),
     climate_file: UploadFile | None = File(None),
+    population_file: UploadFile | None = File(None),
 ):
-    """Same pipeline as /api/integrate, but data series (case counts and/or climate observations)
-    come from user-uploaded CSV files instead of built-in scientific sources."""
-    if not file and not climate_file:
+    """Same pipeline as /api/integrate, but data series (case counts, climate observations,
+    and/or population demographics) can come from user-uploaded CSV files or custom URLs."""
+    if not file and not climate_file and not population_file and case_data_source != "builtin":
         raise HTTPException(
-            400, "At least one CSV file (case counts or climate observations) must be uploaded."
+            400, "At least one CSV file or valid source configuration must be provided."
         )
 
     actual_case_source = case_data_source
     if file and actual_case_source == "builtin":
         actual_case_source = "custom_upload"
+
+    actual_pop_source = population_source
+    if population_file and actual_pop_source in ("worldbank", "un_wpp"):
+        actual_pop_source = "custom_upload"
 
     req = IntegrationRequest(
         disease=disease,
@@ -475,7 +520,10 @@ async def integrate_with_upload(
         aggregation=aggregation,
         climate_source=climate_source,
         case_data_source=actual_case_source,
-        population_source=population_source,
+        population_source=actual_pop_source,
+        custom_population_url=custom_population_url,
+        population_indicator_code=population_indicator_code,
+        population_indicator_name=population_indicator_name,
     )
     _validate_common(req)
 
@@ -502,6 +550,16 @@ async def integrate_with_upload(
         climate_content = content
         climate_file_name = uploaded_file_name
 
+    pop_content: bytes | None = None
+    pop_file_name: str | None = None
+    if population_file:
+        pop_content = await population_file.read()
+        pop_file_name = population_file.filename
+        if len(pop_content) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                413, f"Uploaded population file exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit."
+            )
+
     steps, records, resolution, audit_data, stat_summary = _run_integration_or_502(
         req.disease,
         req.region,
@@ -514,6 +572,10 @@ async def integrate_with_upload(
         population_source=req.population_source,
         upload_content=content,
         climate_upload_content=climate_content,
+        custom_population_url=req.custom_population_url,
+        population_upload_content=pop_content,
+        population_indicator_code=req.population_indicator_code,
+        population_indicator_name=req.population_indicator_name,
     )
     transformation_audit = None
     if audit_data:
@@ -538,6 +600,7 @@ async def integrate_with_upload(
         cache.now_iso(),
         uploaded_file_name=uploaded_file_name,
         climate_uploaded_file_name=climate_file_name,
+        population_uploaded_file_name=pop_file_name,
         transformation_audit=transformation_audit,
         statistical_summary=stat_summary,
     )

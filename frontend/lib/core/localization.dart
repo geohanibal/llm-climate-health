@@ -239,6 +239,23 @@ class I18n {
       'explanation': 'სამეცნიერო განმარტება',
       'statisticalSummary': 'სტატისტიკური ანალიზი',
       'dataAudit': 'მონაცემთა აუდიტი',
+
+      // Demographic & Population search and upload
+      'searchPopulationTitle': 'დემოგრაფიული მონაცემების მოძიება',
+      'searchPopulationHint': 'მოძებნეთ ინდიკატორი (მაგ. urban, rural, 65, density)...',
+      'searchPopulationOnline': 'ინტერნეტში მოძებნა',
+      'uploadPopulationCsv': 'მოსახლეობის CSV ატვირთვა',
+      'customPopulationUrl': 'მორგებული დემოგრაფიული URL',
+      'customPopulationUrlHint': 'https://example.org/population_data.csv',
+      'noPopulationSourcesFound': 'დემოგრაფიული წყაროები ვერ მოიძებნა. სცადეთ საკუთარი CSV ან URL.',
+      'searchFailed': 'ძიება ვერ მოხერხდა',
+      'useThis': 'არჩევა',
+      'cancel': 'გაუქმება',
+      'search': 'ძებნა',
+      'change': 'შეცვლა',
+      'dailyDownscalingWarningTitle': 'შენიშვნა დღიურ გარჩევადობაზე:',
+      'dailyDownscalingWarningBody':
+          'ჯანდაცვის ორიგინალი მონაცემი რეგისტრირებულია წლიურ ან თვიურ დონეზე. დღიურ რეჟიმში სისტემა იყენებს მასის შემნახველ გლუვ ინტერპოლაციას (Temporal Downscaling). ავთენტური დღიური ცვალებადობისთვის რეკომენდებულია დღიური CSV ფაილის ატვირთვა.',
     },
 
     AppLanguage.en: {
@@ -371,6 +388,23 @@ class I18n {
       'explanation': 'Plain-language explanation',
       'statisticalSummary': 'Statistical summary',
       'dataAudit': 'Data transformation audit',
+
+      // Demographic & Population search and upload
+      'searchPopulationTitle': 'Search Demographic Indicators & Datasets',
+      'searchPopulationHint': 'Search indicator (e.g. urban, rural, 65, density)...',
+      'searchPopulationOnline': 'Search online',
+      'uploadPopulationCsv': 'Upload Population CSV',
+      'customPopulationUrl': 'Custom Demographic URL',
+      'customPopulationUrlHint': 'https://example.org/population_data.csv',
+      'noPopulationSourcesFound': 'No demographic sources found. Try a custom CSV or URL.',
+      'searchFailed': 'Search failed',
+      'useThis': 'Use this',
+      'cancel': 'Cancel',
+      'search': 'Search',
+      'change': 'Change',
+      'dailyDownscalingWarningTitle': 'Note on Daily Resolution:',
+      'dailyDownscalingWarningBody':
+          'Primary surveillance data is reported at yearly or monthly resolution. In daily mode, the platform applies mass-preserving smooth temporal downscaling. For genuine day-by-day variation, please upload a daily resolution CSV.',
     },
 
     AppLanguage.de: {
@@ -503,6 +537,23 @@ class I18n {
       'explanation': 'Wissenschaftliche Erklärung',
       'statisticalSummary': 'Statistische Zusammenfassung',
       'dataAudit': 'Datentransformations-Audit',
+
+      // Demographic & Population search and upload
+      'searchPopulationTitle': 'Demografische Indikatoren & Datensätze suchen',
+      'searchPopulationHint': 'Indikator suchen (z. B. urban, rural, 65, density)...',
+      'searchPopulationOnline': 'Online suchen',
+      'uploadPopulationCsv': 'Bevölkerungs-CSV hochladen',
+      'customPopulationUrl': 'Benutzerdefinierte Bevölkerungs-URL',
+      'customPopulationUrlHint': 'https://example.org/population_data.csv',
+      'noPopulationSourcesFound': 'Keine demografischen Quellen gefunden. Versuchen Sie eine eigene CSV oder URL.',
+      'searchFailed': 'Suche fehlgeschlagen',
+      'useThis': 'Auswählen',
+      'cancel': 'Abbrechen',
+      'search': 'Suchen',
+      'change': 'Ändern',
+      'dailyDownscalingWarningTitle': 'Hinweis zur täglichen Auflösung:',
+      'dailyDownscalingWarningBody':
+          'Die primären Meldedaten liegen auf Jahres- oder Monatsebene vor. Im Tagesmodus wendet die Plattform eine massenerhaltende glatte zeitliche Interpolation an. Für authentische tägliche Schwankungen laden Sie bitte eine tägliche CSV-Datei hoch.',
     },
   };
 }

@@ -25,6 +25,11 @@ class IntegrationRequestParams {
   final String? climateUploadFileName;
   final String? whoIndicatorCode;
   final String? whoIndicatorName;
+  final String? customPopulationUrl;
+  final String? populationIndicatorCode;
+  final String? populationIndicatorName;
+  final Uint8List? populationUploadBytes;
+  final String? populationUploadFileName;
 
   const IntegrationRequestParams({
     required this.disease,
@@ -43,5 +48,10 @@ class IntegrationRequestParams {
     this.climateUploadFileName,
     this.whoIndicatorCode,
     this.whoIndicatorName,
+    this.customPopulationUrl,
+    this.populationIndicatorCode,
+    this.populationIndicatorName,
+    this.populationUploadBytes,
+    this.populationUploadFileName,
   });
 }

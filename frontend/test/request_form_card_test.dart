@@ -10,6 +10,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:climate_health_frontend/core/localization.dart';
 import 'package:climate_health_frontend/models/data_source_info.dart';
 import 'package:climate_health_frontend/models/disease_info.dart';
 import 'package:climate_health_frontend/models/integration_request_params.dart';
@@ -49,7 +50,7 @@ PlatformOptions _options({
           'Kenya': RegionInfo(label: 'Kenya', lat: -0.02, lon: 37.9),
         },
     variables: const ['temperature', 'precipitation'],
-    aggregations: const ['native', 'yearly', 'decadal'],
+    aggregations: const ['native', 'daily', 'yearly', 'decadal'],
     climateSources: climateSources ??
         const [
           DataSourceInfo(id: 'open-meteo-era5', label: 'Open-Meteo', citation: 'cite'),
@@ -373,5 +374,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Upload a CSV file for the custom weather source.'), findsOneWidget);
+  });
+
+  testWidgets('shows daily downscaling notice when daily aggregation is selected', (tester) async {
+    final key = GlobalKey<RequestFormCardState>();
+    final options = _options();
+
+    await tester.pumpWidget(_wrap(options, formKey: key));
+    await tester.pumpAndSettle();
+
+    key.currentState!.applyPrefill(const ParsedRequest(aggregation: 'daily', notes: 'test'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(I18n.t('dailyDownscalingWarningTitle')), findsOneWidget);
   });
 }

@@ -21,10 +21,13 @@ class IntegrationRequest(BaseModel):
     aggregation: Literal["native", "daily", "yearly", "decadal"] = "native"
     climate_source: Literal["open-meteo-era5", "nasa-power", "tmd", "custom_upload"] = "open-meteo-era5"
     case_data_source: Literal["builtin", "custom_url", "custom_upload", "who_gho"] = "builtin"
-    population_source: Literal["worldbank", "un_wpp"] = "worldbank"
+    population_source: Literal["worldbank", "un_wpp", "worldbank_indicator", "custom_url", "custom_upload"] = "worldbank"
     custom_source_url: str | None = None
     who_indicator_code: str | None = None
     who_indicator_name: str | None = None
+    custom_population_url: str | None = None
+    population_indicator_code: str | None = None
+    population_indicator_name: str | None = None
 
 
 class PeriodRecord(BaseModel):
@@ -93,14 +96,14 @@ class DiscoveredSource(BaseModel):
     downloadable dataset). Every field is real data echoed back from the
     source API — nothing here is generated or guessed."""
 
-    source_type: Literal["who_gho", "hdx"]
+    source_type: Literal["who_gho", "hdx", "worldbank"]
     title: str
     organization: str
     description: str
     citation: str
     dataset_url: str
     resource_url: str | None = None  # HDX only: direct CSV/XLSX download link
-    indicator_code: str | None = None  # WHO GHO only
+    indicator_code: str | None = None  # WHO GHO / World Bank only
 
 
 class ParsedRequest(BaseModel):

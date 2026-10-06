@@ -124,6 +124,10 @@ def run_integration(
     who_indicator_code: str | None = None,
     who_indicator_name: str | None = None,
     climate_upload_content: bytes | None = None,
+    custom_population_url: str | None = None,
+    population_upload_content: bytes | None = None,
+    population_indicator_code: str | None = None,
+    population_indicator_name: str | None = None,
 ):
     disease = DISEASES[disease_key]
     steps: list[str] = []
@@ -170,34 +174,58 @@ def run_integration(
     if case_df.empty:
         case_agg = case_df.assign(period=pd.Series(dtype="object"))[["period", "value"]]
     elif resolution == "day" and not has_daily_input and len(case_df) > 0:
-        daily_rows = []
-        for _, row in case_df.iterrows():
-            p_start = pd.Timestamp(row["period_start"])
-            if native_resolution == "month":
-                days_in_period = int(p_start.days_in_month)
-                p_end = p_start + pd.DateOffset(days=days_in_period - 1)
-            else:
-                days_in_period = 366 if p_start.is_leap_year else 365
-                p_end = p_start + pd.DateOffset(days=days_in_period - 1)
-            daily_val = (
-                round(row["value"] / days_in_period, 3)
-                if pd.notna(row["value"])
-                else None
-            )
-            cur_day = p_start
-            while cur_day <= p_end:
-                if pd.Timestamp(start) <= cur_day <= pd.Timestamp(end):
-                    daily_rows.append({"period": cur_day.strftime("%Y-%m-%d"), "value": daily_val})
-                cur_day += pd.DateOffset(days=1)
-        if daily_rows:
-            case_agg = pd.DataFrame(daily_rows)
-            steps.append(
-                f"Distributed {disease.label} surveillance cases evenly across days in each "
-                f"{native_resolution} to match the requested daily temporal resolution."
-            )
+        all_days = pd.date_range(start=start, end=end, freq="D")
+        daily_df = pd.DataFrame({"day": all_days})
+
+        if len(case_df) == 1:
+            row = case_df.iloc[0]
+            days_in_p = max(len(daily_df), 1)
+            daily_val = round(float(row["value"]) / days_in_p, 3) if pd.notna(row["value"]) else None
+            daily_df["value"] = daily_val
         else:
-            case_df["period"] = _period_label(case_df["period_start"], resolution)
-            case_agg = case_df.groupby("period", as_index=False)["value"].sum()
+            midpoints = []
+            rates = []
+            for _, row in case_df.iterrows():
+                p_start = pd.Timestamp(row["period_start"])
+                if native_resolution == "month":
+                    days_in_p = int(p_start.days_in_month)
+                else:
+                    days_in_p = 366 if p_start.is_leap_year else 365
+                p_end = p_start + pd.DateOffset(days=days_in_p - 1)
+                midpoint = p_start + (p_end - p_start) / 2
+                rate = (float(row["value"]) / days_in_p) if (pd.notna(row["value"]) and days_in_p > 0) else 0.0
+                midpoints.append(midpoint)
+                rates.append(rate)
+
+            rate_series = pd.Series(rates, index=pd.DatetimeIndex(midpoints))
+            combined_index = rate_series.index.union(daily_df["day"]).sort_values()
+            interpolated = rate_series.reindex(combined_index).interpolate(method="time").bfill().ffill()
+            daily_df["rate"] = interpolated.reindex(daily_df["day"]).values
+            daily_df["value"] = 0.0
+
+            for _, row in case_df.iterrows():
+                p_start = pd.Timestamp(row["period_start"])
+                if native_resolution == "month":
+                    days_in_p = int(p_start.days_in_month)
+                else:
+                    days_in_p = 366 if p_start.is_leap_year else 365
+                p_end = p_start + pd.DateOffset(days=days_in_p - 1)
+                mask = (daily_df["day"] >= p_start) & (daily_df["day"] <= p_end)
+                period_slice = daily_df.loc[mask]
+                if not period_slice.empty and pd.notna(row["value"]):
+                    rate_sum = period_slice["rate"].sum()
+                    if rate_sum > 0:
+                        scale = float(row["value"]) / rate_sum
+                        daily_df.loc[mask, "value"] = (daily_df.loc[mask, "rate"] * scale).round(3)
+                    else:
+                        daily_df.loc[mask, "value"] = round(float(row["value"]) / len(period_slice), 3)
+
+        daily_df["period"] = daily_df["day"].dt.strftime("%Y-%m-%d")
+        case_agg = daily_df[["period", "value"]].copy()
+        steps.append(
+            f"Applied mass-preserving smooth temporal downscaling to {disease.label} {native_resolution}ly "
+            f"surveillance counts to generate continuous daily trajectories while preserving reported {native_resolution}ly totals."
+        )
     else:
         case_df["period"] = _period_label(case_df["period_start"], resolution)
         case_agg = case_df.groupby("period", as_index=False)["value"].sum()
@@ -253,7 +281,16 @@ def run_integration(
             "as the mean annual total, and cases as the decade's total count."
         )
 
-    pop_df = get_population_data(region, start, end, resolution=resolution, source=population_source)
+    pop_df = get_population_data(
+        region,
+        start,
+        end,
+        resolution=resolution,
+        source=population_source,
+        custom_source_url=custom_population_url,
+        upload_content=population_upload_content,
+        indicator_code=population_indicator_code,
+    )
 
     merged = pd.merge(case_agg, climate_df, on="period", how="outer")
     if not pop_df.empty:
@@ -266,7 +303,14 @@ def run_integration(
         f"{len(merged)} aligned rows."
     )
     if not pop_df.empty:
-        pop_source_label = POPULATION_SOURCES.get(population_source, {}).get("label", population_source)
+        if population_source == "custom_upload":
+            pop_source_label = "User-uploaded demographic dataset"
+        elif population_source == "custom_url":
+            pop_source_label = f"User-provided demographic URL: {custom_population_url}"
+        elif population_source == "worldbank_indicator":
+            pop_source_label = f"World Bank Indicator '{population_indicator_name or population_indicator_code}' ({population_indicator_code})"
+        else:
+            pop_source_label = POPULATION_SOURCES.get(population_source, {}).get("label", population_source)
         steps.append(
             f"Linked demographic population series for {region} ({pop_source_label}) "
             f"and calculated disease incidence rate per 100,000 population."
