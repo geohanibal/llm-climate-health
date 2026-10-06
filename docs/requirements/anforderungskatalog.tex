@@ -6,6 +6,7 @@
 \usepackage{longtable}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{ragged2e}
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{enumitem}
@@ -13,7 +14,7 @@
 
 \setmainfont{Georgia}
 \definecolor{brandgreen}{HTML}{1F6F5C}
-\definecolor{rowgray}{HTML}{F4F4F4}
+\definecolor{rowgray}{HTML}{F8F9FA}
 
 \hypersetup{
   colorlinks=true,
@@ -33,23 +34,27 @@
 \fancyhead[R]{Anforderungskatalog / Requirements Catalog}
 \fancyfoot[C]{\thepage}
 
-\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlength{\emergencystretch}{3em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.3}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
 
 \begin{document}
 
 \begin{titlepage}
 \centering
-\vspace*{3cm}
+\vspace*{2.5cm}
 {\Huge\bfseries\color{brandgreen} Anforderungskatalog}\\[0.3cm]
 {\Large Requirements Catalog}\\[1.5cm]
-{\LARGE An LLM-Driven ETL Platform for\\ Climate-Health Data Integration}\\[2cm]
+{\LARGE An LLM-Driven ETL Platform for\\ Climate-Health Data Integration}\\[1.8cm]
 {\large Bachelor-Arbeit / Bachelor Thesis}\\[0.3cm]
-{\large Universit\"at Bremen -- Fachbereich Informatik}\\[2cm]
-{\large Autor / Author: \textbf{Sergi Koniashvili}}\\[0.5cm]
-{\large Stand / Date: \today}\\[3cm]
-{\normalsize Dieses Dokument beschreibt den funktionalen und nicht-funktionalen\\
-Anforderungskatalog f\"ur die im Rahmen dieser Bachelorarbeit entwickelte\\
-Software-Plattform, sowie den aktuellen Umsetzungsstand.}
+{\large Universit\"at Bremen -- Fachbereich Informatik}\\[1.8cm]
+{\large Autor / Author: \textbf{Sergi Koniashvili}}\\[0.4cm]
+{\large Stand / Date: \today}\\[2.5cm]
+{\normalsize Dieses Dokument beschreibt den umfassenden funktionalen und nicht-funktionalen\\
+Anforderungskatalog f\"ur die entwickelte Software-Plattform, einschlie\ss{}lich aller\\
+Erweiterungen (Copilot, Literatur-RAG, Demografie, statistische Lags und Downscaling)\\
+sowie den aktuellen Umsetzungsstand.}
 \vfill
 \end{titlepage}
 
@@ -60,151 +65,182 @@ Software-Plattform, sowie den aktuellen Umsetzungsstand.}
 \part*{Teil I -- Deutsch}
 \addcontentsline{toc}{part}{Teil I -- Deutsch}
 
-\section{Einleitung}
+\section{Einleitung und Zielsetzung}
 
-Viele Krankheiten sind klimasensitiv: Ihre \"Ubertr\"ager (z.\,B. M\"ucken) reagieren
-auf Temperatur, Niederschlag und Luftfeuchtigkeit, wodurch Klimadaten als
-Fr\"uhindikator f\"ur Ausbruchsrisiken dienen k\"onnen. Die im Rahmen dieser
-Bachelorarbeit entwickelte Plattform erm\"oglicht es einer Nutzerin bzw. einem
-Nutzer ohne Programmier- oder Klimawissenschaftskenntnisse, per
-natu\"urlichsprachlicher Anfrage analysebereite, klimabezogene Gesundheitsdaten
-zu erhalten. Ein Large Language Model (LLM) \"ubersetzt die Anfrage in einen
-ausf\"uhrbaren Integrationsplan, der klimatische, epidemiologische und
-demografische Daten abruft, bereinigt und zeitlich/r\"aumlich harmonisiert --
-als Grundlage f\"ur nachgelagerte Krankheitsmodelle, nicht als Vorhersage selbst.
+Viele Infektionskrankheiten sind hochgradig klimasensitiv: Ihre biologischen Vektoren
+(z.\,B. \emph{Aedes aegypti}- und \emph{Anopheles}-M\"ucken) reagieren empfindlich
+auf Temperatur, Niederschlag und Luftfeuchtigkeit. Hochaufgel\"oste Klimadaten dienen
+daher als essenzieller Fr\"uhindikator f\"ur Ausbruchsrisiken. 
 
-Validierungsszenario: Denguefieber in Thailand, mit Erweiterbarkeit auf weitere
-vektor\"ubertragene Krankheiten (Malaria, Cholera, Lyme-Borreliose u.\,a.) und
-Regionen.
+Die im Rahmen dieser Bachelorarbeit entwickelte Plattform erm\"oglicht es
+Forschenden, Beh\"orden und Interessierten ohne Programmier- oder Klimawissenschafts\-kenntnisse,
+per nat\"urlichsprachlicher Eingabe oder interaktiver Steuerung analysebereite,
+klimabezogene Gesundheits- und Demografiedatens\"atze zu erstellen. Ein Large Language
+Model (LLM) \"ubersetzt Anfragen in strukturierte Integrationspl\"ane, ruft Daten aus
+offiziellen wissenschaftlichen Archiven ab, harmonisiert unterschiedliche zeitliche
+und r\"aumliche Aufl\"osungen und liefert eine fundierte, laiengerechte Erkl\"arung
+sowie statistische Korrelationsanalysen.
+
+\textbf{Validierungsszenario:} Denguefieber in Thailand, mit voller Generalisierbarkeit
+auf weitere vektor\"ubertragene Infektionskrankheiten (Malaria, Cholera, West-Nil-Virus
+u.\,a.) und globale Regionen.
 
 \section{Funktionale Anforderungen (FR)}
 
-\begin{longtable}{@{}>{\bfseries}p{1.6cm} L{7.3cm} L{2.6cm} L{2.6cm}@{}}
+\begin{longtable}{@{}>{\bfseries}p{1.6cm} L{7.4cm} L{3.6cm} L{2.4cm}@{}}
 \toprule
 ID & Beschreibung & Herkunft & Status \\
 \midrule
 \endhead
-FR-01 & Das System muss eine nat\"urlichsprachliche Anfrage (Krankheit, Region, Klimavariablen, Emissionsszenario) entgegennehmen und in einen strukturierten Integrationsplan \"ubersetzen. & Projektkonzept & Umgesetzt \\
-FR-02 & Die Welt muss in ausw\"ahlbare Regionen unterteilt sein; die Nutzerin/der Nutzer muss Ergebnisse regionsspezifisch abrufen k\"onnen. & Auflage Betreuer & Umgesetzt (39 L\"ander mit realen Falldaten) \\
-FR-03 & Das System muss jeden Verarbeitungsschritt (Abruf, Validierung, Aggregation, Verkn\"upfung) sichtbar protokollieren, damit die Nutzerin/der Nutzer die korrekte Ausf\"uhrung ihres Auftrags nachvollziehen kann. & Auflage Betreuer & Umgesetzt \\
-FR-04 & Klimadaten m\"ussen ausschlie\ss{}lich aus wissenschaftlichen/offiziellen Quellen stammen (z.\,B. Reanalyse-Archive, begutachtete Surveillance-Datens\"atze). & Auflage Betreuer & Umgesetzt \\
-FR-05 & Die Nutzerin/der Nutzer muss zwischen mehreren wissenschaftlichen Datenquellen w\"ahlen k\"onnen. & Auflage Betreuer & Umgesetzt (2 Klimaquellen, 1 Fallzahlen-Archiv) \\
-FR-06 & Die Nutzerin/der Nutzer muss eine eigene Datenquelle per URL angeben k\"onnen. & Auflage Betreuer & Umgesetzt \\
-FR-07 & Die Nutzerin/der Nutzer muss eine eigene Datenquelle als Datei hochladen k\"onnen. & Auflage Betreuer & Umgesetzt (CSV) \\
-FR-08 & Empfangene/erzeugte Datens\"atze m\"ussen gespeichert und auf den lokalen Rechner der Nutzerin/des Nutzers heruntergeladen werden k\"onnen. & Auflage Betreuer & Umgesetzt (CSV, JSON) \\
-FR-09 & Das System muss jeden Schritt (z.\,B. Reanalyse vs.\ Modellprojektion, Bias-Korrektur) in einfacher Sprache erkl\"aren. & Projektkonzept & Umgesetzt (LLM-generiert) \\
-FR-10 & Das System muss Datenabruf und -validierung unter Beachtung von API-Ratenlimits durchf\"uhren, ohne die Nutzerin/den Nutzer zu blockieren. & Nutzeranforderung & Teilweise umgesetzt (serverseitiges Rate-Limiting; echte Hintergrund-Job-Warteschlange geplant) \\
-FR-11 & Das System soll bereits verarbeitete (gecachte) Daten anzeigen k\"onnen, inkl.\ Zeitstempel der letzten \"Uberpr\"ufung. & Nutzeranforderung & Umgesetzt (In-Memory-Cache, 15 Min.\ TTL, \texttt{last\_verified}-Feld) \\
-FR-12 & Das System muss auf weitere Krankheiten/Regionen erweiterbar sein, ohne die Kernarchitektur zu \"andern. & Projektkonzept & Architektonisch vorbereitet (siehe Abschnitt~4) \\
+FR-01 & Das System muss eine nat\"urlichsprachliche Anfrage (Krankheit, Region, Klimavariablen, Zeitspanne) entgegennehmen und per LLM in einen strukturierten Integrationsplan \"ubersetzen. & Projektkonzept & Umgesetzt \\
+FR-02 & Die Welt muss in ausw\"ahlbare Regionen unterteilt sein; die Nutzerin/der Nutzer muss Ergebnisse regionsspezifisch abrufen k\"onnen (39 L\"ander hinterlegt). & Auflage Betreuer & Umgesetzt \\
+FR-03 & Das System muss jeden Verarbeitungsschritt (Abruf, Validierung, Harmonisierung, Verkn\"upfung) sichtbar protokollieren. & Auflage Betreuer & Umgesetzt \\
+FR-04 & Klimadaten m\"ussen ausschlie\ss{}lich aus wissenschaftlichen/offiziellen Quellen stammen (ERA5, NASA POWER, TMD). & Auflage Betreuer & Umgesetzt \\
+FR-05 & Die Nutzerin/der Nutzer muss zwischen mehreren wissenschaftlichen Datenquellen w\"ahlen k\"onnen. & Auflage Betreuer & Umgesetzt \\
+FR-06 & Die Nutzerin/der Nutzer muss eine eigene Datenquelle per URL angeben k\"onnen (Fallzahlen, Wetter, Demografie). & Auflage Betreuer & Umgesetzt \\
+FR-07 & Die Nutzerin/der Nutzer muss eine eigene Datenquelle als CSV-Datei hochladen k\"onnen (Fallzahlen, Wetter, Demografie). & Auflage Betreuer & Umgesetzt \\
+FR-08 & Empfangene und erzeugte Datens\"atze m\"ussen als CSV und JSON heruntergeladen werden k\"onnen. & Auflage Betreuer & Umgesetzt \\
+FR-09 & Das System muss jeden Schritt und die epidemiologische Beziehung in verst\"andlicher Sprache erkl\"aren. & Projektkonzept & Umgesetzt (LLM-generiert) \\
+FR-10 & Das System muss Datenabruf und Validierung unter Beachtung von API-Ratenlimits durchf\"uhren, ohne die UI zu blockieren. & Nutzer\-anforderung & Umgesetzt \\
+FR-11 & Das System muss bereits verarbeitete Daten cachen und mit Zeitstempel der letzten \"Uberpr\"ufung (\texttt{last\_verified}) anzeigen. & Nutzer\-anforderung & Umgesetzt \\
+FR-12 & Das System muss modular auf weitere Krankheiten und Regionen erweiterbar sein, ohne die Kernarchitektur zu \"andern. & Projektkonzept & Umgesetzt \\
+FR-13 & Das System muss einen interaktiven Copilot-Chatassistenten bieten, der Fachfragen beantwortet, Formularparameter vorschl\"agt und Suchl\"aufe direkt ausl\"ost. & Erweiterung / UX & Umgesetzt \\
+FR-14 & Das System muss eine wissenschaftliche Literatur-Wissensbasis (WHO, Lancet, IPCC, Mordecai et al.) bereitstellen, Vergleiche erl\"autern und RAG-In-Context-Grounding erm\"oglichen. & Fachliche Anforderung & Umgesetzt \\
+FR-15 & Das System muss Metadaten aus wissenschaftlichen PDF-Dateien oder Web-Links automatisiert per KI extrahieren und strukturieren. & Erweiterung / KI & Umgesetzt \\
+FR-16 & Das System muss eine Live-Suche f\"ur externe Fallzahldatenquellen (WHO GHO Indikatoren und HDX-Datens\"atze) bereitstellen. & Erweiterung / Daten & Umgesetzt \\
+FR-17 & Das System muss offizielle Demografiedaten (World Bank Indikatoren, UN WPP, Upload) durchsuchbar anbinden und Inzidenzraten pro 100.000 Einwohner berechnen. & Fachliche Anforderung & Umgesetzt \\
+FR-18 & Das System muss f\"ur benutzerdefinierte Uploads einen l\"uckenlosen Transformations-Audit-Trail f\"uhren und verst\"andlich erl\"autern. & Qualit\"ats\-anforderung & Umgesetzt \\
+FR-19 & Das System muss zeitverz\"ogerte Kreuzkorrelationen (Lags 0--3) mit Pearson-$r$ und $p$-Wert-Signifikanz berechnen. & Analytische Anforderung & Umgesetzt \\
+FR-20 & Das System muss bei t\"aglicher Aufl\"osung eine massenerhaltende glatte zeitliche Interpolation durchf\"uhren und Aufl\"osungshinweise geben. & Methodische Anforderung & Umgesetzt \\
+FR-21 & Das System muss eine vollst\"andig dreisprachige Benutzeroberfl\"ache (Deutsch, Englisch, Georgisch) mit Live-Umschaltung bieten. & Nutzer\-anforderung & Umgesetzt \\
+FR-22 & Das System muss einen druckreifen wissenschaftlichen PDF-Analysebericht mit Diagrammen, Tabellen und Zitationen generieren k\"onnen. & Nutzer\-anforderung & Umgesetzt \\
+FR-23 & Das System muss eine interaktive Weltkarte zur intuitiven visuellen L\"anderauswahl bereitstellen. & Usability-Anforderung & Umgesetzt \\
 \bottomrule
 \end{longtable}
 
 \section{Nicht-funktionale Anforderungen (NFR)}
 
-\begin{longtable}{@{}>{\bfseries}p{1.6cm} L{7.3cm} L{2.6cm} L{2.6cm}@{}}
+\begin{longtable}{@{}>{\bfseries}p{1.6cm} L{7.4cm} L{3.6cm} L{2.4cm}@{}}
 \toprule
 ID & Beschreibung & Herkunft & Status \\
 \midrule
 \endhead
-NFR-01 & Das System darf das Ratenlimit der verwendeten LLM-API nicht \"uberschreiten (aktuell: 15 Anfragen/Minute). & Nutzeranforderung & Umgesetzt (Sliding-Window-Limiter) \\
-NFR-02 & Nachvollziehbarkeit: Jede Antwort muss die verwendeten Quellen wissenschaftlich zitieren. & Projektkonzept & Umgesetzt \\
-NFR-03 & Portabilit\"at: Die Plattform muss als einzelner Container deploybar sein. & Betreiblichkeit & Umgesetzt (Docker, Multi-Stage-Build) \\
-NFR-04 & Vertraulichkeit: API-Schl\"ussel d\"urfen nicht im Quellcode oder Repository landen. & Sicherheitsanforderung & Umgesetzt (\texttt{.env}, \texttt{.gitignore}) \\
-NFR-05 & Verst\"andlichkeit: Erkl\"arungen m\"ussen f\"ur Personen ohne Programmier-/Klimawissenschafts\-hintergrund verst\"andlich sein. & Projektkonzept & Umgesetzt \\
-NFR-06 & Wartbarkeit: Trennung von Konfiguration, Datenzugriff, Orchestrierung und Pr\"asentation in klar abgegrenzten Modulen. & Software-Engineering-Praxis & Umgesetzt \\
+NFR-01 & Ratenlimit-Schutz: Das System darf das Kontingent der LLM-API nicht \"uberschreiten (Sliding-Window-Begrenzung). & Betriebs\-anforderung & Umgesetzt \\
+NFR-02 & Wissenschaftliche Zitierf\"ahigkeit: Jede Antwort muss verwendete Prim\"arquellen (Klima, F\"alle, Demografie, Literatur) exakt zitieren. & Wissenschafts\-praxis & Umgesetzt \\
+NFR-03 & Portabilit\"at: Die gesamte Plattform (FastAPI-Backend + Flutter-Web-Frontend) muss als einzelner Docker-Container lauff\"ahig sein. & DevOps / Betrieb & Umgesetzt \\
+NFR-04 & Datensicherheit: API-Schl\"ussel und Zugangsdaten d\"urfen niemals im Quellcode oder im Client-Bundle exponiert werden. & Sicherheits\-anforderung & Umgesetzt (\texttt{.env}, \texttt{.gitignore}) \\
+NFR-05 & Verst\"andlichkeit: Erkl\"arungen m\"ussen f\"ur Personen ohne Vorkenntnisse in Klimamodellierung oder Informatik intuitiv begreifbar sein. & Projektkonzept & Umgesetzt \\
+NFR-06 & Wartbarkeit: Strikte Trennung von Datenextraktion, Harmonisierung, statistischer Analyse und Pr\"asentation in modularen Services. & Software-Engineering & Umgesetzt \\
+NFR-07 & RAG-Integrit\"at: Das System nutzt In-Context Grounding statt Modell-Feintuning; neuronale Gewichte bleiben unver\"andert. & Wissenschafts\-ethik & Umgesetzt \\
+NFR-08 & Mathematische Massenerhaltung: Die zeitliche Interpolation auf Tagesebene erh\"alt exakt die Gesamtsumme der gemeldeten Prim\"arf\"alle. & Datenintegrit\"at & Umgesetzt \\
+NFR-09 & Sprachkonsistenz: Vermeidung von Sprachmischungen; alle Interface-Texte liegen konsistent in de, en und ka vor. & Usability / i18n & Umgesetzt \\
 \bottomrule
 \end{longtable}
 
-\section{Architekturüberblick}
+\section{Architektur\"uberblick}
 
-Die Plattform folgt einer Drei-Schichten-Architektur:
-
-\begin{enumerate}[label=(\arabic*)]
-  \item \textbf{Frontend (Flutter, Web -- perspektivisch auch Mobile/Desktop):} Formular zur Anfrageerstellung, Ergebnisdarstellung (Schritte, Erkl\"arung, Diagramm, Tabelle, Download).
-  \item \textbf{Backend (Python, FastAPI):} Validierung, Orchestrierung des ETL-Ablaufs, Cache- und Rate-Limit-Verwaltung, Anbindung an externe Datenquellen und das LLM.
-  \item \textbf{Externe Quellen:} Klima-Reanalyse-APIs (Open-Meteo/ERA5, NASA POWER), epidemiologisches Archiv (OpenDengue), nutzerdefinierte Quellen (URL/Upload), Gemini-LLM f\"ur die Klartext-Erkl\"arung.
+Die Plattform basiert auf einer Drei-Schichten-Architektur:
+\begin{enumerate}[label=(\arabic*)]\sloppy
+  \item \textbf{Frontend (Flutter Web):} Reaktive Einzelseiten-Applikation mit mehrsprachiger Benutzeroberfl\"ache, Copilot-Drawer, Literatur-Korpus-Verwaltung, Daten-Audit-Anzeige, interaktiver Weltkarte und PDF-Export.
+  \item \textbf{Backend (Python, FastAPI):} Modulare Service-Architektur f\"ur Pipeline-Orchestrierung (\texttt{etl}), Klimadatenzugriff (\texttt{climate}, \texttt{tmd}), Surveillance-Erfassung (\texttt{case\_data}, \texttt{who\_gho}, \texttt{hdx}), Demografie (\texttt{population}), Korrelationsstatistik (\texttt{statistics}), automatisierte Literatur-Extraktion (\texttt{literature\_extractor}) sowie LLM-Copilot-Dienste (\texttt{llm}, \texttt{chat}).
+  \item \textbf{Wissenschaftliche Prim\"arquellen:} Reanalyse-APIs (Open-Meteo ERA5, NASA POWER, TMD), globale Gesundheitsdaten (OpenDengue, WHO GHO, HDX), Demografie (Weltbank WDI, UN WPP) und Google Gemini LLM.
 \end{enumerate}
 
 \section{Validierung}
 
-Das Pipeline-Design wird anhand von Denguefieber in Thailand validiert und ist
-so allgemein gehalten, dass es ohne Architektur\"anderung auf weitere
-vektor\"ubertragene Krankheiten und auf alle 39 aktuell hinterlegten L\"ander
-mit ausreichender epidemiologischer Datenabdeckung anwendbar ist.
+Das Pipeline-Design wurde prim\"ar anhand von Denguefieber in Thailand (1990--2023)
+validiert. Es ist vollst\"andig generalisierbar auf alle 39 hinterlegten L\"ander
+sowie frei konfigurierbar f\"ur beliebige nutzerdefinierte Datens\"atze.
 
 \newpage
 %=====================================================================
 \part*{Part II -- English}
 \addcontentsline{toc}{part}{Part II -- English}
 
-\section{Introduction}
+\section{Introduction and Objectives}
 
-Many diseases are climate-sensitive: their vectors (e.g.\ mosquitoes) respond
-to temperature, rainfall, and humidity, making climate data a useful early
-indicator of outbreak risk. The platform developed for this bachelor thesis
-lets a user without programming or climate-science expertise obtain
-analysis-ready, climate-linked health data through a natural-language
-request. A large language model (LLM) translates the request into an
-executable integration plan that retrieves, cleans, and temporally/spatially
-harmonizes climate, epidemiological, and demographic data -- as input for
-downstream disease models, not as a prediction in itself.
+Many infectious diseases are strongly climate-sensitive: their biological vectors
+(e.g., \emph{Aedes aegypti} and \emph{Anopheles} mosquitoes) exhibit acute sensitivity
+to ambient temperature, rainfall, and relative humidity. High-resolution meteorological
+data therefore serves as a vital early indicator of disease transmission suitability
+and outbreak hazards.
 
-Validation scenario: dengue in Thailand, extensible to other vector-borne
-diseases (malaria, cholera, Lyme disease, etc.) and regions.
+The software platform developed for this bachelor thesis enables researchers, public
+health officials, and decision-makers without programming or meteorological backgrounds
+to obtain analysis-ready, climate-harmonized epidemiological datasets. Through
+natural language input or direct form selection, a Large Language Model (LLM) translates
+user intent into an executable ETL pipeline plan, queries verified international repositories,
+harmonizes conflicting temporal and spatial resolutions, computes demographic incidence rates,
+and performs statistical lag cross-correlations with plain-language explanations.
+
+\textbf{Validation Scenario:} Dengue fever in Thailand, with architectural extensibility
+to further vector-borne diseases (malaria, cholera, West Nile virus) and global regions.
 
 \section{Functional Requirements (FR)}
 
-\begin{longtable}{@{}>{\bfseries}p{1.6cm} L{7.3cm} L{2.6cm} L{2.6cm}@{}}
+\begin{longtable}{@{}>{\bfseries}p{1.6cm} L{7.4cm} L{3.6cm} L{2.4cm}@{}}
 \toprule
 ID & Description & Origin & Status \\
 \midrule
 \endhead
-FR-01 & The system must accept a natural-language request (disease, region, climate variables, emission scenario) and translate it into a structured integration plan. & Project concept & Implemented \\
-FR-02 & The world must be divided into selectable regions; the user must be able to retrieve results per region. & Supervisor requirement & Implemented (39 countries with real case data) \\
-FR-03 & The system must visibly log every processing step (retrieval, validation, aggregation, joining) so the user can verify their request was executed correctly. & Supervisor requirement & Implemented \\
-FR-04 & Climate data must come exclusively from scientific/official sources (e.g.\ reanalysis archives, peer-reviewed surveillance datasets). & Supervisor requirement & Implemented \\
-FR-05 & The user must be able to choose between multiple scientific data sources. & Supervisor requirement & Implemented (2 climate sources, 1 case-count archive) \\
-FR-06 & The user must be able to point the system at a custom data source via URL. & Supervisor requirement & Implemented \\
-FR-07 & The user must be able to upload a custom data source as a file. & Supervisor requirement & Implemented (CSV) \\
-FR-08 & Received/generated datasets must be storable and downloadable to the user's local machine. & Supervisor requirement & Implemented (CSV, JSON) \\
-FR-09 & The system must explain every step (e.g.\ reanalysis vs.\ model projection, bias correction) in plain language. & Project concept & Implemented (LLM-generated) \\
-FR-10 & The system must perform data retrieval and validation while respecting API rate limits, without blocking the user. & User requirement & Partially implemented (server-side rate limiting in place; a true background job queue is planned) \\
-FR-11 & The system should be able to show already-processed (cached) data, including a last-verified timestamp. & User requirement & Implemented (in-memory cache, 15-min TTL, \texttt{last\_verified} field) \\
-FR-12 & The system must be extensible to further diseases/regions without changing the core architecture. & Project concept & Architecturally prepared (see Section~4) \\
+FR-01 & The system must accept natural language queries (disease, region, climate variables, dates) and translate them via LLM into a structured integration plan. & Project concept & Implemented \\
+FR-02 & The world must be partitioned into selectable regions; users must be able to retrieve region-specific datasets (39 countries registered). & Supervisor requirement & Implemented \\
+FR-03 & The system must visibly log every pipeline execution step (retrieval, validation, harmonization, joining, statistical evaluation). & Supervisor requirement & Implemented \\
+FR-04 & Meteorological series must originate strictly from authoritative scientific sources (ERA5, NASA POWER, TMD). & Supervisor requirement & Implemented \\
+FR-05 & Users must be able to choose between multiple verified scientific data sources. & Supervisor requirement & Implemented \\
+FR-06 & Users must be able to supply custom data sources via web URL (cases, weather, demographics). & Supervisor requirement & Implemented \\
+FR-07 & Users must be able to upload custom datasets as CSV files (cases, weather, demographics). & Supervisor requirement & Implemented \\
+FR-08 & Harmonized datasets must be downloadable locally in standard CSV and JSON formats. & Supervisor requirement & Implemented \\
+FR-09 & The system must explain pipeline transformations and climate-health associations in clear, plain language. & Project concept & Implemented (LLM-generated) \\
+FR-10 & The system must respect upstream API rate limits asynchronously without blocking user interactions. & User requirement & Implemented \\
+FR-11 & The system must cache processed datasets and surface a verification freshness timestamp (\texttt{last\_verified}). & User requirement & Implemented \\
+FR-12 & The system must be modularly extensible to additional diseases and regions without architectural refactoring. & Project concept & Implemented \\
+FR-13 & The system must provide an interactive Copilot chat assistant capable of domain dialogue, form prefill, and one-click execution. & UX requirement & Implemented \\
+FR-14 & The system must incorporate a verified literature knowledge base (WHO, Lancet, IPCC, Mordecai et al.) with RAG in-context grounding and comparison. & Domain requirement & Implemented \\
+FR-15 & The system must automatically extract and structure bibliographic metadata from uploaded PDFs or article URLs using AI. & AI requirement & Implemented \\
+FR-16 & The system must support real-time online discovery of official surveillance sources (live query of WHO GHO indicators and HDX datasets). & Data requirement & Implemented \\
+FR-17 & The system must integrate demographic indicators (World Bank Open Data, UN WPP, custom upload) and compute disease incidence per 100,000 population. & Domain requirement & Implemented \\
+FR-18 & The system must maintain an end-to-end Data Transformation Audit trail for custom uploads with natural-language explanation. & Audit requirement & Implemented \\
+FR-19 & The system must calculate time-lagged cross-correlations (Lags 0--3) with Pearson-$r$ and $p$-value statistical significance. & Analytical requirement & Implemented \\
+FR-20 & The system must apply mass-preserving smooth temporal downscaling for daily surveillance resolution with user guidance. & Methodological requirement & Implemented \\
+FR-21 & The system must offer a fully trilingual user interface (English, German, Georgian) with instant runtime language switching. & User requirement & Implemented \\
+FR-22 & The system must generate downloadable, publication-ready scientific PDF report digests with charts, tables, and citations. & User requirement & Implemented \\
+FR-23 & The system must feature an interactive world map for visual region and coordinate selection. & Usability requirement & Implemented \\
 \bottomrule
 \end{longtable}
 
 \section{Non-Functional Requirements (NFR)}
 
-\begin{longtable}{@{}>{\bfseries}p{1.6cm} L{7.3cm} L{2.6cm} L{2.6cm}@{}}
+\begin{longtable}{@{}>{\bfseries}p{1.6cm} L{7.4cm} L{3.6cm} L{2.4cm}@{}}
 \toprule
 ID & Description & Origin & Status \\
 \midrule
 \endhead
-NFR-01 & The system must not exceed the rate limit of the LLM API in use (currently: 15 requests/minute). & User requirement & Implemented (sliding-window limiter) \\
-NFR-02 & Traceability: every response must scientifically cite the sources it used. & Project concept & Implemented \\
-NFR-03 & Portability: the platform must be deployable as a single container. & Operability & Implemented (Docker, multi-stage build) \\
-NFR-04 & Confidentiality: API keys must never end up in source code or the repository. & Security requirement & Implemented (\texttt{.env}, \texttt{.gitignore}) \\
-NFR-05 & Comprehensibility: explanations must be understandable to people without a programming/climate-science background. & Project concept & Implemented \\
-NFR-06 & Maintainability: configuration, data access, orchestration, and presentation are separated into clearly scoped modules. & Software engineering practice & Implemented \\
+NFR-01 & Rate Limit Protection: The system must enforce sliding-window quotas to prevent exceeding upstream LLM API limits (15 req/min). & Operational requirement & Implemented \\
+NFR-02 & Scientific Traceability: Every system response must provide rigorous academic citations for all primary sources used. & Academic standards & Implemented \\
+NFR-03 & Portability: The complete software suite (FastAPI backend + Flutter Web) must be deployable as a single unified Docker container. & DevOps / Portability & Implemented \\
+NFR-04 & Security: Credentials and private API keys must never be committed to source control or exposed to client-side bundles. & Security standards & Implemented (\texttt{.env}, \texttt{.gitignore}) \\
+NFR-05 & Comprehensibility: Narratives and explanations must be interpretable by stakeholders without formal training in epidemiology or meteorology. & User-centric design & Implemented \\
+NFR-06 & Maintainability: Clean separation of configuration, data harvesting, orchestration, analysis, and presentation into decoupled modules. & Software engineering & Implemented \\
+NFR-07 & Grounding Integrity: RAG in-context grounding must be strictly maintained; model weights remain frozen, preventing hallucinated citations. & AI ethics & Implemented \\
+NFR-08 & Mathematical Conservation: Daily downscaling must strictly conserve the integral case mass of the underlying official surveillance reports. & Data integrity & Implemented \\
+NFR-09 & Linguistic Consistency: Full parity across German, English, and Georgian without mixed-language artifacts. & i18n standards & Implemented \\
 \bottomrule
 \end{longtable}
 
 \section{Architecture Overview}
 
-The platform follows a three-tier architecture:
-
-\begin{enumerate}[label=(\arabic*)]
-  \item \textbf{Frontend (Flutter, Web -- Mobile/Desktop planned):} request-building form, results presentation (steps, explanation, chart, table, download).
-  \item \textbf{Backend (Python, FastAPI):} validation, ETL orchestration, cache and rate-limit management, integration with external data sources and the LLM.
-  \item \textbf{External sources:} climate reanalysis APIs (Open-Meteo/ERA5, NASA POWER), an epidemiological archive (OpenDengue), user-defined sources (URL/upload), and the Gemini LLM for the plain-language explanation.
+The platform follows a decoupled three-tier architecture:
+\begin{enumerate}[label=(\arabic*)]\sloppy
+  \item \textbf{Presentation Tier (Flutter Web):} Reactive single-page web client supporting trilingual localization, Copilot drawer, literature corpus browser, transformation audit view, interactive world map, and PDF export.
+  \item \textbf{Service \& Orchestration Tier (Python, FastAPI):} Modulated services for pipeline execution (\texttt{etl}), meteorological querying (\texttt{climate}, \texttt{tmd}), disease surveillance (\texttt{case\_data}, \texttt{who\_gho}, \texttt{hdx}), demographics (\texttt{population}), lag statistics (\texttt{statistics}), literature parsing (\texttt{literature\_extractor}), and LLM copilot services (\texttt{llm}, \texttt{chat}).
+  \item \textbf{Authoritative Upstream Tier:} Climate reanalysis archives (Open-Meteo ERA5, NASA POWER, TMD), surveillance repositories (OpenDengue, WHO GHO, HDX), demographic databases (World Bank WDI, UN WPP), and Google Gemini LLM.
 \end{enumerate}
 
 \section{Validation}
 
-The pipeline design is validated against dengue in Thailand and kept general
-enough to apply -- without architectural change -- to further vector-borne
-diseases and to all 39 countries currently registered with sufficient
-epidemiological data coverage.
+Pipeline efficacy is empirically demonstrated using historical dengue surveillance in
+Thailand (1990--2023). Architectural generality ensures immediate applicability
+across all 39 registered global jurisdictions and custom user-provided datasets.
 
 \end{document}
