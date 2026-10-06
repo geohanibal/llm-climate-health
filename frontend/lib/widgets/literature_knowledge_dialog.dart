@@ -123,6 +123,18 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
     }
   }
 
+  void _downloadFullBook(LiteratureItem item) {
+    if (item.attachedFileBytes != null) {
+      final fileName = item.attachedFileName ??
+          '${item.tag.toLowerCase().replaceAll(RegExp(r'[^a-z0-9_-]'), '_')}_full.pdf';
+      _downloadService.downloadBytes(item.attachedFileBytes!, 'application/pdf', fileName);
+    } else if (item.originalPdfUrl != null) {
+      _downloadService.openUrl(item.originalPdfUrl!);
+    } else if (item.url != null) {
+      _downloadService.openUrl(item.url!);
+    }
+  }
+
   void _confirmDeleteCustomItem(LiteratureItem item) {
     showDialog<bool>(
       context: context,
@@ -533,6 +545,26 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
             runSpacing: 6,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
+              // Download Full Book / Publication PDF button
+              FilledButton.tonalIcon(
+                onPressed: () => _downloadFullBook(item),
+                icon: const Icon(Icons.download_rounded, size: 14),
+                label: Text(I18n.t('downloadFullBook')),
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                ),
+              ),
+              // Download Summary Digest button
+              OutlinedButton.icon(
+                onPressed: () => _downloadItemPdf(item, lang),
+                icon: const Icon(Icons.picture_as_pdf_outlined, size: 14),
+                label: Text(I18n.t('downloadSummaryDigest')),
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                ),
+              ),
               // Read Full Text / Details button
               OutlinedButton.icon(
                 onPressed: () => LiteratureReaderDialog.show(context, item),
@@ -543,29 +575,8 @@ class _LiteratureKnowledgeDialogState extends State<LiteratureKnowledgeDialog> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 ),
               ),
-              // Download PDF Digest button
-              OutlinedButton.icon(
-                onPressed: () => _downloadItemPdf(item, lang),
-                icon: const Icon(Icons.picture_as_pdf_outlined, size: 14),
-                label: Text(I18n.t('downloadLiteraturePdf')),
-                style: OutlinedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                ),
-              ),
-              // External Official Publication link if available
-              if (item.url != null)
-                TextButton.icon(
-                  onPressed: () => _downloadService.openUrl(item.url!),
-                  icon: const Icon(Icons.open_in_new_rounded, size: 14),
-                  label: Text(I18n.t('officialSource')),
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  ),
-                ),
               // Select button
-              FilledButton.tonal(
+              FilledButton(
                 onPressed: () => _applyItem(item),
                 style: FilledButton.styleFrom(
                   visualDensity: VisualDensity.compact,

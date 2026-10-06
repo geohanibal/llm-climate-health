@@ -2,7 +2,7 @@
 /// used for grounding the Climate-Health AI Copilot and statistical analyses.
 ///
 /// Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis, University of Bremen)
-library;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -18,6 +18,7 @@ class LiteratureItem {
   final String journal;
   final String citation;
   final String? url;
+  final String? originalPdfUrl;
   final String focusKa;
   final String focusEn;
   final String focusDe;
@@ -36,6 +37,7 @@ class LiteratureItem {
   final IconData icon;
   final bool isCustom;
   final String? attachedFileName;
+  final Uint8List? attachedFileBytes;
   final String? fullContent;
 
   const LiteratureItem({
@@ -48,6 +50,7 @@ class LiteratureItem {
     required this.journal,
     required this.citation,
     this.url,
+    this.originalPdfUrl,
     required this.focusKa,
     required this.focusEn,
     required this.focusDe,
@@ -66,6 +69,7 @@ class LiteratureItem {
     this.icon = Icons.menu_book_rounded,
     this.isCustom = false,
     this.attachedFileName,
+    this.attachedFileBytes,
     this.fullContent,
   });
 
@@ -148,6 +152,7 @@ final List<LiteratureItem> kScientificCorpora = [
     citation:
         'World Health Organization. (2020). Global vector control response 2017–2030. WHO Guidelines Approved by the Guidelines Review Committee.',
     url: 'https://www.who.int/publications/i/item/9789241512978',
+    originalPdfUrl: 'https://iris.who.int/bitstream/handle/10665/259205/9789241512978-eng.pdf',
     focusKa:
         'კლინიკური მეთვალყურეობა, ეპიდემიოლოგიური ზღვრები (outbreak alert thresholds) და გადაუდებელი ვექტორული ინტერვენციები.',
     focusEn:
@@ -191,6 +196,7 @@ final List<LiteratureItem> kScientificCorpora = [
     citation:
         'Romanello, M., et al. (2023). The 2023 report of the Lancet Countdown on health and climate change: the imperative for a health-centred response. The Lancet, 402(10419), 2346-2394.',
     url: 'https://doi.org/10.1016/S0140-6736(23)01859-4',
+    originalPdfUrl: 'https://www.thelancet.com/action/showPdf?pii=S0140-6736%2823%2901859-4',
     focusKa:
         'კლიმატის ცვლილების ატრიბუცია, დაავადების გადაცემის ეკოლოგიური ხელსაყრელობის (R0) ზრდა და მოსახლეობის მოწყვლადობა.',
     focusEn:
@@ -234,6 +240,7 @@ final List<LiteratureItem> kScientificCorpora = [
     citation:
         'IPCC. (2022). Climate Change 2022: Impacts, Adaptation and Vulnerability. Contribution of Working Group II to the Sixth Assessment Report. Cambridge Univ. Press.',
     url: 'https://www.ipcc.ch/report/ar6/wg2/chapter/chapter-7/',
+    originalPdfUrl: 'https://www.ipcc.ch/report/ar6/wg2/downloads/report/IPCC_AR6_WGII_Chapter07.pdf',
     focusKa:
         'გრძელვადიანი კლიმატური პროექციები (2030–2100), ექსტრემალური ნალექები, წყალდიდობები და კომპლექსური რისკები (Compound hazards).',
     focusEn:
@@ -277,6 +284,7 @@ final List<LiteratureItem> kScientificCorpora = [
     citation:
         'Mordecai, E. A., et al. (2019). Thermal biology of mosquito-borne disease. Ecology Letters, 22(10), 1690-1708.',
     url: 'https://doi.org/10.1111/ele.13330',
+    originalPdfUrl: 'https://onlinelibrary.wiley.com/doi/pdfdirect/10.1111/ele.13330',
     focusKa:
         'კოღოს თერმული ბიოლოგია, არაწრფივი ოპტიმალური ტემპერატურა (24°C–29°C) და 1–3 თვიანი ბიოლოგიური დროითი დაყოვნება (Lags).',
     focusEn:

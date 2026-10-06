@@ -85,6 +85,18 @@ class _LiteratureReaderDialogState extends State<LiteratureReaderDialog>
     }
   }
 
+  void _handleDownloadFullBook() {
+    if (widget.item.attachedFileBytes != null) {
+      final fileName = widget.item.attachedFileName ??
+          '${widget.item.tag.toLowerCase().replaceAll(RegExp(r'[^a-z0-9_-]'), '_')}_full.pdf';
+      _downloadService.downloadBytes(widget.item.attachedFileBytes!, 'application/pdf', fileName);
+    } else if (widget.item.originalPdfUrl != null) {
+      _downloadService.openUrl(widget.item.originalPdfUrl!);
+    } else if (widget.item.url != null) {
+      _downloadService.openUrl(widget.item.url!);
+    }
+  }
+
   void _copyToClipboard(String text, String message) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -553,10 +565,18 @@ class _LiteratureReaderDialogState extends State<LiteratureReaderDialog>
         crossAxisAlignment: WrapCrossAlignment.center,
         alignment: WrapAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              FilledButton.icon(
+              FilledButton.tonalIcon(
+                onPressed: _handleDownloadFullBook,
+                icon: const Icon(Icons.download_rounded, size: 16),
+                label: Text(I18n.t('downloadFullBook')),
+                style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+              ),
+              OutlinedButton.icon(
                 onPressed: _isDownloadingPdf ? null : () => _handleDownloadPdf(lang),
                 icon: _isDownloadingPdf
                     ? const SizedBox(
@@ -565,18 +585,16 @@ class _LiteratureReaderDialogState extends State<LiteratureReaderDialog>
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
                     : const Icon(Icons.picture_as_pdf_outlined, size: 16),
-                label: Text(I18n.t('downloadLiteraturePdf')),
-                style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+                label: Text(I18n.t('downloadSummaryDigest')),
+                style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
               ),
-              if (widget.item.url != null) ...[
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
+              if (widget.item.url != null)
+                TextButton.icon(
                   onPressed: () => _downloadService.openUrl(widget.item.url!),
                   icon: const Icon(Icons.open_in_new_rounded, size: 16),
                   label: Text(I18n.t('officialSource')),
-                  style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                  style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
                 ),
-              ],
             ],
           ),
           OutlinedButton(

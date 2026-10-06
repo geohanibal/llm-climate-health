@@ -40,7 +40,8 @@ void main() {
 
       // Verify Read Full Text and Download buttons exist
       expect(find.text(I18n.t('readFullLiterature')), findsAtLeastNWidgets(1));
-      expect(find.text(I18n.t('downloadLiteraturePdf')), findsAtLeastNWidgets(1));
+      expect(find.text(I18n.t('downloadFullBook')), findsAtLeastNWidgets(1));
+      expect(find.text(I18n.t('downloadSummaryDigest')), findsAtLeastNWidgets(1));
     });
 
     testWidgets('LiteratureReaderDialog renders tabs, abstract, and citation',

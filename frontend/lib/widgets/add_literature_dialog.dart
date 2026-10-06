@@ -5,6 +5,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,7 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
   final _differencesController = TextEditingController();
 
   String? _attachedFileName;
+  Uint8List? _attachedFileBytes;
   String? _attachedFileContent;
   bool _isPickingFile = false;
 
@@ -83,6 +85,7 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
         }
         setState(() {
           _attachedFileName = file.name;
+          _attachedFileBytes = file.bytes;
           _attachedFileContent = content;
         });
       }
@@ -124,6 +127,7 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
       journal: journal,
       citation: citation,
       url: url,
+      originalPdfUrl: url,
       focusKa: focus,
       focusEn: focus,
       focusDe: focus,
@@ -142,6 +146,7 @@ class _AddLiteratureDialogState extends State<AddLiteratureDialog> {
       icon: Icons.edit_note_rounded,
       isCustom: true,
       attachedFileName: _attachedFileName,
+      attachedFileBytes: _attachedFileBytes,
       fullContent: _attachedFileContent,
     );
 
