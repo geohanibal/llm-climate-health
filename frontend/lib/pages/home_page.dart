@@ -9,6 +9,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../core/localization.dart';
 import '../core/responsive.dart';
 import '../models/integration_request_params.dart';
 import '../models/integration_result.dart';
@@ -84,6 +85,18 @@ class _HomePageState extends State<HomePage> {
     setState(() => _parseNotes = parsed.notes);
   }
 
+  void _handleApplyAndSearchFromChat(ParsedRequest parsed) {
+    setState(() => _parseNotes = parsed.notes);
+    _formKey.currentState?.applyPrefillAndSubmit(parsed);
+  }
+
+  void _handleResetSearchFromChat() {
+    setState(() {
+      _result = null;
+      _submitError = null;
+    });
+  }
+
   Future<void> _handleSubmit(IntegrationRequestParams params) async {
     setState(() {
       _isSubmitting = true;
@@ -104,11 +117,15 @@ class _HomePageState extends State<HomePage> {
     return ChatCopilotDrawer(
       options: _options,
       activeResult: _result,
+      isSearching: _isSubmitting,
+      searchError: _submitError,
       currentDisease: _formKey.currentState?.currentDisease,
       currentRegion: _formKey.currentState?.currentRegion,
       currentStartDate: _formKey.currentState?.currentStartDate,
       currentEndDate: _formKey.currentState?.currentEndDate,
       onApplyPrefill: _handleApplyPrefillFromChat,
+      onApplyAndSearch: _handleApplyAndSearchFromChat,
+      onResetSearch: _handleResetSearchFromChat,
       onClose: onClose,
       isExpanded: _isChatExpanded,
       onToggleExpand: () => setState(() => _isChatExpanded = !_isChatExpanded),
@@ -137,14 +154,16 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text('Climate-Health Platform'),
+        title: Text(I18n.t('platformTitle')),
         centerTitle: false,
         actions: [
+          _buildLanguageSelector(context),
+          const SizedBox(width: 8),
           FilledButton.tonalIcon(
             onPressed: () => _toggleChat(context),
             icon: const Icon(Icons.auto_awesome, size: 16),
             label: Text(
-              showSplitChat ? 'დახურვა / Close' : 'AI Copilot',
+              showSplitChat ? I18n.t('close') : I18n.t('aiCopilot'),
             ),
             style: FilledButton.styleFrom(
               visualDensity: VisualDensity.compact,
@@ -168,8 +187,8 @@ class _HomePageState extends State<HomePage> {
           : FloatingActionButton.extended(
               onPressed: () => _toggleChat(context),
               icon: const Icon(Icons.auto_awesome),
-              label: const Text('Climate-Health Copilot'),
-              tooltip: 'გახსენით AI თანაშემწე / Open Copilot',
+              label: Text(I18n.t('openCopilot')),
+              tooltip: I18n.t('openCopilot'),
             ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -222,6 +241,67 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildLanguageSelector(BuildContext context) {
+    final activeLang = appLocale.value;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return PopupMenuButton<AppLanguage>(
+      tooltip: I18n.t('language'),
+      initialValue: activeLang,
+      onSelected: (AppLanguage lang) {
+        appLocale.setLanguage(lang);
+      },
+      itemBuilder: (context) => AppLanguage.values.map((lang) {
+        final isSelected = lang == activeLang;
+        return PopupMenuItem<AppLanguage>(
+          value: lang,
+          child: Row(
+            children: [
+              Text(lang.flag, style: const TextStyle(fontSize: 16)),
+              const SizedBox(width: 8),
+              Text(
+                lang.label,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                ),
+              ),
+              if (isSelected) ...[
+                const Spacer(),
+                Icon(Icons.check, size: 16, color: colorScheme.primary),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(activeLang.flag, style: const TextStyle(fontSize: 14)),
+            const SizedBox(width: 6),
+            Text(
+              activeLang.code.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(Icons.arrow_drop_down, size: 16, color: colorScheme.onSurface),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHero(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
@@ -239,7 +319,7 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Climate-Health Data Integration Platform',
+                  I18n.t('heroTitle'),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: colors.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
@@ -247,9 +327,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Describe a disease and region — or fill in the form directly — '
-                  'and get a harmonized, analysis-ready dataset joining climate and '
-                  'health data, explained in plain language.',
+                  I18n.t('heroSubtitle'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colors.onPrimaryContainer.withValues(alpha: 0.85),
                       ),

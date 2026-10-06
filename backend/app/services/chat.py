@@ -48,7 +48,7 @@ def _detect_language_fallback(text: str) -> str:
 def _generate_fallback_response(
     user_text: str, context: ChatContext | None, error_detail: str | None = None
 ) -> ChatResponse:
-    lang = _detect_language_fallback(user_text)
+    lang = (context.language if context and context.language in ("ka", "en", "de") else None) or _detect_language_fallback(user_text)
     has_result = context is not None and context.active_result is not None
 
     quota_issue = error_detail and ("402" in error_detail or "RESOURCE_EXHAUSTED" in error_detail or "credits are depleted" in error_detail)
@@ -67,15 +67,33 @@ def _generate_fallback_response(
 
         if has_result and context and context.active_result:
             r = context.active_result
-            reply = (
-                f"**მიმდინარე მონაცემების შეჯამება ({r.disease} - {r.region}):**\n\n"
-                f"- **სულ დაფიქსირებული შემთხვევები:** {int(r.total_cases) if r.total_cases else 'N/A'}\n"
-                f"- **პიკური პერიოდი:** {r.peak_period} ({int(r.peak_cases) if r.peak_cases else 'N/A'} შემთხვევა)\n"
-                f"- **საშუალო ტემპერატურა:** {r.mean_temperature_c or 'N/A'} °C\n"
-                f"- **საშუალო ნალექი:** {r.mean_precipitation_mm or 'N/A'} მმ\n"
-                f"{status_note}"
-            )
-            prompts = ["როგორ მუშაობს Lagged კორელაცია?", "რა მონაცემთა წყაროებია ხელმისაწვდომი?"]
+            corrs = "\n".join(f"- {c}" for c in r.correlations_summary) if r.correlations_summary else "არ მოიძებნა"
+            is_analysis = any(w in user_text.lower() for w in ["ანალიზ", "analysis", "analyse", "ახსნა", "განმარტ"])
+            if is_analysis:
+                reply = (
+                    f"🔬 **დეტალური ეპიდემიოლოგიური და კლიმატური ანალიზი ({r.disease.upper()} — {r.region}):**\n\n"
+                    f"1. **აფეთქების დინამიკა და პიკი:**\n"
+                    f"   - სულ დაფიქსირდა **{int(r.total_cases) if r.total_cases else 'N/A'}** შემთხვევა.\n"
+                    f"   - ეპიდემიური პიკი გამოვლინდა პერიოდში **{r.peak_period}** ({int(r.peak_cases) if r.peak_cases else 'N/A'} შემთხვევა, ინციდენტობა: {r.peak_incidence_per_100k or 'N/A'} / 100k).\n\n"
+                    f"2. **კლიმატური ფაქტორები და Lag-ეფექტები:**\n"
+                    f"   - პერიოდის საშუალო ტემპერატურა: **{r.mean_temperature_c or 'N/A'} °C**, საშუალო ნალექი: **{r.mean_precipitation_mm or 'N/A'} მმ**.\n"
+                    f"   - **გამოთვლილი კორელაციები:**\n{corrs}\n"
+                    f"   - **ბიოლოგიური მექანიზმი:** კლიმატური პირობები (ტემპერატურა და ნალექი) მყისიერად არ იწვევს შემთხვევების ზრდას. საჭიროა 1-3 თვიანი დროითი დაგვიანება (Lag), რაც ემთხვევა კოღოს/ვექტორის გამრავლებისა და ვირუსის ექსტრისული ინკუბაციის პერიოდს.\n\n"
+                    f"3. **მონაცემთა ექსპორტი და ახალი კვლევა:**\n"
+                    f"   - შეგიძლიათ ჩატის ღილაკებიდან პირდაპირ გადმოწეროთ მონაცემები (CSV, JSON, PDF რეპორტი) ან დაიწყოთ ახალი ძიება."
+                    f"{status_note}"
+                )
+            else:
+                reply = (
+                    f"**მიმდინარე მონაცემების შეჯამება ({r.disease} - {r.region}):**\n\n"
+                    f"- **სულ დაფიქსირებული შემთხვევები:** {int(r.total_cases) if r.total_cases else 'N/A'}\n"
+                    f"- **პიკური პერიოდი:** {r.peak_period} ({int(r.peak_cases) if r.peak_cases else 'N/A'} შემთხვევა)\n"
+                    f"- **საშუალო ტემპერატურა:** {r.mean_temperature_c or 'N/A'} °C\n"
+                    f"- **საშუალო ნალექი:** {r.mean_precipitation_mm or 'N/A'} მმ\n"
+                    f"- **კორელაციები:**\n{corrs}\n"
+                    f"{status_note}"
+                )
+            prompts = ["როგორ მუშაობს Lagged კორელაცია?", "როგორ გადმოვწერო მონაცემები?", "🔄 ახალი ძიების დაწყება"]
         else:
             reply = (
                 "მოგესალმებით! მე ვარ **Climate-Health Copilot**, კლიმატისა და ჯანდაცვის მონაცემთა ინტეგრაციის პლატფორმის AI ასისტენტი.\n\n"
@@ -83,7 +101,7 @@ def _generate_fallback_response(
                 "- დაავადებებისა (დენგე, მალარია, ქოლერა) და რეგიონების არჩევაში;\n"
                 "- ERA5 კლიმატური მონაცემების (ტემპერატურა, ნალექი) განმარტებაში;\n"
                 "- დროითი დაგვიანების (Lagged cross-correlation) ბიოლოგიური მნიშვნელობის გაგებაში;\n"
-                "- ფორმის ავტომატურ შევსებაში.\n"
+                "- ფორმის ავტომატურ შევსებასა და ძებნის პირდაპირ დაწყებაში.\n"
                 f"{status_note}"
             )
             prompts = [
@@ -105,15 +123,17 @@ def _generate_fallback_response(
 
         if has_result and context and context.active_result:
             r = context.active_result
+            corrs_de = "\n".join(f"- {c}" for c in r.correlations_summary) if r.correlations_summary else "Keine"
             reply = (
                 f"**Zusammenfassung der aktuellen Ergebnisse ({r.disease} - {r.region}):**\n\n"
                 f"- **Gesamtfälle:** {int(r.total_cases) if r.total_cases else 'N/A'}\n"
                 f"- **Höchststand:** {r.peak_period} ({int(r.peak_cases) if r.peak_cases else 'N/A'} Fälle)\n"
                 f"- **Durchschnittstemperatur:** {r.mean_temperature_c or 'N/A'} °C\n"
                 f"- **Durchschnittsniederschlag:** {r.mean_precipitation_mm or 'N/A'} mm\n"
+                f"- **Korrelationen:**\n{corrs_de}\n"
                 f"{status_note}"
             )
-            prompts = ["Was bedeutet zeitverzögerte Korrelation (Lag)?", "Welche Datenquellen werden genutzt?"]
+            prompts = ["Was bedeutet zeitverzögerte Korrelation (Lag)?", "Wie lade ich die Daten herunter?", "🔄 Neue Suche starten"]
         else:
             reply = (
                 "Willkommen beim **Climate-Health Copilot**, dem intelligenten Assistenten für die "
@@ -122,7 +142,7 @@ def _generate_fallback_response(
                 "- Auswahl von Krankheiten (Dengue, Malaria, Cholera) und Regionen\n"
                 "- Erklärung von ERA5-Reanalysedaten und biologischen Zusammenhängen (z. B. Überträgerzyklen)\n"
                 "- Interpretation von Kreuzkorrelationen mit Zeitverzögerung (Lags 0–3)\n"
-                "- Automatisches Ausfüllen des Abfrageformulars.\n"
+                "- Automatisches Ausfüllen des Abfrageformulars und Starten der Suche.\n"
                 f"{status_note}"
             )
             prompts = [
@@ -144,15 +164,33 @@ def _generate_fallback_response(
 
         if has_result and context and context.active_result:
             r = context.active_result
-            reply = (
-                f"**Summary of Active Results ({r.disease} - {r.region}):**\n\n"
-                f"- **Total Cases:** {int(r.total_cases) if r.total_cases else 'N/A'}\n"
-                f"- **Peak Outbreak:** {r.peak_period} ({int(r.peak_cases) if r.peak_cases else 'N/A'} cases)\n"
-                f"- **Mean Temperature:** {r.mean_temperature_c or 'N/A'} °C\n"
-                f"- **Mean Precipitation:** {r.mean_precipitation_mm or 'N/A'} mm\n"
-                f"{status_note}"
-            )
-            prompts = ["How does lagged correlation work?", "What climate data sources are used?"]
+            corrs_en = "\n".join(f"- {c}" for c in r.correlations_summary) if r.correlations_summary else "None"
+            is_analysis = any(w in user_text.lower() for w in ["analysis", "analyze", "explain", "breakdown"])
+            if is_analysis:
+                reply = (
+                    f"🔬 **Detailed Epidemiological & Climate Analysis ({r.disease.upper()} — {r.region}):**\n\n"
+                    f"1. **Outbreak Dynamics & Peaks:**\n"
+                    f"   - Total reported cases: **{int(r.total_cases) if r.total_cases else 'N/A'}**.\n"
+                    f"   - Outbreak peak occurred in **{r.peak_period}** ({int(r.peak_cases) if r.peak_cases else 'N/A'} cases, incidence: {r.peak_incidence_per_100k or 'N/A'} / 100k).\n\n"
+                    f"2. **Climate Drivers & Lagged Associations:**\n"
+                    f"   - Mean conditions: Temp = **{r.mean_temperature_c or 'N/A'} °C**, Precip = **{r.mean_precipitation_mm or 'N/A'} mm**.\n"
+                    f"   - **Correlations:**\n{corrs_en}\n"
+                    f"   - **Biological Mechanism:** Weather variables do not trigger immediate surges; vector lifecycle and viral extrinsic incubation necessitate a 1-3 month lag.\n\n"
+                    f"3. **Actions & Exports:**\n"
+                    f"   - You can download the integrated dataset (CSV, JSON, PDF Report) directly via the chat toolbar buttons, or start a new search."
+                    f"{status_note}"
+                )
+            else:
+                reply = (
+                    f"**Summary of Active Results ({r.disease} - {r.region}):**\n\n"
+                    f"- **Total Cases:** {int(r.total_cases) if r.total_cases else 'N/A'}\n"
+                    f"- **Peak Outbreak:** {r.peak_period} ({int(r.peak_cases) if r.peak_cases else 'N/A'} cases)\n"
+                    f"- **Mean Temperature:** {r.mean_temperature_c or 'N/A'} °C\n"
+                    f"- **Mean Precipitation:** {r.mean_precipitation_mm or 'N/A'} mm\n"
+                    f"- **Correlations:**\n{corrs_en}\n"
+                    f"{status_note}"
+                )
+            prompts = ["How does lagged correlation work?", "How to download data?", "🔄 Start new search"]
         else:
             reply = (
                 "Hello! I am the **Climate-Health Copilot**, your AI research assistant for the "
@@ -161,7 +199,7 @@ def _generate_fallback_response(
                 "- Selecting diseases (Dengue, Malaria, Cholera) and regions with verified data coverage;\n"
                 "- Understanding ERA5 climate reanalysis vs raw station readings;\n"
                 "- Interpreting lagged cross-correlations and vector breeding biology;\n"
-                "- Automatically populating the query form for you.\n"
+                "- Automatically populating query parameters and launching searches directly from chat.\n"
                 f"{status_note}"
             )
             prompts = [
@@ -208,13 +246,27 @@ Keep technical/scientific abbreviations intact (e.g. ERA5, ECMWF, WHO GHO, HDX, 
    - Because life cycles take several weeks (egg -> larva -> adult -> biting -> incubation period in humans), climate conditions show a delayed (lagged) correlation with outbreaks.
    - The platform calculates cross-correlations at Lags 0, 1, 2, and 3 months/periods (Pearson r and Spearman rho with p-values).
 
-5. Interactive Form Actions ("Fill, never run"):
-   - If the user requests to configure or examine a specific disease/region query (e.g. "Set up Dengue in Thailand 2018 to 2022" or "დამიყენე მალარია კენიაში 2016-2020"), you can provide a `suggested_action` JSON object.
-   - The user will see a button in the UI to apply these parameters to the form with one click.
+5. Interactive Form Actions ("Apply & Search"):
+   - If the user requests to configure or examine a specific disease/region query (e.g. "Set up Dengue in Thailand 2018 to 2022" or "დამიყენე მალარია კენიაში 2016-2020"), provide a `suggested_action` JSON object.
+   - The user has two buttons directly in the UI:
+     * "ძებნის დაწყება / Apply & Search": immediately applies parameters to the form AND launches the integration search!
+     * "მხოლოდ შევსება / Apply to Form": applies parameters without auto-submitting.
    - Allowed diseases: {list(DISEASES.keys())}
    - Valid regions: {list(REGIONS.keys())}
    - Valid climate sources: {list(CLIMATE_SOURCES.keys())}
    - Valid aggregations: {AGGREGATIONS}
+
+6. Deep Results Analysis & In-Chat Actions:
+   - If the user asks to analyze active results ("გააკეთე ანალიზი", "შედეგების ანალიზი", "analyze results"):
+     Provide a thorough, structured scientific breakdown based on the ACTIVE LOADED RESULT in context:
+     * Break down outbreak trends and peak timing;
+     * Explain what the observed correlations at Lag 0, Lag 1, Lag 2, or Lag 3 mean biologically;
+     * Discuss temperature vs precipitation roles;
+     * Mention epidemiological limitations (descriptive, not causal).
+   - If the user asks about downloading results ("როგორ გადმოვწერო", "შედეგების გადმოწერა", "download"):
+     Note that CSV, JSON, and PDF report downloads are available directly with one click right here in the chat toolbar and on the result card!
+   - If the user asks for a new search ("ახალი ძიება", "ახალი კვლევა", "new search"):
+     Recommend exciting datasets with verified coverage (e.g. Dengue in Thailand or Peru, Malaria in Kenya) and provide a concrete `suggested_action`!
 
 ### RESPONSE JSON FORMAT:
 You MUST respond with a single valid JSON object containing:
@@ -316,6 +368,8 @@ def process_chat(req: ChatRequest) -> ChatResponse:
     context_str = "CURRENT APPLICATION STATE / CONTEXT:\n"
     if req.context:
         ctx = req.context
+        if ctx.language:
+            context_str += f"- Selected User Interface Language: {ctx.language}\n"
         if ctx.current_disease or ctx.current_region:
             context_str += f"- Selected in Form: Disease={ctx.current_disease}, Region={ctx.current_region}, Dates={ctx.current_start_date} to {ctx.current_end_date}\n"
         if ctx.active_result:

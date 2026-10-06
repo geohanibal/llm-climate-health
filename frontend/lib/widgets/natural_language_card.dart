@@ -7,6 +7,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../core/localization.dart';
 import 'section_card.dart';
 
 class NaturalLanguageCard extends StatefulWidget {
@@ -45,25 +46,22 @@ class _NaturalLanguageCardState extends State<NaturalLanguageCard> {
   @override
   Widget build(BuildContext context) {
     return SectionCard(
-      title: 'Describe your request',
+      title: I18n.t('naturalLanguageTitle'),
       leading: Icons.auto_awesome,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Optional: describe what you need in plain language and an AI '
-            'will fill in the form below for you to review — nothing runs '
-            'until you press "Run integration".',
+            I18n.t('naturalLanguageSubtitle'),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _controller,
             maxLines: 3,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'e.g. "Dengue in Thailand from 2015 to 2023, monthly, '
-                  'temperature and precipitation"',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: I18n.t('naturalLanguageHint'),
             ),
             onSubmitted: (_) => _submit(),
           ),
@@ -77,7 +75,7 @@ class _NaturalLanguageCardState extends State<NaturalLanguageCard> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.auto_awesome),
-            label: const Text('Fill form with AI'),
+            label: Text(widget.isParsing ? I18n.t('parsing') : I18n.t('fillForm')),
           ),
           if (widget.error != null) ...[
             const SizedBox(height: 8),

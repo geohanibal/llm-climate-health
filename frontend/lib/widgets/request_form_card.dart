@@ -314,6 +314,19 @@ class RequestFormCardState extends State<RequestFormCard> {
   DateTime get currentStartDate => _startDate;
   DateTime get currentEndDate => _endDate;
 
+  /// Public programmatic submission for callers like [HomePage] driving
+  /// searches triggered directly from the Climate-Health Copilot drawer.
+  void submitForm() => _submit();
+
+  /// Applies a best-effort [ParsedRequest] and immediately triggers form submission.
+  void applyPrefillAndSubmit(ParsedRequest r) {
+    applyPrefill(r);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _submit();
+      }
+    });
+  }
 
   void _submit() {
     if (_region == null) {

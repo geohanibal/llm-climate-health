@@ -5,6 +5,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'core/localization.dart';
 import 'pages/home_page.dart';
 
 /// Brand palette shared across the app: a deep climate-teal primary plus a
@@ -40,17 +41,29 @@ class AppColors {
 }
 
 class ClimateHealthApp extends StatelessWidget {
-  const ClimateHealthApp({super.key});
+  final AppLanguage? initialLanguage;
+
+  const ClimateHealthApp({super.key, this.initialLanguage});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Climate-Health Data Integration Platform',
-      debugShowCheckedModeBanner: false,
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
-      themeMode: ThemeMode.system,
-      home: const HomePage(),
+    if (initialLanguage != null) {
+      appLocale.setLanguage(initialLanguage!);
+    }
+    return ValueListenableBuilder<AppLanguage>(
+      valueListenable: appLocale,
+      builder: (context, lang, _) {
+        return MaterialApp(
+          key: ValueKey('app_${lang.code}'),
+          title: I18n.t('platformTitle', lang: lang),
+          locale: Locale(lang.code),
+          debugShowCheckedModeBanner: false,
+          theme: _buildTheme(Brightness.light),
+          darkTheme: _buildTheme(Brightness.dark),
+          themeMode: ThemeMode.system,
+          home: const HomePage(),
+        );
+      },
     );
   }
 

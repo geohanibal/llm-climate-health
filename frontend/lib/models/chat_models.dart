@@ -139,6 +139,7 @@ class ChatContext {
   final String? currentStartDate;
   final String? currentEndDate;
   final ActiveResultSummary? activeResult;
+  final String? language;
 
   const ChatContext({
     this.currentDisease,
@@ -146,6 +147,7 @@ class ChatContext {
     this.currentStartDate,
     this.currentEndDate,
     this.activeResult,
+    this.language,
   });
 
   Map<String, dynamic> toJson() => {
@@ -154,6 +156,7 @@ class ChatContext {
         if (currentStartDate != null) 'current_start_date': currentStartDate,
         if (currentEndDate != null) 'current_end_date': currentEndDate,
         if (activeResult != null) 'active_result': activeResult!.toJson(),
+        if (language != null) 'language': language,
       };
 }
 
