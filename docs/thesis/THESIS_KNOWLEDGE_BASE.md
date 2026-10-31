@@ -462,6 +462,7 @@ check correctness by comparing both tables. Protocol:
 |---|---|
 | 2026-10-30 | Thesis strategy follows supervisor feedback: literature-based motivation, requirements derivation, case studies. |
 | 2026-10-31 | P1 (Suttirat et al. 2026) chosen as main case-study paper (co-author = supervisor Haddawy). |
+| 2026-10-31 | Requirements catalogue deliberately consolidated (Sergi's decision): FR-01…FR-22, NFR-01…NFR-07; trilingual UI, LLM rate limit and API-key protection are no longer listed as requirements (features still exist in code). New requirements start at FR-23. |
 | 2026-10-31 | Missing data: system will DETECT gaps and SUGGEST alternative sources (A18) and optionally COMPARE two sources (A19); automatic gap filling from another source deliberately NOT implemented (A20: different case definitions, resolutions, hidden source mixing) — Future Work only with user confirmation + per-row source column. Proposed new FR-23 lags, FR-24 Tmin/Tmax, FR-25 provenance, FR-26 gap detection, FR-27 comparison (to be confirmed by Sergi). |
 | 2026-10-31 | Checked real export (Thailand 2005–2010 monthly): no provenance in CSV/JSON; population step-wise per year — earlier claim "population interpolated (etl.py:202)" was WRONG, corrected. |
 | 2026-10-31 | P3 (OpenDengue) fully read and translated; findings: extract / version / licence requirements, Thailand data only from 2009. |
