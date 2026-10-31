@@ -112,9 +112,8 @@ FR-17 & Das System muss offizielle Demografiedaten (World Bank Indikatoren, UN W
 FR-18 & Das System muss f\"ur benutzerdefinierte Uploads einen l\"uckenlosen Transformations-Audit-Trail f\"uhren und verst\"andlich erl\"autern. & Qualit\"ats\-anforderung & Umgesetzt \\
 FR-19 & Das System muss zeitverz\"ogerte Kreuzkorrelationen (Lags 0--3) mit Pearson-$r$ und $p$-Wert-Signifikanz berechnen. & Analytische Anforderung & Umgesetzt \\
 FR-20 & Das System muss bei t\"aglicher Aufl\"osung eine massenerhaltende glatte zeitliche Interpolation durchf\"uhren und Aufl\"osungshinweise geben. & Methodische Anforderung & Umgesetzt \\
-FR-21 & Das System muss eine vollst\"andig dreisprachige Benutzeroberfl\"ache (Deutsch, Englisch, Georgisch) mit Live-Umschaltung bieten. & Nutzer\-anforderung & Umgesetzt \\
-FR-22 & Das System muss einen druckreifen wissenschaftlichen PDF-Analysebericht mit Diagrammen, Tabellen und Zitationen generieren k\"onnen. & Nutzer\-anforderung & Umgesetzt \\
-FR-23 & Das System muss eine interaktive Weltkarte zur intuitiven visuellen L\"anderauswahl bereitstellen. & Usability-Anforderung & Umgesetzt \\
+FR-21 & Das System muss einen druckreifen wissenschaftlichen PDF-Analysebericht mit Diagrammen, Tabellen und Zitationen generieren k\"onnen. & Nutzer\-anforderung & Umgesetzt \\
+FR-22 & Das System muss eine interaktive Weltkarte zur intuitiven visuellen L\"anderauswahl bereitstellen. & Usability-Anforderung & Umgesetzt \\
 \bottomrule
 \end{longtable}
 
@@ -125,15 +124,13 @@ FR-23 & Das System muss eine interaktive Weltkarte zur intuitiven visuellen L\"a
 ID & Beschreibung & Herkunft & Status \\
 \midrule
 \endhead
-NFR-01 & Ratenlimit-Schutz: Das System darf das Kontingent der LLM-API nicht \"uberschreiten (Sliding-Window-Begrenzung). & Betriebs\-anforderung & Umgesetzt \\
-NFR-02 & Wissenschaftliche Zitierf\"ahigkeit: Jede Antwort muss verwendete Prim\"arquellen (Klima, F\"alle, Demografie, Literatur) exakt zitieren. & Wissenschafts\-praxis & Umgesetzt \\
-NFR-03 & Portabilit\"at: Die gesamte Plattform (FastAPI-Backend + Flutter-Web-Frontend) muss als einzelner Docker-Container lauff\"ahig sein. & DevOps / Betrieb & Umgesetzt \\
-NFR-04 & Datensicherheit: API-Schl\"ussel und Zugangsdaten d\"urfen niemals im Quellcode oder im Client-Bundle exponiert werden. & Sicherheits\-anforderung & Umgesetzt (\texttt{.env}, \texttt{.gitignore}) \\
-NFR-05 & Verst\"andlichkeit: Erkl\"arungen m\"ussen f\"ur Personen ohne Vorkenntnisse in Klimamodellierung oder Informatik intuitiv begreifbar sein. & Projektkonzept & Umgesetzt \\
-NFR-06 & Wartbarkeit: Strikte Trennung von Datenextraktion, Harmonisierung, statistischer Analyse und Pr\"asentation in modularen Services. & Software-Engineering & Umgesetzt \\
-NFR-07 & RAG-Integrit\"at: Das System nutzt In-Context Grounding statt Modell-Feintuning; neuronale Gewichte bleiben unver\"andert. & Wissenschafts\-ethik & Umgesetzt \\
-NFR-08 & Mathematische Massenerhaltung: Die zeitliche Interpolation auf Tagesebene erh\"alt exakt die Gesamtsumme der gemeldeten Prim\"arf\"alle. & Datenintegrit\"at & Umgesetzt \\
-NFR-09 & Sprachkonsistenz: Vermeidung von Sprachmischungen; alle Interface-Texte liegen konsistent in de, en und ka vor. & Usability / i18n & Umgesetzt \\
+NFR-01 & Wissenschaftliche Zitierf\"ahigkeit: Jede Antwort muss verwendete Prim\"arquellen (Klima, F\"alle, Demografie, Literatur) exakt zitieren. & Wissenschafts\-praxis & Umgesetzt \\
+NFR-02 & Portabilit\"at: Die gesamte Plattform (FastAPI-Backend + Flutter-Web-Frontend) muss als einzelner Docker-Container lauff\"ahig sein. & DevOps / Betrieb & Umgesetzt \\
+NFR-03 & Verst\"andlichkeit: Erkl\"arungen m\"ussen f\"ur Personen ohne Vorkenntnisse in Klimamodellierung oder Informatik intuitiv begreifbar sein. & Projektkonzept & Umgesetzt \\
+NFR-04 & Wartbarkeit: Strikte Trennung von Datenextraktion, Harmonisierung, statistischer Analyse und Pr\"asentation in modularen Services. & Software-Engineering & Umgesetzt \\
+NFR-05 & RAG-Integrit\"at: Das System nutzt In-Context Grounding statt Modell-Feintuning; neuronale Gewichte bleiben unver\"andert. & Wissenschafts\-ethik & Umgesetzt \\
+NFR-06 & Mathematische Massenerhaltung: Die zeitliche Interpolation auf Tagesebene erh\"alt exakt die Gesamtsumme der gemeldeten Prim\"arf\"alle. & Datenintegrit\"at & Umgesetzt \\
+NFR-07 & Sprachkonsistenz: Vermeidung von Sprachmischungen; alle Interface-Texte liegen konsistent in Deutsch und Englisch vor. & Usability / i18n & Umgesetzt \\
 \bottomrule
 \end{longtable}
 
@@ -141,7 +138,7 @@ NFR-09 & Sprachkonsistenz: Vermeidung von Sprachmischungen; alle Interface-Texte
 
 Die Plattform basiert auf einer Drei-Schichten-Architektur:
 \begin{enumerate}[label=(\arabic*)]\sloppy
-  \item \textbf{Frontend (Flutter Web):} Reaktive Einzelseiten-Applikation mit mehrsprachiger Benutzeroberfl\"ache, Copilot-Drawer, Literatur-Korpus-Verwaltung, Daten-Audit-Anzeige, interaktiver Weltkarte und PDF-Export.
+  \item \textbf{Frontend (Flutter Web):} Reaktive Einzelseiten-Applikation mit zweisprachiger Benutzeroberfl\"ache (Deutsch, Englisch), Copilot-Drawer, Literatur-Korpus-Verwaltung, Daten-Audit-Anzeige, interaktiver Weltkarte und PDF-Export.
   \item \textbf{Backend (Python, FastAPI):} Modulare Service-Architektur f\"ur Pipeline-Orchestrierung (\texttt{etl}), Klimadatenzugriff (\texttt{climate}, \texttt{tmd}), Surveillance-Erfassung (\texttt{case\_data}, \texttt{who\_gho}, \texttt{hdx}), Demografie (\texttt{population}), Korrelationsstatistik (\texttt{statistics}), automatisierte Literatur-Extraktion (\texttt{literature\_extractor}) sowie LLM-Copilot-Dienste (\texttt{llm}, \texttt{chat}).
   \item \textbf{Wissenschaftliche Prim\"arquellen:} Reanalyse-APIs (Open-Meteo ERA5, NASA POWER, TMD), globale Gesundheitsdaten (OpenDengue, WHO GHO, HDX), Demografie (Weltbank WDI, UN WPP) und Google Gemini LLM.
 \end{enumerate}
@@ -203,9 +200,8 @@ FR-17 & The system must integrate demographic indicators (World Bank Open Data, 
 FR-18 & The system must maintain an end-to-end Data Transformation Audit trail for custom uploads with natural-language explanation. & Audit requirement & Implemented \\
 FR-19 & The system must calculate time-lagged cross-correlations (Lags 0--3) with Pearson-$r$ and $p$-value statistical significance. & Analytical requirement & Implemented \\
 FR-20 & The system must apply mass-preserving smooth temporal downscaling for daily surveillance resolution with user guidance. & Methodological requirement & Implemented \\
-FR-21 & The system must offer a fully trilingual user interface (English, German, Georgian) with instant runtime language switching. & User requirement & Implemented \\
-FR-22 & The system must generate downloadable, publication-ready scientific PDF report digests with charts, tables, and citations. & User requirement & Implemented \\
-FR-23 & The system must feature an interactive world map for visual region and coordinate selection. & Usability requirement & Implemented \\
+FR-21 & The system must generate downloadable, publication-ready scientific PDF report digests with charts, tables, and citations. & User requirement & Implemented \\
+FR-22 & The system must feature an interactive world map for visual region and coordinate selection. & Usability requirement & Implemented \\
 \bottomrule
 \end{longtable}
 
@@ -216,15 +212,13 @@ FR-23 & The system must feature an interactive world map for visual region and c
 ID & Description & Origin & Status \\
 \midrule
 \endhead
-NFR-01 & Rate Limit Protection: The system must enforce sliding-window quotas to prevent exceeding upstream LLM API limits (15 req/min). & Operational requirement & Implemented \\
-NFR-02 & Scientific Traceability: Every system response must provide rigorous academic citations for all primary sources used. & Academic standards & Implemented \\
-NFR-03 & Portability: The complete software suite (FastAPI backend + Flutter Web) must be deployable as a single unified Docker container. & DevOps / Portability & Implemented \\
-NFR-04 & Security: Credentials and private API keys must never be committed to source control or exposed to client-side bundles. & Security standards & Implemented (\texttt{.env}, \texttt{.gitignore}) \\
-NFR-05 & Comprehensibility: Narratives and explanations must be interpretable by stakeholders without formal training in epidemiology or meteorology. & User-centric design & Implemented \\
-NFR-06 & Maintainability: Clean separation of configuration, data harvesting, orchestration, analysis, and presentation into decoupled modules. & Software engineering & Implemented \\
-NFR-07 & Grounding Integrity: RAG in-context grounding must be strictly maintained; model weights remain frozen, preventing hallucinated citations. & AI ethics & Implemented \\
-NFR-08 & Mathematical Conservation: Daily downscaling must strictly conserve the integral case mass of the underlying official surveillance reports. & Data integrity & Implemented \\
-NFR-09 & Linguistic Consistency: Full parity across German, English, and Georgian without mixed-language artifacts. & i18n standards & Implemented \\
+NFR-01 & Scientific Traceability: Every system response must provide rigorous academic citations for all primary sources used. & Academic standards & Implemented \\
+NFR-02 & Portability: The complete software suite (FastAPI backend + Flutter Web) must be deployable as a single unified Docker container. & DevOps / Portability & Implemented \\
+NFR-03 & Comprehensibility: Narratives and explanations must be interpretable by stakeholders without formal training in epidemiology or meteorology. & User-centric design & Implemented \\
+NFR-04 & Maintainability: Clean separation of configuration, data harvesting, orchestration, analysis, and presentation into decoupled modules. & Software engineering & Implemented \\
+NFR-05 & Grounding Integrity: RAG in-context grounding must be strictly maintained; model weights remain frozen, preventing hallucinated citations. & AI ethics & Implemented \\
+NFR-06 & Mathematical Conservation: Daily downscaling must strictly conserve the integral case mass of the underlying official surveillance reports. & Data integrity & Implemented \\
+NFR-07 & Linguistic Consistency: Full parity across German and English without mixed-language artifacts. & i18n standards & Implemented \\
 \bottomrule
 \end{longtable}
 
@@ -232,7 +226,7 @@ NFR-09 & Linguistic Consistency: Full parity across German, English, and Georgia
 
 The platform follows a decoupled three-tier architecture:
 \begin{enumerate}[label=(\arabic*)]\sloppy
-  \item \textbf{Presentation Tier (Flutter Web):} Reactive single-page web client supporting trilingual localization, Copilot drawer, literature corpus browser, transformation audit view, interactive world map, and PDF export.
+  \item \textbf{Presentation Tier (Flutter Web):} Reactive single-page web client supporting bilingual localization (German, English), Copilot drawer, literature corpus browser, transformation audit view, interactive world map, and PDF export.
   \item \textbf{Service \& Orchestration Tier (Python, FastAPI):} Modulated services for pipeline execution (\texttt{etl}), meteorological querying (\texttt{climate}, \texttt{tmd}), disease surveillance (\texttt{case\_data}, \texttt{who\_gho}, \texttt{hdx}), demographics (\texttt{population}), lag statistics (\texttt{statistics}), literature parsing (\texttt{literature\_extractor}), and LLM copilot services (\texttt{llm}, \texttt{chat}).
   \item \textbf{Authoritative Upstream Tier:} Climate reanalysis archives (Open-Meteo ERA5, NASA POWER, TMD), surveillance repositories (OpenDengue, WHO GHO, HDX), demographic databases (World Bank WDI, UN WPP), and Google Gemini LLM.
 \end{enumerate}
