@@ -94,7 +94,9 @@ analyze` reports **No issues found**.
   mismatch, missing custom-source fields), the full case-data pipeline (all
   four sources: builtin CSV, custom URL, custom upload, WHO GHO), climate
   data aggregation (Open-Meteo, NASA POWER, TMD, including missing-data
-  edge cases), the in-memory cache, and the Gemini-backed parsing/
+  edge cases), population alignment (linear interpolation of annual values
+  to monthly/daily: no January jump, July = annual value, constant outside
+  the available years, missing middle year interpolated), the in-memory cache, and the Gemini-backed parsing/
   explanation logic (both success and graceful-fallback paths).
 - **Frontend**: every model's JSON decoding (including malformed/partial
   backend responses), the request form's region/source-compatibility logic

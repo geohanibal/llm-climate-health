@@ -18,7 +18,8 @@ and follow the rules in §0.
 *Update this block at the end of every work session.*
 
 - **Phase:** literature-based motivation + requirements derivation (after
-  supervisor feedback, §3). Code changes not started yet.
+  supervisor feedback, §3). Code changes started 2026-10-31: A17 population
+  interpolation DONE (by Claude, task D spec); next: Gemini B (+A22), C; A16 package (Sergi).
 - **Read + translated (Georgian study PDFs in `docs_ka/motivacia/papers/`):**
   P1 Suttirat 2026 (main case study), P3 OpenDengue 2024, P4 Lowe 2021
   (Brazil; confirms preprocessing steps are typical).
@@ -424,7 +425,7 @@ read in full text.
 | 4 | Spatial aggregation of grid to province | climate from ONE point (lat/lon) per country | `climate.py` | ✗ |
 | 5 | Lag 1–3 feature columns | lags 0–3 only as correlations in the report | `statistics.py` | ~ |
 | 6 | Bioclimatic indices | not supported | — | ✗ |
-| 7 | Linear interpolation of missing years | **NOT for population**: monthly population = annual value repeated 12× (step function), missing years filled with the *nearest* year (`population.py` ~l. 283). `etl.py:202` interpolates *case rates* for daily downscaling (FR-20), not population | `population.py`, `etl.py:202` | ✗ (partial) |
+| 7 | Linear interpolation of missing years | Population: annual values anchored at 1 July and linearly interpolated to monthly/daily values; missing middle years interpolated; outside the available years held constant (`population.py::_interpolate_annual_population`). Before 2026-10-31 it was a step function with nearest-year fill. (`etl.py:202` is the separate case-rate downscaling, FR-20.) | `population.py` | ✓ (fixed 2026-10-31, A17: annual values anchored at 1 July, linear interpolation, constant outside available years) |
 | 8 | Annual → monthly resolution | resolution handling, mass-preserving downscaling (FR-20) | `etl.py` | ✓ |
 | 9 | Incidence per 100,000 | yes (FR-17) | `population.py`, `etl.py` | ✓ |
 | 10 | Remote sensing (NDVI, MNDWI) | out of scope | — | ✗ |
@@ -525,7 +526,7 @@ check correctness by comparing both tables. Protocol:
 - [ ] Verify exact CC BY-SA version (3.0 or 4.0) on opendengue.org / Figshare, and licences of all other sources (ERA5/Copernicus, Open-Meteo, NASA POWER, World Bank, WHO GHO) on official pages — record URL + check date (RECOMMENDATIONS A14).
 - [ ] Lag columns (task B) must fetch climate data `max(lag)` periods BEFORE start_date, otherwise first rows are empty (Lowe 2021 p. e211; RECOMMENDATIONS A22).
 - [ ] Thesis: subsection on licensing (legal/ethical aspects), incl. ShareAlike consequence for system output (RECOMMENDATIONS B11).
-- [ ] CORRECTED 2026-10-31: population is NOT linearly interpolated (step function per year, nearest-year fill; verified in export `climate_health_dataset (4).csv`). See RECOMMENDATIONS A17.
+- [x] FIXED 2026-10-31 (A17): population now linearly interpolated (`population.py::_interpolate_annual_population`). Former issue: population was NOT linearly interpolated (step function per year, nearest-year fill; verified in export `climate_health_dataset (4).csv`). See RECOMMENDATIONS A17.
 - [ ] CSV/JSON export contains ONLY 6 data columns: no region, sources, dataset versions, licence, retrieval date or request parameters (verified 2026-10-31, `dataset_export_service.dart`). PDF report has steps + sources + "Generated" time (= run/cache time, not upstream retrieval date / dataset version). See RECOMMENDATIONS A16.
 - [ ] Build traceability matrix (FR ↔ papers) in `anforderungskatalog.tex`.
 

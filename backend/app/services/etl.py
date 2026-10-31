@@ -315,6 +315,13 @@ def run_integration(
             f"Linked demographic population series for {region} ({pop_source_label}) "
             f"and calculated disease incidence rate per 100,000 population."
         )
+        if resolution in ("month", "day"):
+            steps.append(
+                f"Linearly interpolated the annual population estimates to "
+                f"{_RESOLUTION_LABEL[resolution]} values (each year anchored at 1 July), "
+                f"so incidence has no artificial step at year boundaries; periods "
+                f"outside the available years keep the nearest year's value."
+            )
 
     def clean(value):
         return None if value is None or pd.isna(value) else float(value)

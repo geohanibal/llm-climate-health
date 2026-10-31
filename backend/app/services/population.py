@@ -280,39 +280,48 @@ def _align_population_resolution(
         return filtered[["period", "population"]].reset_index(drop=True)
 
     if resolution == "month":
-        year_to_pop = dict(zip(filtered["year"], filtered["population"]))
-        current = pd.Timestamp(start).replace(day=1)
-        end_ts = pd.Timestamp(end).replace(day=1)
-        months = []
-        while current <= end_ts:
-            period_str = current.strftime("%Y-%m")
-            pop = year_to_pop.get(current.year)
-            if pop is None and year_to_pop:
-                nearest_year = min(year_to_pop.keys(), key=lambda y: abs(y - current.year))
-                pop = year_to_pop[nearest_year]
-            months.append({"period": period_str, "population": pop})
-            if current.month == 12:
-                current = pd.Timestamp(year=current.year + 1, month=1, day=1)
-            else:
-                current = pd.Timestamp(year=current.year, month=current.month + 1, day=1)
-        return pd.DataFrame(months)
+        targets = pd.date_range(pd.Timestamp(start).replace(day=1), pd.Timestamp(end).replace(day=1), freq="MS")
+        return _interpolate_annual_population(filtered, targets, "%Y-%m")
 
     if resolution == "day":
-        year_to_pop = dict(zip(filtered["year"], filtered["population"]))
-        current = pd.Timestamp(start)
-        end_ts = pd.Timestamp(end)
-        days = []
-        while current <= end_ts:
-            period_str = current.strftime("%Y-%m-%d")
-            pop = year_to_pop.get(current.year)
-            if pop is None and year_to_pop:
-                nearest_year = min(year_to_pop.keys(), key=lambda y: abs(y - current.year))
-                pop = year_to_pop[nearest_year]
-            days.append({"period": period_str, "population": pop})
-            current += pd.DateOffset(days=1)
-        return pd.DataFrame(days)
+        targets = pd.date_range(pd.Timestamp(start), pd.Timestamp(end), freq="D")
+        return _interpolate_annual_population(filtered, targets, "%Y-%m-%d")
 
     return pd.DataFrame(columns=["period", "population"])
+
+
+def _interpolate_annual_population(
+    annual: pd.DataFrame,
+    targets: pd.DatetimeIndex,
+    period_format: str,
+) -> pd.DataFrame:
+    """Linearly interpolates annual population estimates to monthly or daily
+    target dates.
+
+    Each annual value is anchored at 1 July, because an annual population
+    estimate describes the year as a whole and mid-year is its best single
+    point in time. Between two anchors the value changes linearly, so there is
+    no artificial jump every January (which would otherwise also appear as a
+    step in the incidence rate). This follows the common practice in
+    climate-health modelling of linearly interpolating annual covariates
+    (Suttirat et al. 2026). Target dates outside the range of available years
+    keep the nearest anchor's value: extending a trend beyond the data would
+    invent population figures.
+    """
+    if annual.empty or len(targets) == 0:
+        return pd.DataFrame({"period": targets.strftime(period_format), "population": None})
+
+    anchors = pd.Series(
+        annual["population"].to_numpy(dtype=float),
+        index=pd.to_datetime(annual["year"].astype(int).astype(str) + "-07-01"),
+    ).sort_index()
+    anchors = anchors[~anchors.index.duplicated(keep="last")]
+
+    combined = anchors.reindex(anchors.index.union(targets))
+    interpolated = combined.interpolate(method="time", limit_area="inside").ffill().bfill()
+    values = interpolated.reindex(targets).round().astype("int64")
+
+    return pd.DataFrame({"period": targets.strftime(period_format), "population": values.to_numpy()})
 
 
 def get_population_data(

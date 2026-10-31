@@ -94,6 +94,65 @@ def test_get_population_custom_upload():
     assert df.loc[df["period"] == "2020", "population"].iloc[0] == 69500000.0
 
 
+def _upload(csv_text: str, start: date, end: date, resolution: str) -> pd.DataFrame:
+    """Runs the custom-upload path, so the interpolation tests use small,
+    hand-made annual values instead of the bundled World Bank file."""
+    return get_population_data(
+        "Thailand",
+        start,
+        end,
+        resolution=resolution,
+        population_source="custom_upload",
+        upload_content=csv_text.encode(),
+    )
+
+
+def test_monthly_population_is_interpolated_without_january_jump():
+    df = _upload("year,population\n2009,1200\n2010,2400\n", date(2009, 7, 1), date(2010, 7, 31), "month")
+    values = df["population"].tolist()
+    # Strictly increasing between the two anchors, no repeated annual value.
+    assert all(later > earlier for earlier, later in zip(values, values[1:]))
+    december = df.loc[df["period"] == "2009-12", "population"].iloc[0]
+    january = df.loc[df["period"] == "2010-01", "population"].iloc[0]
+    november = df.loc[df["period"] == "2009-11", "population"].iloc[0]
+    # Interpolation is linear in time, so the growth per DAY across the year
+    # boundary (31 days in December) matches the growth per day in November
+    # (30 days) — no extra jump in January. Tolerance covers integer rounding.
+    assert abs((january - december) / 31 - (december - november) / 30) < 0.1
+
+
+def test_monthly_population_equals_annual_value_in_july():
+    df = _upload("year,population\n2009,1200\n2010,2400\n", date(2009, 1, 1), date(2010, 12, 31), "month")
+    assert df.loc[df["period"] == "2009-07", "population"].iloc[0] == 1200
+    assert df.loc[df["period"] == "2010-07", "population"].iloc[0] == 2400
+
+
+def test_monthly_population_outside_available_years_is_held_constant():
+    df = _upload("year,population\n2009,1200\n2010,2400\n", date(2009, 1, 1), date(2010, 12, 31), "month")
+    before_first_anchor = df[df["period"] <= "2009-07"]["population"]
+    after_last_anchor = df[df["period"] >= "2010-07"]["population"]
+    assert set(before_first_anchor) == {1200}
+    assert set(after_last_anchor) == {2400}
+
+
+def test_missing_middle_year_is_interpolated_not_copied():
+    df = _upload("year,population\n2008,1000\n2010,3000\n", date(2009, 7, 1), date(2009, 7, 31), "month")
+    # 2009-07-01 lies exactly halfway between the 2008 and 2010 anchors.
+    assert abs(df["population"].iloc[0] - 2000) <= 3
+
+
+def test_daily_population_is_interpolated():
+    df = _upload("year,population\n2009,1200\n2010,2400\n", date(2009, 12, 30), date(2010, 1, 2), "day")
+    values = df["population"].tolist()
+    assert len(values) == 4
+    assert all(later > earlier for earlier, later in zip(values, values[1:]))
+
+
+def test_yearly_population_is_not_interpolated():
+    df = _upload("year,population\n2009,1200\n2010,2400\n", date(2009, 1, 1), date(2010, 12, 31), "year")
+    assert df["population"].tolist() == [1200.0, 2400.0]
+
+
 def test_get_population_daily_resolution():
     df = get_population_data(
         "Thailand",
