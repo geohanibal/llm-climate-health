@@ -32,6 +32,7 @@ and follow the rules in §0.
   comparison = A19) — results to be reviewed by Claude. Every code change must
   also update the documents listed in `docs/thesis/CHANGE_DOCUMENTATION_GUIDE.md`. Sergi's own code task: A16 provenance in export
   (`docs_ka/motivacia/A16_gegma.md`).
+- **Supervisor meetings:** questions + answers in `docs/thesis/supervisor_meetings/` (one file per meeting). Next meeting: **Mon 2026-11-02** (motivation, requirements, case studies). After the meeting, transfer decisions to §10.
 - **Working style:** user (Sergi) wants explanations in Georgian, to be taught
   (not just handed results), and every important finding recorded here.
 
