@@ -20,9 +20,10 @@ and follow the rules in §0.
 - **Phase:** literature-based motivation + requirements derivation (after
   supervisor feedback, §3). Code changes not started yet.
 - **Read + translated (Georgian study PDFs in `docs_ka/motivacia/papers/`):**
-  P1 Suttirat 2026 (main case study), P3 OpenDengue 2024.
-- **Next paper to read:** P4 Lowe et al. 2021 (Brazil) — extract
-  preprocessing steps (chain step 3: "steps are typical").
+  P1 Suttirat 2026 (main case study), P3 OpenDengue 2024, P4 Lowe 2021
+  (Brazil; confirms preprocessing steps are typical).
+- **Next paper to read:** P2 Colón-González (PARTLY) or a malaria/cholera
+  paper for Case Study 2 (see Gemini task A2) — ask Sergi.
 - **Open P0 items:** see `docs/thesis/RECOMMENDATIONS.md` (A1–A3, A13, A14,
   A16; B1–B4) and §9 below.
 - **Gemini:** tasks in `docs_ka/motivacia/gemini_tasks_02.md` (A literature,
@@ -319,15 +320,83 @@ read in full text.
   processing"), provenance requirement (FR-18), requirements: correct extract,
   version citation, licence; Related Work (Table 1).
 
-### P4 — Lowe et al. 2021 (Brazil) — PARTLY
+### P4 — Lowe et al. 2021 (Brazil) — VERIFIED (full text read 2026-10-31)
 
-- Lowe R, et al. *Combined effects of hydrometeorological hazards and
-  urbanisation on dengue risk in Brazil: a spatiotemporal modelling study.*
-  Lancet Planet Health 2021; 5(4): e209–e219.
-  DOI: **10.1016/S2542-5196(20)30292-8** (an earlier AI answer had a wrong DOI).
-- 2001–2019; extremely wet conditions raise risk at 0–3 months lag, drought at
-  ~3–5 months. [TODO: read Methods > Data, extract preprocessing steps]
-- Use: evidence that lags / climate indices are a typical step (chain step 3).
+- Lowe R, Lee SA, O'Reilly KM, Brady OJ, Bastos L, Carrasco-Escobar G,
+  de Castro Catão R, Colón-González FJ, Barcellos C, Carvalho MS,
+  Blangiardo M, Rue H, Gasparrini A. *Combined effects of hydrometeorological
+  hazards and urbanisation on dengue risk in Brazil: a spatiotemporal
+  modelling study.* Lancet Planet Health 2021; 5(4): e209–e219.
+  DOI: **10.1016/S2542-5196(20)30292-8**. Licence CC BY 4.0.
+  Data + R code: github.com/drrachellowe/hydromet_dengue, Zenodo
+  10.5281/zenodo.4632205.
+- **Local files:** `docs_ka/motivacia/papers/lowe_2021_lancetph.pdf`
+  (original, from Fiocruz ARCA repository), `lowe_2021_targmani.pdf`
+  (Georgian study translation — NOT citable). Page numbers = journal pages e209–e219.
+- **Data & preprocessing (Methods, p. e211–e212):**
+  1. Monthly notified dengue cases, 558 microregions, 2001-01 … 2019-12, SINAN
+     via DATASUS (Ministry of Health). (Summary says "January, 2019" —
+     inconsistency in the paper; Methods says December 2019.)
+  2. Yearly population estimates (IBGE via DATASUS) → incidence per 100 000 per
+     month (Ministry definition). Paper does NOT say how annual population was
+     mapped to months — do not claim interpolation.
+  3. Climate: CRU TS v4.04, monthly mean daily Tmin, Tmax, self-calibrated
+     PDSI, 0.5° grid, 2000-01 … 2019-12 — **one extra year before the first
+     case observation "to allow for a lag period"**.
+  4. Spatial aggregation with R `exactextractr`: mean of grid cells within each
+     microregion, partially covered cells **area-weighted**.
+  5. Socioeconomic: % urban + % piped water access (2010 census, static);
+     water-supply interruptions (SNIS 2000–2016) = count / (years × municipalities).
+  6. Collinearity check with **Pearson r** (urban vs water access r = 0.73 →
+     water access dropped).
+  7. DLNM lags **0–6 months** for Tmin, Tmax, PDSI; Tmin + PDSI fitted better
+     than Tmax (p. e215).
+  Model (out of system scope): Bayesian hierarchical negative binomial,
+  R-INLA, state-month + microregion-year random effects.
+- **Findings:** 12 895 293 cases; risk up 0–3 months after extremely wet
+  conditions (max RR 1.56 at lag 1) and 3–5 months after drought (max RR 1.43
+  at lag 4); drought effect stronger in highly urbanised areas, wet effect
+  stronger in rural areas (Table, p. e216).
+- **Limitations (p. e217):** passive surveillance; only 10–30 % lab-confirmed;
+  misclassification with Zika/chikungunya since 2016; static 2010 urbanisation.
+- **Verified quotes:**
+  - "The effect of climate variability and climate change on dengue
+    transmission is complex, non-linear, and often delayed by several weeks to
+    months, which limits the inferences that can be made from traditional
+    linear modelling methods." (Introduction, p. e211)
+  - "We obtained monthly notified dengue cases for each of the 558
+    microregions of Brazil between January, 2001, and December, 2019, from the
+    Notifiable Diseases Information System, which is freely available via the
+    Ministry of Health Information Department (DATASUS)." (p. e211)
+  - "The monthly mean daily minimum temperature (Tmin; °C), maximum
+    temperature (Tmax; °C), and the self-calibrated PDSI were obtained from the
+    Climatic Research Unit gridded Time Series (version 4.04), for the period
+    January, 2000, to December, 2019, at a spatial resolution of 0·5° longitude
+    × 0·5° latitude (data for 2000 were extracted to allow for a lag period
+    before the first dengue observation in January, 2001)." (p. e211)
+  - "The gridded datasets were aggregated to each microregion using the
+    exactextractr package in R (version 4.0.2), by calculating the mean of grid
+    boxes lying within each microregion. Grid boxes that were partially covered
+    by the microregion were weighted by the percentage that lay within the
+    microregion." (p. e211)
+  - "DLNMs were used to explore possible non-linear and delayed associations
+    between dengue incidence, temperature (Tmin and Tmax), and the PDSI from 0
+    to 6 months." (p. e212)
+  - "All data used in this study is open access and freely available on the
+    internet, see the methods section for details." (Data sharing, p. e218)
+  - "SAL collated and managed the database and helped with visualisation and
+    drafting of the manuscript. CB, RdCC, and MSC collected data and did a
+    literature search." (Contributors, p. e218)
+- WARNING: the paper does NOT say data preparation was difficult or
+  time-consuming. Allowed argument (thesis author's interpretation): data were
+  open but came from five heterogeneous sources (SINAN/DATASUS, IBGE, CRU TS,
+  2010 census, SNIS) with different formats and resolutions (monthly, annual,
+  static, multi-year aggregate, 0.5° grid), and database collation is listed
+  as a separate contributor task -> "open is not the same as analysis-ready".
+- **Use in thesis:** chain step 3 ("steps are typical": steps 1–4, 6, 7 also
+  in P1); requirements FR-17 (incidence), Tmin/Tmax (task C), lag columns
+  (task B, 1–6 justified), lag buffer (A22), spatial aggregation limitation
+  (A6), case-definition warning (A15a); possible Case Study (open data + code).
 
 ### P5 — Keshav 2007 (method, not cited in thesis necessarily)
 
@@ -453,6 +522,7 @@ check correctness by comparing both tables. Protocol:
 - [ ] Thailand in the bundled dengue file starts 2009-01 (ends 2025-03): CS1 period must be 2009–2022 unless earlier OpenDengue data exists.
 - [ ] Show OpenDengue dataset version, Figshare DOI and CC BY-SA licence in system output / PDF.
 - [ ] Verify exact CC BY-SA version (3.0 or 4.0) on opendengue.org / Figshare, and licences of all other sources (ERA5/Copernicus, Open-Meteo, NASA POWER, World Bank, WHO GHO) on official pages — record URL + check date (RECOMMENDATIONS A14).
+- [ ] Lag columns (task B) must fetch climate data `max(lag)` periods BEFORE start_date, otherwise first rows are empty (Lowe 2021 p. e211; RECOMMENDATIONS A22).
 - [ ] Thesis: subsection on licensing (legal/ethical aspects), incl. ShareAlike consequence for system output (RECOMMENDATIONS B11).
 - [ ] CORRECTED 2026-10-31: population is NOT linearly interpolated (step function per year, nearest-year fill; verified in export `climate_health_dataset (4).csv`). See RECOMMENDATIONS A17.
 - [ ] CSV/JSON export contains ONLY 6 data columns: no region, sources, dataset versions, licence, retrieval date or request parameters (verified 2026-10-31, `dataset_export_service.dart`). PDF report has steps + sources + "Generated" time (= run/cache time, not upstream retrieval date / dataset version). See RECOMMENDATIONS A16.
@@ -464,6 +534,7 @@ check correctness by comparing both tables. Protocol:
 |---|---|
 | 2026-10-30 | Thesis strategy follows supervisor feedback: literature-based motivation, requirements derivation, case studies. |
 | 2026-10-31 | P1 (Suttirat et al. 2026) chosen as main case-study paper (co-author = supervisor Haddawy). |
+| 2026-10-31 | P4 (Lowe 2021) fully read and translated: confirms typical steps (incidence, gridded climate -> area-weighted regional mean, Tmin/Tmax, lags 0–6, Pearson collinearity check); new requirements A22 (climate lag buffer before start date) and A23 (drought index, Future Work). |
 | 2026-10-31 | Requirements catalogue deliberately consolidated (Sergi's decision): FR-01…FR-22, NFR-01…NFR-07; trilingual UI, LLM rate limit and API-key protection are no longer listed as requirements (features still exist in code). New requirements start at FR-23. |
 | 2026-10-31 | Missing data: system will DETECT gaps and SUGGEST alternative sources (A18) and optionally COMPARE two sources (A19); automatic gap filling from another source deliberately NOT implemented (A20: different case definitions, resolutions, hidden source mixing) — Future Work only with user confirmation + per-row source column. Proposed new FR-23 lags, FR-24 Tmin/Tmax, FR-25 provenance, FR-26 gap detection, FR-27 comparison (to be confirmed by Sergi). |
 | 2026-10-31 | Checked real export (Thailand 2005–2010 monthly): no provenance in CSV/JSON; population step-wise per year — earlier claim "population interpolated (etl.py:202)" was WRONG, corrected. |

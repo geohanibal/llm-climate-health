@@ -78,13 +78,21 @@ Add optional lagged climate feature columns to the integrated dataset.
    periods EARLIER. Use the period of the target resolution (month/week/day/
    year), shift within the sorted series, leave NaN where no earlier value
    exists. Do NOT drop these rows.
+   LAG BUFFER (important, Lowe et al. 2021, p. e211): fetch the climate data
+   starting max(lag_periods) periods BEFORE start_date, compute the lags on
+   that longer series, then cut the result back to the requested period.
+   This way the first rows also get lag values (the paper downloaded one
+   extra year of climate data "to allow for a lag period"). Only periods
+   before the earliest available climate data may stay NaN. Mention the
+   buffer in the pipeline step text.
 3. Put the lag computation in its own small, documented function (e.g. in a
    suitable services module) so it can be unit-tested in isolation.
 4. Add a short step to the pipeline step list / provenance so the user sees
    "Added lagged climate features: lags 1, 2, 3".
 5. Tests: add pytest tests in backend/tests/ covering: default (no lag columns),
    lags [1,3] produce the right column names and values on a small handmade
-   DataFrame, first k rows are NaN, invalid lag (0 or 7) is rejected.
+   DataFrame, with the lag buffer the first rows are NOT NaN, without earlier
+   available data the first k rows are NaN, invalid lag (0 or 7) is rejected.
 6. Run `cd backend && python -m pytest -q` and paste the final summary line
    into the report.
 
