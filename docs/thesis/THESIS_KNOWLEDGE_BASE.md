@@ -1,0 +1,481 @@
+# Thesis Knowledge Base — LLM-Climate-Health
+
+> **ქართულად:** ეს ფაილი ბაკალავრის ნაშრომის „მეხსიერებაა“. აქ ინახება ყველა
+> შემოწმებული ფაქტი, წყარო, ციტატა, გადაწყვეტილება და ღია საკითხი. ტექსტი
+> ინგლისურადაა, რომ Gemini-მ და Claude-მ ზუსტად წაიკითხონ და თეზისის (გერმანულ)
+> ტექსტში გამოიყენონ. ყოველი ახალი მნიშვნელოვანი რამ აქ დაამატე.
+
+**Purpose:** Single source of truth for writing the bachelor thesis. Any AI
+assistant (Gemini, Claude) helping to write the thesis MUST read this file first
+and follow the rules in §0.
+
+**Last updated:** 2026-10-31
+
+---
+
+## Current status (start here in a new chat)
+
+*Update this block at the end of every work session.*
+
+- **Phase:** literature-based motivation + requirements derivation (after
+  supervisor feedback, §3). Code changes not started yet.
+- **Read + translated (Georgian study PDFs in `docs_ka/motivacia/papers/`):**
+  P1 Suttirat 2026 (main case study), P3 OpenDengue 2024.
+- **Next paper to read:** P4 Lowe et al. 2021 (Brazil) — extract
+  preprocessing steps (chain step 3: "steps are typical").
+- **Open P0 items:** see `docs/thesis/RECOMMENDATIONS.md` (A1–A3, A13, A14,
+  A16; B1–B4) and §9 below.
+- **Gemini:** tasks in `docs_ka/motivacia/gemini_tasks_02.md` (A literature,
+  B lag columns, C Tmin/Tmax, D population interpolation) and
+  `docs_ka/motivacia/gemini_tasks_03.md` (E gap detection = A18, F source
+  comparison = A19) — results to be reviewed by Claude. Every code change must
+  also update the documents listed in `docs/thesis/CHANGE_DOCUMENTATION_GUIDE.md`. Sergi's own code task: A16 provenance in export
+  (`docs_ka/motivacia/A16_gegma.md`).
+- **Working style:** user (Sergi) wants explanations in Georgian, to be taught
+  (not just handed results), and every important finding recorded here.
+
+## 0. Rules for AI assistants (read first)
+
+1. **Only use facts marked VERIFIED in this file** for claims about publications.
+   Anything else must be marked `[UNVERIFIED]` or `[CITE: ...]` in drafts.
+2. **Never invent** publications, quotes, numbers, page numbers, or author
+   statements. If unsure, write `[TODO: verify]`.
+3. **Never attribute an opinion to authors that they did not write.** See §6
+   (known false claims) — these were produced by an AI earlier and are WRONG.
+4. Thesis language is **German** (academic register, Bachelorarbeit Informatik,
+   University of Bremen). Quotes from English sources stay in English (see §8).
+5. Do not overclaim system capabilities. Use the capability table in §5;
+   the system's real behaviour is defined by the code in `backend/app/`.
+6. Do not modify this file's VERIFIED entries without re-checking the source.
+
+---
+
+## 1. Project in one paragraph
+
+An LLM-driven ETL platform for climate-health data integration (practical part
+of the thesis). A researcher describes the dataset they need (disease, region,
+time span, climate variables) in a form or in natural language; Gemini turns
+the text into a structured request. The system selects suitable data sources
+(disease case counts, ERA5 via Open-Meteo or NASA POWER climate, population
+data), cleans, temporally aggregates and joins them into one analysis-ready
+table, computes incidence per 100,000 and lagged correlations, documents every
+step (provenance / audit trail) and explains it in plain language. Alternative
+sources can be requested and own CSV data uploaded. **It is not a prediction
+model** — it prepares input data for downstream data-based models.
+Validation case: dengue in Thailand (OpenDengue + ERA5).
+Stack: FastAPI + pandas backend, Flutter web frontend, single Docker image.
+
+### 1.1 Core statement (Kernaussage)
+
+> Das System nimmt Forschenden die der Modellierung vorgelagerte
+> Datenvorbereitung ab (Quellensuche, Bereinigung, Harmonisierung,
+> Zusammenführung, Dokumentation) – ohne Programmierkenntnisse und
+> nachvollziehbar –, sodass sie sich auf das eigentliche Modell konzentrieren
+> können.
+
+Value is NOT only "saves searching on websites": it covers find → download →
+clean → harmonise resolution → join → derive (incidence, lags) → document.
+Plus: no programming needed (P1 used pandas/R scripts) and transparency /
+reproducibility (P1 omits e.g. its spatial averaging method; the system logs
+every step). "Saves time" must be MEASURED in case studies before claiming it;
+until then write "reduziert den manuellen Aufwand", not "spart Wochen".
+
+## 2. People
+
+| Role | Name |
+|---|---|
+| Author | Sergi Koniashvili (Informatics, University of Bremen) |
+| Supervisor | Prof. Dr. Peter Haddawy (Bremen Spatial Cognition Center, Uni Bremen; also Mahidol University, Thailand) |
+| Supervisor | Dr. Thomas Barkowsky |
+
+Note: Peter Haddawy is a co-author of the main case-study paper (§4, P1).
+His listed author contribution there is "Writing – review & editing" only;
+data curation was done by Suttirat, Chadsuthi, Aekthong, Su Yin (Mahidol).
+
+## 3. Supervisor feedback and resulting thesis strategy
+
+**Feedback (Barkowsky, mail to Haddawy and "Lin", Oct 2026):** The system does
+what it should (describe a dataset → suitable sources selected → integrated
+table; alternatives, more data; well documented and interactively explorable).
+Missing: a grounded motivation. Next step: look into **sample publications
+(data-based modeling)** and use them
+
+1. as **motivation** for the work,
+2. to **derive the system's requirements**,
+3. as **case studies** to demo the system's capabilities.
+
+**Core weakness to fix:** the original requirements catalogue
+(`docs/requirements/anforderungskatalog.tex`, FR-01…FR-22, NFR-01…NFR-09) was
+written without derivation from literature. Each requirement should be traced
+to a publication (traceability matrix) or justified otherwise (e.g. usability
+for non-programmers).
+
+### 3.1 Argument chain for the Motivation chapter
+
+```
+(1) Researchers build data-based climate-health models
+      e.g. Suttirat et al. 2026 (dengue, Thailand)
+(2) Before modelling they must perform many manual data-preparation steps
+      evidence: P1 Methods, p. 4–5 (see §4 quotes)
+(3) These steps are typical, not specific to one study
+      evidence: P4 Lowe et al. 2021 + further papers [TODO]
+(4) They require programming (pandas, R), knowledge of data sources, time
+      evidence: P1 p. 4–5, 8 ("pandas for data manipulation", R 'dismo');
+      P3 OpenDengue quotes on difficulty of finding/standardising data
+(5) Existing tools do not cover these steps together
+      evidence: Related Work [TODO: verify each tool from its docs]
+(6) This system automates steps X of them → researchers focus on modelling
+      evidence: capability table §5 + case studies §7
+```
+
+### 3.2 Evaluation idea ("P → data → model → system → P")
+
+Take a published study P → extract its data needs → state them as a natural-
+language request to the system → obtain the integrated dataset → compare with
+P's data (variables, sources, resolution, lags) and count manual steps in P vs.
+in the system → optionally rerun a simple analysis (e.g. lagged correlation)
+and check whether P's main finding qualitatively holds.
+
+---
+
+## 4. Verified literature
+
+Status legend: **VERIFIED** = existence + DOI checked and the listed facts
+were read in the full text. **PARTLY** = existence/DOI checked, details not yet
+read in full text.
+
+### P1 — Suttirat et al. 2026 (MAIN CASE STUDY) — VERIFIED
+
+- **Citation:** Suttirat P, Chadsuthi S, Aekthong S, Rocklöv J, Bicout DJ,
+  Haddawy P, Su Yin M, Lawpoolsri S, Modchang C. *Machine learning reveals
+  temperature as a key predictor of dengue risk across Thailand's provinces:
+  A 20-year analysis.* PLoS Negl Trop Dis 20(7): e0014590, published
+  2026-07-28. DOI: 10.1371/journal.pntd.0014590. License CC BY.
+- **Data + code:** https://doi.org/10.5281/zenodo.21053822
+- **Local files:** `docs_ka/motivacia/papers/suttirat_2026_plosntd.pdf`
+  (original), `docs_ka/motivacia/papers/suttirat_2026_targmani.pdf`
+  (Georgian study translation — NOT citable).
+- **Facts (from full text):**
+  - Monthly dengue hemorrhagic fever (DHF) cases, 77 provinces, 2003–2022,
+    Bureau of Epidemiology, Ministry of Public Health Thailand (p. 5).
+  - Bueng Kan cases merged into Nong Khai (administrative split 2011) (p. 5).
+  - Climate: **TerraClimate** (~4 km grid), NOT ERA5. Six variables:
+    precipitation, Tmin, Tmax, soil moisture, vapour pressure, wind speed (p. 5).
+  - Gridded data "spatially averaged to the provincial level" — weighting
+    method not stated (p. 5).
+  - 19 bioclimatic indicators via R package `dismo` (p. 5).
+  - Socioeconomic: GPP (NESDC, inflation-adjusted), population + household
+    size (BORA), household income (NSO, biennial, linearly interpolated with
+    pandas) (p. 5).
+  - Annual socioeconomic values assigned to every month of the year (p. 4–5).
+  - Remote sensing: MODIS MOD09A1, NDVI and MNDWI as % of provincial pixels (p. 5).
+  - 54 features total, of which 24 are lag features (lags 1, 2, 3 months for
+    all climate and remote-sensing variables) (Table 1, p. 6–7; p. 7).
+  - Outcome: monthly DHF incidence per 100,000 per province, binarised at the
+    training-period national median 2.78/100,000 (p. 7).
+  - Model: XGBoost + SHAP; train 2003–2016, test 2017–2022 (p. 5–8).
+  - Tools: Python 3.10, pandas, numpy, scikit-learn, XGBoost, SHAP (p. 8).
+  - Findings: temperature 7 of top-10 features; thresholds ~21 °C (tmin lag 1)
+    and ~32 °C (tmax lag 3); precipitation minor; GPP 4th; COVID-19 degraded
+    AUC to 0.62 (2021) (p. 9–14).
+  - Maps use HDX Thailand subnational boundaries (cod-ab-tha) (Fig. 1, p. 10).
+- **Verified quotes:**
+  - "Gridded climatic and remote-sensing data were spatially aggregated to the
+    provincial level; lagged variables and bioclimatic indices were then
+    derived from monthly provincial temperature and precipitation series.
+    Socioeconomic data were obtained directly at the provincial level: the
+    biennially reported household income series was linearly interpolated to
+    fill missing years, and all socioeconomic series were then upsampled to
+    monthly resolution by assigning each year's reported value (typically
+    released at year-end) to every month of that year." (Methods >
+    Methodology workflow, p. 4)
+  - "To capture delayed environmental effects on dengue transmission, we
+    generated 1-, 2-, and 3-month lagged values for all climate and remote
+    sensing variables, expanding our feature set to account for temporal
+    dependencies in disease dynamics." (Methods, p. 7)
+  - "Most existing models suffer from a limited geographic scope or analyze
+    only short time periods [28,30,31]." (Introduction, p. 3)
+  - "Future modeling efforts should consider incorporating real-time mobility
+    data, healthcare utilization patterns, and other behavioral indicators to
+    maintain predictive accuracy during unprecedented circumstances."
+    (Discussion, p. 18)
+  - "More broadly, our findings suggest that the next generation of dengue
+    prediction systems will need to combine environmental signals with
+    real-time indicators of mobility, vector populations, and surveillance
+    coverage to remain reliable through periods of societal change."
+    (Conclusions, p. 19)
+  - "All analyses were conducted using Python 3.10 with the following key
+    packages: pandas for data manipulation, numpy for numerical operations,
+    scikit-learn for preprocessing and evaluation, XGBoost for model
+    training, and SHAP for interpretability analysis." (Methods > Machine
+    learning approach > Implementation details, p. 8)
+  - "we derived 19 bioclimatic indicators from monthly temperature and
+    precipitation data using the R package `dismo'" (Methods > Climate
+    variables, p. 5)
+  - "The household income series, reported biennially by the Thai
+    authorities, was linearly interpolated using the pandas interpolate
+    method to fill missing years." (Methods > Socioeconomic indicators, p. 5)
+- **Argument "programming required" (chain step 4; NFR usability /
+  no-code):** P1's data preparation was done with own scripts in Python
+  (pandas) and R (`dismo`) — see the three quotes above. The system offers
+  the same preparation steps via natural language / form without programming.
+  ⚠ Careful wording: the P1 authors are modelers who CAN program; they do not
+  say it was hard. The argument is: *this workflow presupposes programming
+  skills*, which is a barrier for researchers without them (e.g.
+  epidemiologists, public-health staff) — that is the thesis author's
+  interpretation, not the paper's claim.
+  German draft: „Die Datenaufbereitung erfolgte in eigenen Skripten mit
+  Python (pandas) und R (dismo) [P1, S. 5, 8]. Ein solcher Arbeitsablauf
+  setzt Programmierkenntnisse voraus, über die nicht alle Forschenden im
+  Bereich Public Health verfügen [CITE: TODO — find a source on programming
+  skills / data-science skills gap in public health]. Das hier entwickelte System stellt
+  vergleichbare Aufbereitungsschritte ohne Programmierung bereit.“
+- **Use in thesis:** motivation (manual ETL steps), requirement derivation
+  (incidence/100k, lags 1–3, Tmin/Tmax, subnational aggregation), case study 1.
+
+### P2 — Colón-González et al. 2021 — PARTLY
+
+- *Projecting the risk of mosquito-borne diseases in a warmer and more
+  populated world: a multi-model, multi-scenario intercomparison modelling
+  study.* Lancet Planet Health 2021; 5: e404–14.
+  DOI: 10.1016/S2542-5196(21)00132-7.
+- Uses climate MODEL PROJECTIONS (4 GCMs, RCP/SSP scenarios), outcome =
+  length of transmission season and population at risk (not incidence/100k,
+  not ERA5).
+- **Use only for general motivation** (climate change expands dengue/malaria
+  risk). Not suitable to justify FR-17 or ERA5.
+
+### P3 — Clarke et al. 2024 (OpenDengue) — VERIFIED (full text read 2026-10-31)
+
+- Clarke J, Lim A, Gupte P, Pigott DM, van Panhuis WG, Brady OJ.
+  *A global dataset of publicly available dengue case count data.*
+  Sci Data 11, 296 (2024). DOI: 10.1038/s41597-024-03120-7. Type: Data Descriptor.
+  (Correct title — NOT "OpenDengue: data platform for global dengue
+  surveillance and forecasting".)
+- **Dataset citation (preferred, cite IN ADDITION to the paper):** Clarke J,
+  Lim A, Gupte PR, Pigott DM, van Panhuis WG, Brady O (2023). OpenDengue: data
+  from the OpenDengue database. Version [1.2]. figshare. Dataset.
+  https://doi.org/10.6084/m9.figshare.24259573
+- **Local files:** `docs_ka/motivacia/papers/clarke_2024_opendengue.pdf`,
+  `docs_ka/motivacia/papers/clarke_2024_targmani.pdf` (Georgian study
+  translation — NOT citable).
+- **Facts:** v1.2: >56 million cases, 102 countries, 1924–2023, 843 sources;
+  99.8 % of records weekly/monthly; subnational for 40 countries; >95 % from
+  ministries of health (p. 1, 8). Three extracts: best national (Admin0),
+  maximised temporal, maximised spatial resolution (p. 5, 7). Records are not
+  made spatially consistent (Admin2 sum may differ from Admin0) (p. 5). Epi
+  weeks converted with R `EpiWeek`, CDC definition: week 1 contains >= 4
+  January days, Sunday–Saturday (p. 5). `dengue_total` = all severities and
+  confirmation methods (p. 5) — differs from P1, which uses DHF only. Imputed /
+  zero-filled records flagged with a UUID suffix (p. 5–6). Manual extraction:
+  PDF scraping (pdftools, tabulizer), WebPlotDigitizer for figures, Google
+  Translate, hand transcription, column standardisation in R (p. 4). Source
+  metadata: access date, URL, navigation steps, search terms (p. 4). v1.1 had
+  duplicate counts for the Americas, fixed in v1.2 (p. 8). New versions at
+  least every 6 months (p. 12). **Licence: CC BY-SA — all adaptations must be
+  shared under the same terms** (p. 12). Table 1 (p. 2) compares Tycho, PAHO
+  PLISA, ECDC, GIDEON, ProMED (useful for Related Work, health-data side).
+- **Verified quotes:**
+  - "Tracking the expansion of the burden of dengue is challenging due to the
+    difficulties in collecting and aggregating consistent and comparable dengue
+    incidence and prevalence data." (Background & Summary, p. 1)
+  - "While many countries regularly publish dengue case statistics, they can
+    often be difficult to find and no single database aggregates data from
+    multiple countries to assess trends at the global level." (p. 1)
+  - "Gathering data across all dengue endemic regions would enable re-analysis
+    to better understand the drivers of transmission, monitor progress towards
+    disease reduction targets, evaluate the impact of public health
+    interventions and model the possible future burden and spatial limits
+    under different climate scenarios." (p. 1)
+  - ProMED "does not have tabular machine readable download options and while
+    a very useful resource, requires substantial manual processing." (p. 2)
+  - "To date, no repository has been able to combine global coverage, public
+    availability, machine readable accessible formats at high spatial-temporal
+    resolution and sustained updates over long time periods." (p. 2)
+  - "Dengue case data exists in multiple formats from a wide variety of sources
+    that require various processing methodologies. Detailed source metadata is
+    important to ensure case counts can be traced back to their original
+    reporting source, and to enable assessment of comparability between
+    sources. Locating, extracting, processing and standardising data all takes
+    time but is essential to enable reuse and re-analysis." (p. 2) <- KEY QUOTE
+  - "Examples include identifying worst affected areas and years,
+    understanding drivers of transmission such as climate factors and
+    interventions and predicting future trends and outbreak risk."
+    (Usage Notes, p. 9)
+  - "Applications that explore changes in dengue dynamics over time including
+    time series analysis, forecasting and national programme evaluation should
+    use the temporal extract which preferentially selects data records that
+    maximise the temporal resolution of the data." (Usage Notes > Choice of
+    extract, p. 10)
+  - "It is recommended for users to specify which version of OpenDengue they
+    use in their analyses and routinely check for updates at relevant points in
+    their project lifecycle." (Usage Notes > Dataset version control, p. 12)
+- WARNING: these quotes concern the HEALTH-data side. The paper does NOT say
+  that users must join climate data themselves. Argument (thesis author's
+  interpretation): OpenDengue solves case-data collection; joining with
+  climate — named by the authors as a use case — remains the researcher's job;
+  the system performs that step.
+- **Use in thesis:** motivation (chain steps 2 and 4: "takes time", "manual
+  processing"), provenance requirement (FR-18), requirements: correct extract,
+  version citation, licence; Related Work (Table 1).
+
+### P4 — Lowe et al. 2021 (Brazil) — PARTLY
+
+- Lowe R, et al. *Combined effects of hydrometeorological hazards and
+  urbanisation on dengue risk in Brazil: a spatiotemporal modelling study.*
+  Lancet Planet Health 2021; 5(4): e209–e219.
+  DOI: **10.1016/S2542-5196(20)30292-8** (an earlier AI answer had a wrong DOI).
+- 2001–2019; extremely wet conditions raise risk at 0–3 months lag, drought at
+  ~3–5 months. [TODO: read Methods > Data, extract preprocessing steps]
+- Use: evidence that lags / climate indices are a typical step (chain step 3).
+
+### P5 — Keshav 2007 (method, not cited in thesis necessarily)
+
+- S. Keshav, "How to Read a Paper", ACM SIGCOMM CCR, 2007 — reading method.
+
+### Candidates still to find
+
+- Case study 2: malaria or cholera paper with MONTHLY/WEEKLY data and open data.
+- Related-work systems to verify from official docs: Copernicus Climate Data
+  Store, Google Earth Engine, IRI ENACTS, DHIS2 Climate & Health / CHAP,
+  Malaria Atlas Project, WHO GHO.
+
+---
+
+## 5. System capabilities vs. P1 data-preparation steps
+
+(Checked against code on 2026-10-31. Update when code changes.)
+
+| # | Manual step in P1 | System today | Code | Status |
+|---|---|---|---|---|
+| 1 | Retrieve data from several sources | Source discovery, OpenDengue, WHO GHO, ERA5/NASA POWER, World Bank/UN WPP, upload; NL request via Gemini | `source_discovery.py`, `case_data.py`, `climate.py`, `population.py`, `who_gho.py`, `llm.py` | ✓ |
+| 2 | Harmonise changing admin units (Bueng Kan → Nong Khai) | not supported (country level only) | — | ✗ |
+| 3 | Climate variables Tmin, Tmax, etc. | only mean temperature + precipitation | `climate.py` | ~ |
+| 4 | Spatial aggregation of grid to province | climate from ONE point (lat/lon) per country | `climate.py` | ✗ |
+| 5 | Lag 1–3 feature columns | lags 0–3 only as correlations in the report | `statistics.py` | ~ |
+| 6 | Bioclimatic indices | not supported | — | ✗ |
+| 7 | Linear interpolation of missing years | **NOT for population**: monthly population = annual value repeated 12× (step function), missing years filled with the *nearest* year (`population.py` ~l. 283). `etl.py:202` interpolates *case rates* for daily downscaling (FR-20), not population | `population.py`, `etl.py:202` | ✗ (partial) |
+| 8 | Annual → monthly resolution | resolution handling, mass-preserving downscaling (FR-20) | `etl.py` | ✓ |
+| 9 | Incidence per 100,000 | yes (FR-17) | `population.py`, `etl.py` | ✓ |
+| 10 | Remote sensing (NDVI, MNDWI) | out of scope | — | ✗ |
+| 11 | Join everything into one table | core function | `etl.py` (`run_integration`) | ✓ |
+| 12 | Document steps (provenance) | automatic audit trail + LLM explanation (FR-18) | `etl.py`, `llm.py` | ✓ (P1 omits some details, e.g. averaging method) |
+
+Important data facts: bundled case data is national (`*_by_iso3.csv`);
+WHO GHO data (malaria, cholera) is **annual** only. Thailand dengue in the
+bundled file: 2009-01 … 2025-03 (195 months) — implies an OpenDengue version
+newer than 1.2; extract and build procedure undocumented. OpenDengue
+`dengue_total` = all cases (P1 uses DHF only, so numbers will differ).
+
+### 5.1 Requirements derived from literature (candidates)
+
+| ID | Requirement | Source | Decision |
+|---|---|---|---|
+| FR-new-1 | Subnational (admin-1) spatial units | P1 | open — ask supervisors |
+| FR-new-2 | Area-averaged gridded climate per region (instead of a point) | P1 | open |
+| FR-new-3 | Tmin / Tmax variables | P1 | planned (Gemini task C) |
+| FR-new-4 | Lagged climate feature columns (lag 1–3) in output table | P1 | planned (Gemini task B) |
+| FR-17 (existing) | Incidence per 100,000 | P1 (p. 7) | justified |
+| FR-19 (existing) | Lagged correlations 0–3 | P1 (p. 7), P4 | justified |
+| FR-new-5 | Lagged outcome columns (cases/incidence lag 1–3) | P1 p. 9–10: residual autocorrelation (lag-1 0.54) removed by adding previous month's risk status | proposed (RECOMMENDATIONS A1b) |
+| FR-new-6 | Optional non-climate covariates (interventions, mobility) | P1 p. 18–19 (COVID-19 failure, AUC 0.62) | Future Work |
+| — | Limitation of FR-19: Pearson r measures only linear association; P1 found non-linear threshold effects (~21 °C tmin-1, ~32 °C tmax-3, p. 12) | P1 | mention in thesis; Spearman ALREADY implemented (statistics.py) — threshold effects still not captured |
+| FR-20 (existing) | Temporal resolution harmonisation | P1 (p. 4–5) | justified; note P1 repeats annual values (level variable) while FR-20 preserves sums (count variable) — discuss in thesis |
+
+---
+
+## 6. Known FALSE claims (from earlier AI output — never use)
+
+- ✗ "Suttirat et al. used ERA5" → they used **TerraClimate**.
+- ✗ "Suttirat et al. state that collecting/harmonising the data required huge
+  manual effort" → no such sentence in the paper.
+- ✗ "Suttirat paper published 2024/2025" → published **2026-07-28**.
+- ✗ "Colón-González et al. 2021 required incidence per 100,000 / used ERA5".
+- ✗ "OpenDengue authors emphasise that researchers must join climate data
+  themselves" — not stated.
+- ✗ OpenDengue title "data platform for global dengue surveillance and
+  forecasting" → wrong title.
+- ✗ Lowe 2021 DOI ending in `-3` → correct `30292-8`.
+- ✗ "Lowe et al. / Sirisena et al. — early warning systems" → no concrete paper.
+- ✗ "Researchers spend up to 80 % of their time on data preparation" →
+  no scientific source; do not use.
+- ✗ "The system reproduces the Suttirat dataset exactly" → false (see §5).
+- ✗ "90 seconds instead of 2 weeks" → never measured; only use measured numbers.
+- ✗ Case study with WHO GHO malaria monthly lags → GHO is annual only.
+
+---
+
+## 7. Case studies (plan)
+
+| CS | Content | Status |
+|---|---|---|
+| CS1 | Reproduce (simplified, national-level) data preparation of P1: dengue Thailand, temperature + precipitation, lags, incidence/100k; compare with P1 / Zenodo data; count manual steps | planned |
+| CS2 | Malaria or cholera study with monthly/weekly data (via CSV upload if needed) | paper to be found (Gemini task A2) |
+| CS3 | Researcher's own CSV + automatic climate matching, ideally using open data of a paper (e.g. P1 Zenodo) | planned |
+
+Measure, don't guess: time, number of manual steps, variable coverage,
+correlation between system climate series and paper's series.
+
+**CS1 method (decided 2026-10-31):** comparative run — same simplified target
+dataset (Thailand, national, monthly, 2009–2022 (bundled data starts 2009), ERA5 temp + precip,
+incidence/100k, lags) built (A) manually with Python/pandas and (B) with the
+system; log time per step, manual steps, tools, lines of code, errors; then
+check correctness by comparing both tables. Protocol:
+`docs/thesis/evaluation_protocol_CS1.md`. Threats: single developer-tester
+(learning effect), simplified scope vs. P1.
+
+---
+
+## 8. Citation and language rules (German thesis, English sources)
+
+- Prefer **paraphrase** in German with citation (indirektes Zitat).
+- Direct quotes from English sources stay in **English**, in German quotation
+  marks „…", exact wording, with page number; omissions […], insertions [ ].
+- Own translation of a quote must be marked "[eigene Übersetzung]".
+- Translating without citing = plagiarism.
+- Citation style: [TODO: ask supervisors — numeric (IEEE) or author-year].
+  Use BibLaTeX + `csquotes` (`\enquote{}`).
+
+---
+
+## 9. Open questions / TODO
+
+- [ ] Sergi: read P1 Methods (p. 4–8) + Table 1 in the original.
+- [ ] Ask Haddawy: how long did data preparation for P1 take? (→ "persönliche
+      Mitteilung" as evidence)
+- [ ] Ask Haddawy: may the Zenodo data be used for CS1 comparison?
+- [ ] Ask supervisors: which of FR-new-1…4 to implement vs. list as limitation?
+- [ ] Ask supervisors: citation style.
+- [ ] Find ≥2 more modelling papers (chain step 3) and CS2 paper.
+- [ ] Verify Related Work systems from official documentation.
+- [x] OpenDengue quotes with page numbers added (2026-10-31).
+- [ ] Check which OpenDengue extract (temporal/national/spatial) and version built `backend/app/data/dengue_monthly_by_iso3.csv`, and how epi weeks spanning two months were assigned (no build script in repo).
+- [ ] Thailand in the bundled dengue file starts 2009-01 (ends 2025-03): CS1 period must be 2009–2022 unless earlier OpenDengue data exists.
+- [ ] Show OpenDengue dataset version, Figshare DOI and CC BY-SA licence in system output / PDF.
+- [ ] CORRECTED 2026-10-31: population is NOT linearly interpolated (step function per year, nearest-year fill; verified in export `climate_health_dataset (4).csv`). See RECOMMENDATIONS A17.
+- [ ] CSV/JSON export contains ONLY 6 data columns: no region, sources, dataset versions, licence, retrieval date or request parameters (verified 2026-10-31, `dataset_export_service.dart`). PDF report has steps + sources + "Generated" time (= run/cache time, not upstream retrieval date / dataset version). See RECOMMENDATIONS A16.
+- [ ] Build traceability matrix (FR ↔ papers) in `anforderungskatalog.tex`.
+
+## 10. Decision log
+
+| Date | Decision |
+|---|---|
+| 2026-10-30 | Thesis strategy follows supervisor feedback: literature-based motivation, requirements derivation, case studies. |
+| 2026-10-31 | P1 (Suttirat et al. 2026) chosen as main case-study paper (co-author = supervisor Haddawy). |
+| 2026-10-31 | Missing data: system will DETECT gaps and SUGGEST alternative sources (A18) and optionally COMPARE two sources (A19); automatic gap filling from another source deliberately NOT implemented (A20: different case definitions, resolutions, hidden source mixing) — Future Work only with user confirmation + per-row source column. Proposed new FR-23 lags, FR-24 Tmin/Tmax, FR-25 provenance, FR-26 gap detection, FR-27 comparison (to be confirmed by Sergi). |
+| 2026-10-31 | Checked real export (Thailand 2005–2010 monthly): no provenance in CSV/JSON; population step-wise per year — earlier claim "population interpolated (etl.py:202)" was WRONG, corrected. |
+| 2026-10-31 | P3 (OpenDengue) fully read and translated; findings: extract / version / licence requirements, Thailand data only from 2009. |
+| 2026-10-31 | Gemini tasks prepared (`docs_ka/motivacia/gemini_tasks_02.md`): A literature, B lag columns, C Tmin/Tmax. Code tasks only after A is reviewed. |
+
+## 11. Related files
+
+- `docs_ka/motivacia/gemini_prompts.md` — round-1 Gemini prompts
+- `docs_ka/motivacia/gemini_tasks_02.md` — round-2 Gemini tasks (A literature, B lags, C Tmin/Tmax, D population interpolation = A17)
+- `docs_ka/motivacia/gemini_tasks_03.md` — round-3 Gemini tasks (E gap detection + alternative sources, F source comparison; A20 auto-filling deliberately NOT implemented)
+- `docs/thesis/CHANGE_DOCUMENTATION_GUIDE.md` — which documents must be updated for each code change (Definition of Done), proposed FR-23…FR-27
+- `docs_ka/motivacia/A16_gegma.md` — Sergi's own plan: provenance (region, sources, version, licence, dates) in CSV/JSON export
+- `docs_ka/motivacia/kitxvis_furceli.md` — reading-sheet template
+- `docs_ka/motivacia/papers/` — PDFs and Georgian translation of P1
+- `docs/requirements/anforderungskatalog.tex` — requirements catalogue (DE/EN)
+- `docs/thesis/RECOMMENDATIONS.md` — prioritised to-do list (code + thesis)
+- `docs/thesis/evaluation_protocol_CS1.md` — CS1 test protocol
