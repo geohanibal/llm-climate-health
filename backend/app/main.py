@@ -395,6 +395,7 @@ def integrate(req: IntegrationRequest):
         who_indicator_code=req.who_indicator_code,
         custom_population_url=req.custom_population_url,
         population_indicator_code=req.population_indicator_code,
+        lag_periods=tuple(sorted(req.lag_periods)),
     )
     hit = cache.get(cache_key)
     if hit is not None:
@@ -435,6 +436,7 @@ def integrate(req: IntegrationRequest):
         custom_population_url=req.custom_population_url,
         population_indicator_code=req.population_indicator_code,
         population_indicator_name=req.population_indicator_name,
+        lag_periods=req.lag_periods,
     )
     transformation_audit = None
     if audit_data:
@@ -495,6 +497,7 @@ async def integrate_with_upload(
     file: UploadFile | None = File(None),
     climate_file: UploadFile | None = File(None),
     population_file: UploadFile | None = File(None),
+    lag_periods: str = Form(""),
 ):
     """Same pipeline as /api/integrate, but data series (case counts, climate observations,
     and/or population demographics) can come from user-uploaded CSV files or custom URLs."""
@@ -511,6 +514,13 @@ async def integrate_with_upload(
     if population_file and actual_pop_source in ("worldbank", "un_wpp"):
         actual_pop_source = "custom_upload"
 
+    parsed_lags: list[int] = []
+    if lag_periods.strip():
+        try:
+            parsed_lags = [int(p.strip()) for p in lag_periods.split(",") if p.strip()]
+        except ValueError:
+            raise HTTPException(400, "lag_periods must be a comma-separated list of integers.")
+
     req = IntegrationRequest(
         disease=disease,
         region=region,
@@ -524,6 +534,7 @@ async def integrate_with_upload(
         custom_population_url=custom_population_url,
         population_indicator_code=population_indicator_code,
         population_indicator_name=population_indicator_name,
+        lag_periods=parsed_lags,
     )
     _validate_common(req)
 
@@ -576,6 +587,7 @@ async def integrate_with_upload(
         population_upload_content=pop_content,
         population_indicator_code=req.population_indicator_code,
         population_indicator_name=req.population_indicator_name,
+        lag_periods=req.lag_periods,
     )
     transformation_audit = None
     if audit_data:

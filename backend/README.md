@@ -31,13 +31,22 @@ once real credentials are available (see that file's module docstring).
 
 ## Endpoints
 
-| Method | Path                    | Purpose                                                        |
-|--------|-------------------------|------------------------------------------------------------------|
-| GET    | `/api/health`           | Liveness check                                                   |
-| GET    | `/api/options`          | Diseases/regions/sources the frontend can offer                  |
-| POST   | `/api/parse-request`    | Free-text → best-effort request plan (prefill only, never runs)  |
-| POST   | `/api/integrate`        | Run the ETL pipeline for a JSON request                          |
-| POST   | `/api/integrate/upload` | Same pipeline, case data from an uploaded CSV                    |
+| Method | Path                            | Purpose                                                        |
+|--------|---------------------------------|------------------------------------------------------------------|
+| GET    | `/api/health`                   | Liveness check                                                   |
+| GET    | `/api/options`                  | Diseases/regions/sources the frontend can offer                  |
+| POST   | `/api/parse-request`            | Free-text → best-effort request plan (prefill only, never runs)  |
+| POST   | `/api/integrate`                | Run the ETL pipeline for a JSON request (supports `lag_periods`) |
+| POST   | `/api/integrate/upload`         | Same pipeline, case data from an uploaded CSV (supports `lag_periods`) |
+| POST   | `/api/chat`                     | Interactive Copilot assistant for domain inquiries and prefill   |
+| POST   | `/api/extract-literature`       | AI-based metadata extraction from uploaded paper PDFs or URLs    |
+| GET    | `/api/search-case-sources`      | Real-time search of official WHO GHO indicators and HDX datasets |
+| GET    | `/api/search-population-sources`| Real-time search of World Bank indicators and HDX demographics   |
+
+## Request Options (`/api/integrate`)
+
+In addition to core parameters (`disease`, `region`, `variables`, `start_date`, `end_date`, `climate_source`), the API supports:
+- `lag_periods: list[int]` — optional list of temporal lags (1..6) for climate features (e.g. `[1, 3]`). Uses a lag buffer (Lowe et al. 2021) to compute lagged predictors without dropping initial observation rows.
 
 ## Tests
 
@@ -59,8 +68,16 @@ app/
   services/
     etl.py             orchestrates one integration run
     climate.py         Open-Meteo / NASA POWER clients
-    case_data.py        builtin CSV + custom URL/upload case data
+    case_data.py       builtin CSV + custom URL/upload case data
+    lags.py            climate feature lag computation and lag buffer
+    population.py      World Bank / UN WPP population data and interpolation
+    statistics.py      cross-correlation analysis and summary metrics
+    tmd.py             Thai Meteorological Department client
+    who_gho.py         WHO Global Health Observatory client
+    hdx.py             Humanitarian Data Exchange search client
+    literature_extractor.py  PDF / URL metadata extractor via LLM
     llm.py             Gemini: parse_request, explain_pipeline
+    chat.py            Copilot dialogue handling
     cache.py           in-process TTL cache
   data/                bundled case-count CSVs + region registry
 tests/                 pytest suite, mirrors services/ + main.py

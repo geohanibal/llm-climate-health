@@ -17,6 +17,7 @@ from app.services.case_data import (
     get_case_data_from_url,
 )
 from app.services.climate import fetch_climate
+from app.services.lags import add_lagged_climate_features, calculate_buffer_start_date
 from app.services.population import get_population_data
 from app.services.statistics import compute_statistics
 from app.services.tmd import fetch_tmd_climate
@@ -128,15 +129,18 @@ def run_integration(
     population_upload_content: bytes | None = None,
     population_indicator_code: str | None = None,
     population_indicator_name: str | None = None,
+    lag_periods: list[int] | None = None,
 ):
     disease = DISEASES[disease_key]
     steps: list[str] = []
+    lags = sorted(list(set(lag_periods or [])))
 
     coords = REGIONS[region]
+    lag_req_str = f", lag_periods={lags}" if lags else ""
     steps.append(
         f"Received request: disease='{disease.label}', region='{region}', "
         f"variables={variables}, period={start} to {end}, "
-        f"aggregation='{aggregation}', scenario='historical'."
+        f"aggregation='{aggregation}', scenario='historical'{lag_req_str}."
     )
     steps.append(
         f"Validated region '{region}' and mapped it to a reference "
@@ -231,9 +235,17 @@ def run_integration(
         case_agg = case_df.groupby("period", as_index=False)["value"].sum()
 
     climate_fetch_resolution = "day" if resolution == "day" else ("month" if resolution == "month" else "year")
+    climate_start = calculate_buffer_start_date(start, lags, resolution)
+    if lags and climate_start < start:
+        steps.append(
+            f"Applied a {max(lags)}-period lag buffer for climate data "
+            f"(fetching from {climate_start} instead of {start}) to compute "
+            f"lagged variables without losing initial observations (Lowe et al. 2021)."
+        )
+
     if climate_source == "tmd":
         climate_df = fetch_tmd_climate(
-            region, variables, start, end, resolution=climate_fetch_resolution
+            region, variables, climate_start, end, resolution=climate_fetch_resolution
         )
     elif climate_source == "custom_upload":
         content_to_use = climate_upload_content or upload_content
@@ -242,7 +254,7 @@ def run_integration(
         climate_df = fetch_climate(
             region,
             variables,
-            start,
+            climate_start,
             end,
             source="custom_upload",
             resolution=climate_fetch_resolution,
@@ -254,7 +266,7 @@ def run_integration(
         )
     else:
         climate_df = fetch_climate(
-            region, variables, start, end, source=climate_source, resolution=climate_fetch_resolution
+            region, variables, climate_start, end, source=climate_source, resolution=climate_fetch_resolution
         )
     steps.append(
         f"Retrieved daily {', '.join(variables)} data for {region} from "
@@ -280,6 +292,15 @@ def run_integration(
             "decades: temperature as the mean of yearly means, precipitation "
             "as the mean annual total, and cases as the decade's total count."
         )
+
+    if lags:
+        climate_df = add_lagged_climate_features(climate_df, lags, resolution=resolution)
+        steps.append(
+            f"Added lagged climate features: lags {', '.join(str(k) for k in lags)}."
+        )
+        # Cut climate series back to requested period start so buffer periods do not appear in output
+        start_period = _period_label(pd.Series([pd.Timestamp(start)]), resolution).iloc[0]
+        climate_df = climate_df[climate_df["period"] >= start_period].copy()
 
     pop_df = get_population_data(
         region,
@@ -334,6 +355,13 @@ def run_integration(
         if case_val is not None and pop_val is not None and pop_val > 0:
             incidence_val = round((case_val / pop_val) * 100000.0, 3)
 
+        extra_lag_values = {}
+        for lag in lags:
+            for v_name in ("temperature", "precipitation"):
+                col = f"{v_name}_lag{lag}"
+                if col in row:
+                    extra_lag_values[col] = clean(row.get(col))
+
         records.append(
             PeriodRecord(
                 period=row["period"],
@@ -342,6 +370,7 @@ def run_integration(
                 incidence_rate_per_100k=incidence_val,
                 temperature_mean_c=clean(row.get("temperature_2m_mean")),
                 precipitation_sum_mm=clean(row.get("precipitation_sum")),
+                **extra_lag_values,
             )
         )
 

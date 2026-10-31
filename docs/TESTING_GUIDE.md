@@ -68,8 +68,8 @@ pytest -m "not network"       # fast, fully offline — what CI would run
 pytest                        # everything, including one live Open-Meteo call
 ```
 
-Expected result: `pytest -m "not network"` reports **80 passed**; the full
-`pytest` run reports **81 passed** (the extra one is
+Expected result: `pytest -m "not network"` reports **146 passed**; the full
+`pytest` run reports **147 passed** (the extra one is
 `test_integrate_end_to_end_dengue_thailand`, which needs internet access to
 reach the real Open-Meteo API — it's the only test in the suite that does).
 
@@ -96,7 +96,10 @@ analyze` reports **No issues found**.
   data aggregation (Open-Meteo, NASA POWER, TMD, including missing-data
   edge cases), population alignment (linear interpolation of annual values
   to monthly/daily: no January jump, July = annual value, constant outside
-  the available years, missing middle year interpolated), the in-memory cache, and the Gemini-backed parsing/
+  the available years, missing middle year interpolated), climate feature
+  lag generation (lags 1..6, column naming `<variable>_lag<k>`, lag buffer
+  prior to `start_date` ensuring no initial-row data loss per Lowe et al. 2021,
+  and rejection of invalid lag values), the in-memory cache, and the Gemini-backed parsing/
   explanation logic (both success and graceful-fallback paths).
 - **Frontend**: every model's JSON decoding (including malformed/partial
   backend responses), the request form's region/source-compatibility logic
@@ -175,6 +178,13 @@ order — it touches every major feature.
 11. **Error handling.** Try: an end date in the future (rejected with a
     clear message), a disease/region combination with no data (the
     "no built-in data" message, prompting a custom source instead).
+
+12. **Lagged climate predictors (API).** Send a POST request to `/api/integrate`
+    with `"lag_periods": [1, 3]` (e.g. for Thailand Dengue 2010-01 to 2010-06).
+    Verify in the response JSON that records contain `temperature_lag1` and
+    `temperature_lag3`, that the initial row `2010-01` has non-null lag values
+    thanks to the automatic climate lag buffer (Lowe et al. 2021), and that the
+    pipeline steps visibly report the lag buffer and feature additions.
 
 ## 5. Configuration reference
 

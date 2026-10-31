@@ -19,7 +19,9 @@ and follow the rules in §0.
 
 - **Phase:** literature-based motivation + requirements derivation (after
   supervisor feedback, §3). Code changes started 2026-10-31: A17 population
-  interpolation DONE (by Claude, task D spec); next: Gemini B (+A22), C; A16 package (Sergi).
+  interpolation DONE (by Claude, task D spec); 2026-11-01 task B DONE (Gemini,
+  reviewed by Claude): FR-23 lag columns 1–6 + lag buffer (A1, A22). Next: Gemini C;
+  A16 package (Sergi); frontend follow-up for lag columns (table, CSV/JSON export).
 - **Read + translated (Georgian study PDFs in `docs_ka/motivacia/papers/`):**
   P1 Suttirat 2026 (main case study), P3 OpenDengue 2024, P4 Lowe 2021
   (Brazil; confirms preprocessing steps are typical).
@@ -445,7 +447,7 @@ newer than 1.2; extract and build procedure undocumented. OpenDengue
 | FR-new-1 | Subnational (admin-1) spatial units | P1 | open — ask supervisors |
 | FR-new-2 | Area-averaged gridded climate per region (instead of a point) | P1 | open |
 | FR-new-3 | Tmin / Tmax variables | P1 | planned (Gemini task C) |
-| FR-new-4 | Lagged climate feature columns (lag 1–3) in output table | P1 | planned (Gemini task B) |
+| FR-23 (was FR-new-4) | Lagged climate feature columns (lag 1–6) in output table, computed with a climate lag buffer before start_date | P1, P4 (p. e211) | implemented 2026-11-01 (task B); backend only, frontend display/export pending |
 | FR-17 (existing) | Incidence per 100,000 | P1 (p. 7) | justified |
 | FR-19 (existing) | Lagged correlations 0–3 | P1 (p. 7), P4 | justified |
 | FR-new-5 | Lagged outcome columns (cases/incidence lag 1–3) | P1 p. 9–10: residual autocorrelation (lag-1 0.54) removed by adding previous month's risk status | proposed (RECOMMENDATIONS A1b) |
@@ -524,7 +526,7 @@ check correctness by comparing both tables. Protocol:
 - [ ] Thailand in the bundled dengue file starts 2009-01 (ends 2025-03): CS1 period must be 2009–2022 unless earlier OpenDengue data exists.
 - [ ] Show OpenDengue dataset version, Figshare DOI and CC BY-SA licence in system output / PDF.
 - [ ] Verify exact CC BY-SA version (3.0 or 4.0) on opendengue.org / Figshare, and licences of all other sources (ERA5/Copernicus, Open-Meteo, NASA POWER, World Bank, WHO GHO) on official pages — record URL + check date (RECOMMENDATIONS A14).
-- [ ] Lag columns (task B) must fetch climate data `max(lag)` periods BEFORE start_date, otherwise first rows are empty (Lowe 2021 p. e211; RECOMMENDATIONS A22).
+- [x] DONE 2026-11-01 (task B, `services/lags.py`): Lag columns (task B) must fetch climate data `max(lag)` periods BEFORE start_date, otherwise first rows are empty (Lowe 2021 p. e211; RECOMMENDATIONS A22).
 - [ ] Thesis: subsection on licensing (legal/ethical aspects), incl. ShareAlike consequence for system output (RECOMMENDATIONS B11).
 - [x] FIXED 2026-10-31 (A17): population now linearly interpolated (`population.py::_interpolate_annual_population`). Former issue: population was NOT linearly interpolated (step function per year, nearest-year fill; verified in export `climate_health_dataset (4).csv`). See RECOMMENDATIONS A17.
 - [ ] CSV/JSON export contains ONLY 6 data columns: no region, sources, dataset versions, licence, retrieval date or request parameters (verified 2026-10-31, `dataset_export_service.dart`). PDF report has steps + sources + "Generated" time (= run/cache time, not upstream retrieval date / dataset version). See RECOMMENDATIONS A16.
@@ -543,6 +545,7 @@ check correctness by comparing both tables. Protocol:
 | 2026-10-31 | Checked real export (Thailand 2005–2010 monthly): no provenance in CSV/JSON; population step-wise per year — earlier claim "population interpolated (etl.py:202)" was WRONG, corrected. |
 | 2026-10-31 | P3 (OpenDengue) fully read and translated; findings: extract / version / licence requirements, Thailand data only from 2009. |
 | 2026-10-31 | Gemini tasks prepared (`docs_ka/motivacia/gemini_tasks_02.md`): A literature, B lag columns, C Tmin/Tmax. Code tasks only after A is reviewed. |
+| 2026-11-01 | Task B (FR-23): lags are computed on the climate series fetched `max(lag_periods)` periods before start_date (buffer measured in target-resolution periods, decade = 10 years per lag), then cut back to the requested period; case/population rows never include the buffer. The series is reindexed to a complete period grid before shifting, so a missing period yields NaN instead of a silently wrong value (found in Claude review). Lag columns are dynamic fields of `PeriodRecord` (`extra="allow"`); report: `docs_ka/motivacia/B_report.md`. |
 
 ## 11. Related files
 

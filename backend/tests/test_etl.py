@@ -131,3 +131,35 @@ def test_run_integration_decadal_aggregation_averages_yearly_climate(mock_climat
     assert any("decade" in s for s in steps)
     assert stat_summary is not None
 
+
+@patch("app.services.etl.fetch_climate")
+def test_run_integration_with_lag_periods_and_buffer(mock_climate):
+    # Climate covers buffer (2019-10..2019-12) plus requested (2020-01..2020-03)
+    mock_climate.return_value = pd.DataFrame(
+        {
+            "period": ["2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03"],
+            "temperature_2m_mean": [21.0, 22.0, 23.0, 24.0, 25.0, 26.0],
+            "precipitation_sum": [10.0, 11.0, 12.0, 13.0, 14.0, 15.0],
+        }
+    )
+    steps, records, resolution, audit, stat_summary = run_integration(
+        "dengue",
+        "Thailand",
+        ["temperature", "precipitation"],
+        date(2020, 1, 1),
+        date(2020, 3, 31),
+        aggregation="native",
+        lag_periods=[1, 3],
+    )
+    assert resolution == "month"
+    # First record is 2020-01 (buffer months 2019-10..2019-12 are NOT in records)
+    assert records[0].period == "2020-01"
+    assert records[0].temperature_lag1 == 23.0
+    assert records[0].temperature_lag3 == 21.0
+    assert records[0].precipitation_lag1 == 12.0
+    assert records[0].precipitation_lag3 == 10.0
+    # Provenance steps mention buffer and lags
+    assert any("lag buffer" in s for s in steps)
+    assert any("lags 1, 3" in s for s in steps)
+
+

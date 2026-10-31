@@ -6,7 +6,7 @@ Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class IntegrationRequest(BaseModel):
@@ -28,9 +28,21 @@ class IntegrationRequest(BaseModel):
     custom_population_url: str | None = None
     population_indicator_code: str | None = None
     population_indicator_name: str | None = None
+    lag_periods: list[int] = Field(default_factory=list)
+
+    @field_validator("lag_periods")
+    @classmethod
+    def validate_lag_periods(cls, v: list[int]) -> list[int]:
+        if not v:
+            return []
+        for lag in v:
+            if not isinstance(lag, int) or lag < 1 or lag > 6:
+                raise ValueError("lag_periods elements must be integers between 1 and 6.")
+        return sorted(list(set(v)))
 
 
 class PeriodRecord(BaseModel):
+    model_config = ConfigDict(extra="allow")
     period: str
     case_count: float | None = None
     population: float | None = None
