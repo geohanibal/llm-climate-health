@@ -35,15 +35,33 @@ class DatasetExportService {
   }
 
   String toCsv(List<PeriodRecord> data) {
-    final buffer = StringBuffer(
-      'period,case_count,population,incidence_rate_per_100k,temperature_mean_c,precipitation_sum_mm\n',
-    );
+    final hasMin = data.any((r) => r.temperatureMinC != null);
+    final hasMax = data.any((r) => r.temperatureMaxC != null);
+
+    final header = [
+      'period',
+      'case_count',
+      'population',
+      'incidence_rate_per_100k',
+      'temperature_mean_c',
+      if (hasMin) 'temperature_min_c',
+      if (hasMax) 'temperature_max_c',
+      'precipitation_sum_mm',
+    ].join(',');
+
+    final buffer = StringBuffer('$header\n');
     for (final record in data) {
-      buffer.writeln(
-        '${record.period},${record.caseCount ?? ''},'
-        '${record.population ?? ''},${record.incidenceRatePer100k ?? ''},'
-        '${record.temperatureMeanC ?? ''},${record.precipitationSumMm ?? ''}',
-      );
+      final row = [
+        record.period,
+        record.caseCount ?? '',
+        record.population ?? '',
+        record.incidenceRatePer100k ?? '',
+        record.temperatureMeanC ?? '',
+        if (hasMin) record.temperatureMinC ?? '',
+        if (hasMax) record.temperatureMaxC ?? '',
+        record.precipitationSumMm ?? '',
+      ].join(',');
+      buffer.writeln(row);
     }
     return buffer.toString();
   }

@@ -363,7 +363,7 @@ def _sanitize_action(raw_action: Any) -> FormPrefillAction | None:
 
     variables = raw_action.get("variables")
     if isinstance(variables, list):
-        valid_vars = [v for v in variables if v in ("temperature", "precipitation")]
+        valid_vars = [v for v in variables if v in ("temperature", "precipitation", "temperature_min", "temperature_max")]
         variables = valid_vars if valid_vars else None
     else:
         variables = None

@@ -11,6 +11,7 @@ import 'package:climate_health_frontend/models/disease_info.dart';
 import 'package:climate_health_frontend/models/integration_result.dart';
 import 'package:climate_health_frontend/models/parsed_request.dart';
 import 'package:climate_health_frontend/models/platform_options.dart';
+import 'package:climate_health_frontend/models/period_record.dart';
 
 void main() {
   group('DiseaseInfo.fromEntry', () {
@@ -324,6 +325,26 @@ void main() {
       expect(options.populationSources, hasLength(2));
       expect(options.populationSources.first.id, 'worldbank');
       expect(options.populationSources.last.id, 'un_wpp');
+    });
+  });
+  group('PeriodRecord', () {
+    test('round-trips temperature_min_c and temperature_max_c through fromJson/toJson', () {
+      final json = {
+        'period': '2020-01',
+        'case_count': 100.0,
+        'temperature_mean_c': 25.5,
+        'temperature_min_c': 20.1,
+        'temperature_max_c': 31.2,
+        'precipitation_sum_mm': 42.0,
+      };
+      final record = PeriodRecord.fromJson(json);
+      expect(record.period, '2020-01');
+      expect(record.temperatureMinC, 20.1);
+      expect(record.temperatureMaxC, 31.2);
+
+      final encoded = record.toJson();
+      expect(encoded['temperature_min_c'], 20.1);
+      expect(encoded['temperature_max_c'], 31.2);
     });
   });
 }

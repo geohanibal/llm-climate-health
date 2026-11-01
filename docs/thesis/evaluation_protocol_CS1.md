@@ -17,7 +17,7 @@ works at country level with ERA5, the target is a *simplified* version of P1:
 | Spatial unit | Country (national) |
 | Period | **2009-01 … 2022-12** (bundled OpenDengue Thailand data starts 2009-01; P1 used 2003–2022) |
 | Resolution | Monthly |
-| Climate | Mean temperature, precipitation (ERA5 via Open-Meteo) [+ Tmin/Tmax if task C done] |
+| Climate | Mean temperature, minimum temperature, maximum temperature, precipitation (ERA5 via Open-Meteo) |
 | Derived | Incidence per 100,000; climate lags 1, 2, 3 months |
 | Output | One CSV table + short description of every processing step |
 

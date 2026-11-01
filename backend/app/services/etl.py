@@ -247,6 +247,11 @@ def run_integration(
         climate_df = fetch_tmd_climate(
             region, variables, climate_start, end, resolution=climate_fetch_resolution
         )
+        if any(v in variables for v in ("temperature", "temperature_min", "temperature_max")):
+            steps.append(
+                "Note: Thai Meteorological Department (TMD) provides precipitation data only; "
+                "temperature indicators (mean, min, max) remain null for this source."
+            )
     elif climate_source == "custom_upload":
         content_to_use = climate_upload_content or upload_content
         if not content_to_use:
@@ -273,7 +278,7 @@ def run_integration(
         f"{CLIMATE_SOURCES[climate_source]['label']} "
         f"({CLIMATE_SOURCES[climate_source]['citation']}) and aggregated it "
         f"to {_RESOLUTION_LABEL[climate_fetch_resolution]} resolution "
-        f"(mean for temperature, sum for precipitation)."
+        f"(mean for temperatures; daily minimum/maximum averaged over the period; sum for precipitation)."
     )
 
     if resolution == "decade":
@@ -282,6 +287,10 @@ def run_integration(
         agg = {}
         if "temperature_2m_mean" in climate_df.columns:
             agg["temperature_2m_mean"] = "mean"
+        if "temperature_2m_min" in climate_df.columns:
+            agg["temperature_2m_min"] = "mean"
+        if "temperature_2m_max" in climate_df.columns:
+            agg["temperature_2m_max"] = "mean"
         if "precipitation_sum" in climate_df.columns:
             agg["precipitation_sum"] = "mean"
         climate_df = climate_df.groupby("decade", as_index=False).agg(agg).rename(
@@ -357,7 +366,7 @@ def run_integration(
 
         extra_lag_values = {}
         for lag in lags:
-            for v_name in ("temperature", "precipitation"):
+            for v_name in ("temperature", "precipitation", "temperature_min", "temperature_max"):
                 col = f"{v_name}_lag{lag}"
                 if col in row:
                     extra_lag_values[col] = clean(row.get(col))
@@ -369,6 +378,8 @@ def run_integration(
                 population=pop_val,
                 incidence_rate_per_100k=incidence_val,
                 temperature_mean_c=clean(row.get("temperature_2m_mean")),
+                temperature_min_c=clean(row.get("temperature_2m_min")),
+                temperature_max_c=clean(row.get("temperature_2m_max")),
                 precipitation_sum_mm=clean(row.get("precipitation_sum")),
                 **extra_lag_values,
             )

@@ -19,6 +19,9 @@ class DatasetTableCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasMin = data.any((r) => r.temperatureMinC != null);
+    final hasMax = data.any((r) => r.temperatureMaxC != null);
+
     return SectionCard(
       title: 'Integrated dataset',
       leading: Icons.table_chart_outlined,
@@ -40,13 +43,15 @@ class DatasetTableCard extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
-          columns: const [
-            DataColumn(label: Text('Period')),
-            DataColumn(label: Text('Cases')),
-            DataColumn(label: Text('Population')),
-            DataColumn(label: Text('Incidence / 100k')),
-            DataColumn(label: Text('Temp mean (°C)')),
-            DataColumn(label: Text('Precip sum (mm)')),
+          columns: [
+            const DataColumn(label: Text('Period')),
+            const DataColumn(label: Text('Cases')),
+            const DataColumn(label: Text('Population')),
+            const DataColumn(label: Text('Incidence / 100k')),
+            const DataColumn(label: Text('Temp mean (°C)')),
+            if (hasMin) const DataColumn(label: Text('Temp min (°C)')),
+            if (hasMax) const DataColumn(label: Text('Temp max (°C)')),
+            const DataColumn(label: Text('Precip sum (mm)')),
           ],
           rows: data
               .map(
@@ -56,6 +61,8 @@ class DatasetTableCard extends StatelessWidget {
                   DataCell(Text(Formatting.population(r.population))),
                   DataCell(Text(Formatting.incidenceRate(r.incidenceRatePer100k))),
                   DataCell(Text(Formatting.temperature(r.temperatureMeanC))),
+                  if (hasMin) DataCell(Text(Formatting.temperature(r.temperatureMinC))),
+                  if (hasMax) DataCell(Text(Formatting.temperature(r.temperatureMaxC))),
                   DataCell(Text(Formatting.precipitation(r.precipitationSumMm))),
                 ]),
               )

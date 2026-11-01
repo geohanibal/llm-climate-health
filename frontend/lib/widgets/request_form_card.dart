@@ -600,7 +600,7 @@ class RequestFormCardState extends State<RequestFormCard> {
     return Wrap(
       spacing: 8,
       children: widget.options.variables.map((v) {
-        final label = v[0].toUpperCase() + v.substring(1);
+        final label = I18n.t(v);
         return FilterChip(
           label: Text(label),
           selected: _variables.contains(v),

@@ -5,6 +5,7 @@ library;
 
 import 'package:flutter/material.dart';
 import '../models/integration_result.dart';
+import '../core/localization.dart';
 import 'section_card.dart';
 
 class StatisticalSummaryCard extends StatelessWidget {
@@ -113,15 +114,15 @@ class StatisticalSummaryCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            c.variable == 'temperature'
+                            c.variable.startsWith('temperature')
                                 ? Icons.thermostat_outlined
                                 : Icons.water_drop_outlined,
                             size: 16,
-                            color: c.variable == 'temperature' ? Colors.orange : Colors.blue,
+                            color: c.variable.startsWith('temperature') ? Colors.orange : Colors.blue,
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            c.variable == 'temperature' ? 'Temperature' : 'Precipitation',
+                            I18n.t(c.variable),
                             style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
                         ],

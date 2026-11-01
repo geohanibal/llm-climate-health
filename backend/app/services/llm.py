@@ -79,7 +79,9 @@ def build_prompt(
         f"population={int(r.population) if r.population else 'N/A'}, "
         f"incidence_per_100k={r.incidence_rate_per_100k}, "
         f"temp_mean_c={r.temperature_mean_c}, "
-        f"precip_sum_mm={r.precipitation_sum_mm}"
+        + (f"temp_min_c={r.temperature_min_c}, " if r.temperature_min_c is not None else "")
+        + (f"temp_max_c={r.temperature_max_c}, " if r.temperature_max_c is not None else "")
+        + f"precip_sum_mm={r.precipitation_sum_mm}"
         for r in sample
     )
 
@@ -176,7 +178,7 @@ def build_parse_prompt(
         "end_date=2023-12-01).\n\n"
         f"Valid diseases (key: label):\n{disease_list}\n\n"
         f"Valid regions (must match exactly): {', '.join(regions)}\n\n"
-        f"Valid variables: {', '.join(variables)}\n"
+        f"Valid variables: {', '.join(variables)} (map minimum temperature / Tiefsttemperatur / მინიმალური ტემპერატურა to 'temperature_min'; maximum temperature / Höchsttemperatur / მაქსიმალური ტემპერატურა to 'temperature_max')\n"
         f"Valid aggregations: {', '.join(aggregations)} — \"native\" means "
         "the data's own original/as-reported resolution (e.g. \"monthly\", "
         "\"as reported\", or no granularity mentioned at all); map wording "
@@ -218,7 +220,7 @@ def _coerce_parsed_json(
     if not isinstance(variables, list) or not variables:
         variables = None
     else:
-        variables = [v for v in variables if v in ("temperature", "precipitation")] or None
+        variables = [v for v in variables if v in ("temperature", "precipitation", "temperature_min", "temperature_max")] or None
 
     def _clean_date(value):
         try:

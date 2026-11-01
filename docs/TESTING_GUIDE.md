@@ -68,8 +68,8 @@ pytest -m "not network"       # fast, fully offline — what CI would run
 pytest                        # everything, including one live Open-Meteo call
 ```
 
-Expected result: `pytest -m "not network"` reports **146 passed**; the full
-`pytest` run reports **147 passed** (the extra one is
+Expected result: `pytest -m "not network"` reports **152 passed**; the full
+`pytest` run reports **153 passed** (the extra one is
 `test_integrate_end_to_end_dengue_thailand`, which needs internet access to
 reach the real Open-Meteo API — it's the only test in the suite that does).
 
@@ -82,8 +82,8 @@ flutter test
 flutter analyze
 ```
 
-Expected result: `flutter test` reports **34 tests passed**, `flutter
-analyze` reports **No issues found**.
+Expected result: `flutter test` reports **72 passed**, `flutter
+analyze` reports no errors in application code.
 
 ### What's covered
 

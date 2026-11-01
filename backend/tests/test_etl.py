@@ -163,3 +163,36 @@ def test_run_integration_with_lag_periods_and_buffer(mock_climate):
     assert any("lags 1, 3" in s for s in steps)
 
 
+
+
+@patch("app.services.etl.fetch_climate")
+def test_run_integration_with_tmin_tmax_and_lags(mock_climate):
+    mock_climate.return_value = pd.DataFrame(
+        {
+            "period": ["2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03"],
+            "temperature_2m_min": [17.0, 18.0, 19.0, 20.0, 21.0, 22.0],
+            "temperature_2m_max": [27.0, 28.0, 29.0, 30.0, 31.0, 32.0],
+        }
+    )
+    steps, records, resolution, audit, stat_summary = run_integration(
+        "dengue",
+        "Thailand",
+        ["temperature_min", "temperature_max"],
+        date(2020, 1, 1),
+        date(2020, 3, 31),
+        aggregation="native",
+        lag_periods=[1, 3],
+    )
+    assert resolution == "month"
+    assert records[0].period == "2020-01"
+    assert records[0].temperature_min_c == 20.0
+    assert records[0].temperature_max_c == 30.0
+    assert records[0].temperature_min_lag1 == 19.0
+    assert records[0].temperature_min_lag3 == 17.0
+    assert records[0].temperature_max_lag1 == 29.0
+    assert records[0].temperature_max_lag3 == 27.0
+    assert any("temperature_min" in s for s in steps)
+    # Check that correlations contain temperature_min and temperature_max
+    corr_vars = {c.variable for c in stat_summary.correlations}
+    assert "temperature_min" in corr_vars
+    assert "temperature_max" in corr_vars

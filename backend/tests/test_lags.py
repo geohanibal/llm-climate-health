@@ -197,3 +197,23 @@ def test_add_lagged_climate_features_missing_daily_period_yields_nan():
     assert pd.isna(res.loc[res["period"] == "2020-05-04", "temperature_lag1"].iloc[0])
 
 
+
+
+def test_add_lagged_climate_features_tmin_tmax():
+    """Generates temperature_min_lag<k> and temperature_max_lag<k> features."""
+    df = pd.DataFrame({
+        "period": ["2020-01", "2020-02", "2020-03", "2020-04"],
+        "temperature_2m_min": [18.0, 19.0, 20.0, 21.0],
+        "temperature_2m_max": [28.0, 29.0, 30.0, 31.0],
+    })
+    res = add_lagged_climate_features(df, [1, 2])
+    assert "temperature_min_lag1" in res.columns
+    assert "temperature_min_lag2" in res.columns
+    assert "temperature_max_lag1" in res.columns
+    assert "temperature_max_lag2" in res.columns
+    # Check shift values
+    assert np.isnan(res.loc[0, "temperature_min_lag1"])
+    assert res.loc[1, "temperature_min_lag1"] == 18.0
+    assert res.loc[2, "temperature_min_lag2"] == 18.0
+    assert res.loc[1, "temperature_max_lag1"] == 28.0
+    assert res.loc[2, "temperature_max_lag2"] == 28.0

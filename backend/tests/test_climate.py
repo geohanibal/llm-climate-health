@@ -138,12 +138,7 @@ def test_fetch_climate_open_meteo_daily_resolution(mock_get):
 
 
 def test_fetch_custom_upload_climate_daily_and_monthly():
-    csv_bytes = (
-        b"date,temp,rain\n"
-        b"2023-05-01,25.0,10.0\n"
-        b"2023-05-02,27.0,0.0\n"
-        b"2023-06-01,30.0,5.0\n"
-    )
+    csv_bytes = b"date,temp,rain\n2023-05-01,25.0,10.0\n2023-05-02,27.0,0.0\n2023-06-01,30.0,5.0\n"
     # Test day resolution
     df_day = fetch_climate(
         "Thailand",
@@ -173,3 +168,80 @@ def test_fetch_custom_upload_climate_daily_and_monthly():
     assert may["temperature_2m_mean"] == 26.0  # mean of 25 and 27
     assert may["precipitation_sum"] == 10.0  # sum of 10 and 0
 
+
+
+@patch("app.services.climate.requests.get")
+def test_fetch_climate_open_meteo_tmin_tmax_aggregates_mean_of_daily(mock_get):
+    """Suttirat et al. (2026): monthly aggregation of daily minimum and maximum
+    temperatures is the MEAN of daily extrema, not the monthly absolute extrema."""
+    mock_get.return_value = _mock_response(
+        {
+            "daily": {
+                "time": ["2020-01-01", "2020-01-02", "2020-01-03"],
+                "temperature_2m_min": [18.0, 20.0, 22.0],
+                "temperature_2m_max": [28.0, 30.0, 32.0],
+            }
+        }
+    )
+    df = fetch_climate(
+        "Thailand",
+        ["temperature_min", "temperature_max"],
+        date(2020, 1, 1),
+        date(2020, 1, 31),
+        source="open-meteo-era5",
+        resolution="month",
+    )
+    assert len(df) == 1
+    row = df.iloc[0]
+    assert row["period"] == "2020-01"
+    # Mean of daily minima: (18 + 20 + 22) / 3 = 20.0
+    assert row["temperature_2m_min"] == 20.0
+    # Mean of daily maxima: (28 + 30 + 32) / 3 = 30.0
+    assert row["temperature_2m_max"] == 30.0
+
+
+@patch("app.services.climate.requests.get")
+def test_fetch_climate_nasa_power_tmin_tmax(mock_get):
+    """NASA POWER daily returns T2M_MIN and T2M_MAX, renamed to temperature_2m_min/max."""
+    mock_get.return_value = _mock_response(
+        {
+            "properties": {
+                "parameter": {
+                    "T2M_MIN": {"20200101": 15.0, "20200102": 17.0},
+                    "T2M_MAX": {"20200101": 25.0, "20200102": 29.0},
+                }
+            }
+        }
+    )
+    df = fetch_climate(
+        "Thailand",
+        ["temperature_min", "temperature_max"],
+        date(2020, 1, 1),
+        date(2020, 1, 31),
+        source="nasa-power",
+        resolution="month",
+    )
+    assert len(df) == 1
+    row = df.iloc[0]
+    assert row["period"] == "2020-01"
+    assert row["temperature_2m_min"] == 16.0  # mean of 15 and 17
+    assert row["temperature_2m_max"] == 27.0  # mean of 25 and 29
+
+
+def test_fetch_custom_upload_climate_tmin_tmax_aliases():
+    """Custom upload supports aliases: tmin/tmax, temp_min/temp_max."""
+    csv_bytes = b"date,tmin,tmax\n2023-05-01,19.0,29.0\n2023-05-02,21.0,31.0\n"
+    df = fetch_climate(
+        "Thailand",
+        ["temperature_min", "temperature_max"],
+        date(2023, 5, 1),
+        date(2023, 5, 2),
+        source="custom_upload",
+        resolution="month",
+        upload_content=csv_bytes,
+    )
+    assert len(df) == 1
+    row = df.iloc[0]
+    assert row["period"] == "2023-05"
+    assert row["temperature_2m_min"] == 20.0  # mean of 19 and 21
+    assert row["temperature_2m_max"] == 30.0  # mean of 29 and 31

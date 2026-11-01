@@ -11,6 +11,8 @@ class PeriodRecord {
   final double? population;
   final double? incidenceRatePer100k;
   final double? temperatureMeanC;
+  final double? temperatureMinC;
+  final double? temperatureMaxC;
   final double? precipitationSumMm;
 
   const PeriodRecord({
@@ -19,6 +21,8 @@ class PeriodRecord {
     this.population,
     this.incidenceRatePer100k,
     this.temperatureMeanC,
+    this.temperatureMinC,
+    this.temperatureMaxC,
     this.precipitationSumMm,
   });
 
@@ -29,6 +33,8 @@ class PeriodRecord {
       population: (json['population'] as num?)?.toDouble(),
       incidenceRatePer100k: (json['incidence_rate_per_100k'] as num?)?.toDouble(),
       temperatureMeanC: (json['temperature_mean_c'] as num?)?.toDouble(),
+      temperatureMinC: (json['temperature_min_c'] as num?)?.toDouble(),
+      temperatureMaxC: (json['temperature_max_c'] as num?)?.toDouble(),
       precipitationSumMm: (json['precipitation_sum_mm'] as num?)?.toDouble(),
     );
   }
@@ -39,6 +45,8 @@ class PeriodRecord {
         'population': population,
         'incidence_rate_per_100k': incidenceRatePer100k,
         'temperature_mean_c': temperatureMeanC,
+        'temperature_min_c': temperatureMinC,
+        'temperature_max_c': temperatureMaxC,
         'precipitation_sum_mm': precipitationSumMm,
       };
 }

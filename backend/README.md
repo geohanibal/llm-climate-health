@@ -45,7 +45,8 @@ once real credentials are available (see that file's module docstring).
 
 ## Request Options (`/api/integrate`)
 
-In addition to core parameters (`disease`, `region`, `variables`, `start_date`, `end_date`, `climate_source`), the API supports:
+In addition to core parameters (`disease`, `region`, `start_date`, `end_date`, `climate_source`), the API supports:
+- `variables: list[str]` — supported climate variables: `"temperature"` (mean), `"precipitation"` (sum), `"temperature_min"` (daily minimum mean), `"temperature_max"` (daily maximum mean) (Suttirat et al. 2026).
 - `lag_periods: list[int]` — optional list of temporal lags (1..6) for climate features (e.g. `[1, 3]`). Uses a lag buffer (Lowe et al. 2021) to compute lagged predictors without dropping initial observation rows.
 
 ## Tests

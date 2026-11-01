@@ -115,6 +115,8 @@ def _parse_tmd_response(xml_text: str, region_lat: float, region_lon: float) -> 
                 "period": f"{year:04d}-{month:02d}",
                 "precipitation_sum": float(value),
                 "temperature_2m_mean": None,
+                "temperature_2m_min": None,
+                "temperature_2m_max": None,
             }
         )
     if not rows:
@@ -160,6 +162,8 @@ def fetch_tmd_climate(
         df["period"] = df["period"].str.slice(0, 4)
         df = df.groupby("period", as_index=False).agg(
             temperature_2m_mean=("temperature_2m_mean", "mean"),
+            temperature_2m_min=("temperature_2m_min", "mean"),
+            temperature_2m_max=("temperature_2m_max", "mean"),
             precipitation_sum=("precipitation_sum", "sum"),
         )
 

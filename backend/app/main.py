@@ -116,7 +116,7 @@ def options():
             name: {"label": info["label"], "lat": info["lat"], "lon": info["lon"]}
             for name, info in REGIONS.items()
         },
-        "variables": ["temperature", "precipitation"],
+        "variables": ["temperature", "precipitation", "temperature_min", "temperature_max"],
         "scenarios": ["historical"],
         "aggregations": AGGREGATIONS,
         "climate_sources": CLIMATE_SOURCES,
@@ -148,7 +148,7 @@ def parse_request_endpoint(body: ParseRequestBody):
             body.text,
             diseases={key: meta.label for key, meta in DISEASES.items()},
             regions=list(REGIONS.keys()),
-            variables=["temperature", "precipitation"],
+            variables=["temperature", "precipitation", "temperature_min", "temperature_max"],
             aggregations=AGGREGATIONS,
             climate_sources=list(CLIMATE_SOURCES.keys()),
         )

@@ -94,4 +94,25 @@ void main() {
     expect(fake.lastMimeType, 'application/json');
     expect(jsonDecode(fake.lastContent!), hasLength(2));
   });
+  test('toCsv includes temperature_min_c and temperature_max_c when present', () {
+    const minMaxData = [
+      PeriodRecord(
+        period: '2020-01',
+        caseCount: 10,
+        temperatureMeanC: 25.0,
+        temperatureMinC: 20.0,
+        temperatureMaxC: 30.0,
+        precipitationSumMm: 50.0,
+      ),
+    ];
+    const service = DatasetExportService();
+    final csv = service.toCsv(minMaxData);
+    final lines = const LineSplitter().convert(csv.trim());
+
+    expect(
+      lines[0],
+      'period,case_count,population,incidence_rate_per_100k,temperature_mean_c,temperature_min_c,temperature_max_c,precipitation_sum_mm',
+    );
+    expect(lines[1], '2020-01,10.0,,,25.0,20.0,30.0,50.0');
+  });
 }

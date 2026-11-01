@@ -16,10 +16,14 @@ NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/daily/point"
 OPEN_METEO_FIELDS = {
     "temperature": "temperature_2m_mean",
     "precipitation": "precipitation_sum",
+    "temperature_min": "temperature_2m_min",
+    "temperature_max": "temperature_2m_max",
 }
 NASA_POWER_FIELDS = {
     "temperature": "T2M",
     "precipitation": "PRECTOTCORR",
+    "temperature_min": "T2M_MIN",
+    "temperature_max": "T2M_MAX",
 }
 
 
@@ -43,6 +47,26 @@ TEMP_ALIASES = [
     "temp_mean",
     "air_temp",
     "air_temperature",
+]
+TEMP_MIN_ALIASES = [
+    "temperature_2m_min",
+    "temperature_min_c",
+    "temperature_min",
+    "temp_min",
+    "tmin",
+    "t_min",
+    "min_temp",
+    "min_temperature",
+]
+TEMP_MAX_ALIASES = [
+    "temperature_2m_max",
+    "temperature_max_c",
+    "temperature_max",
+    "temp_max",
+    "tmax",
+    "t_max",
+    "max_temp",
+    "max_temperature",
 ]
 PRECIP_ALIASES = [
     "precipitation_sum",
@@ -106,12 +130,14 @@ def fetch_custom_upload_climate(
         )
 
     temp_col = _find_matching_column(cols, TEMP_ALIASES) if "temperature" in variables else None
+    temp_min_col = _find_matching_column(cols, TEMP_MIN_ALIASES) if "temperature_min" in variables else None
+    temp_max_col = _find_matching_column(cols, TEMP_MAX_ALIASES) if "temperature_max" in variables else None
     precip_col = _find_matching_column(cols, PRECIP_ALIASES) if "precipitation" in variables else None
 
-    if not temp_col and not precip_col:
+    if not temp_col and not temp_min_col and not temp_max_col and not precip_col:
         raise ValueError(
-            f"Could not find recognizable weather columns (temperature or precipitation) in uploaded CSV (columns: {cols}). "
-            "Expected columns such as 'temperature', 'temp', 'precipitation', 'rain'."
+            f"Could not find recognizable weather columns (temperature, min/max temperature, or precipitation) in uploaded CSV (columns: {cols}). "
+            "Expected columns such as 'temperature', 'temp', 'tmin', 'tmax', 'precipitation', 'rain'."
         )
 
     raw["time"] = pd.to_datetime(raw[date_col], errors="coerce")
@@ -124,6 +150,10 @@ def fetch_custom_upload_climate(
         res_cols = ["period"]
         if temp_col:
             res_cols.append("temperature_2m_mean")
+        if temp_min_col:
+            res_cols.append("temperature_2m_min")
+        if temp_max_col:
+            res_cols.append("temperature_2m_max")
         if precip_col:
             res_cols.append("precipitation_sum")
         return pd.DataFrame(columns=res_cols)
@@ -134,6 +164,18 @@ def fetch_custom_upload_climate(
     if temp_col:
         filtered["temperature_2m_mean"] = pd.to_numeric(filtered[temp_col], errors="coerce")
         agg["temperature_2m_mean"] = "mean"
+    if temp_min_col:
+        filtered["temperature_2m_min"] = pd.to_numeric(filtered[temp_min_col], errors="coerce")
+        # Aggregation is the mean of daily minima (e.g. monthly average of daily Tmin),
+        # not the absolute monthly minimum; consistent with the monthly Tmin used by
+        # Suttirat et al. (2026, TerraClimate).
+        agg["temperature_2m_min"] = "mean"
+    if temp_max_col:
+        filtered["temperature_2m_max"] = pd.to_numeric(filtered[temp_max_col], errors="coerce")
+        # Aggregation is the mean of daily maxima (e.g. monthly average of daily Tmax),
+        # not the absolute monthly maximum; consistent with the monthly Tmax used by
+        # Suttirat et al. (2026, TerraClimate).
+        agg["temperature_2m_max"] = "mean"
     if precip_col:
         filtered["precipitation_sum"] = pd.to_numeric(filtered[precip_col], errors="coerce")
         agg["precipitation_sum"] = lambda s: s.sum(min_count=1)
@@ -188,7 +230,14 @@ def _fetch_nasa_power_daily(lat: float, lon: float, variables: list[str], start:
     df = pd.DataFrame({param: pd.Series(values) for param, values in series.items()})
     df.index = pd.to_datetime(df.index, format="%Y%m%d")
     df = df.replace(-999.0, pd.NA)
-    df = df.rename(columns={"T2M": "temperature_2m_mean", "PRECTOTCORR": "precipitation_sum"})
+    df = df.rename(
+        columns={
+            "T2M": "temperature_2m_mean",
+            "PRECTOTCORR": "precipitation_sum",
+            "T2M_MIN": "temperature_2m_min",
+            "T2M_MAX": "temperature_2m_max",
+        }
+    )
     df["time"] = df.index
     return df.reset_index(drop=True)
 
@@ -221,6 +270,16 @@ def fetch_climate(
     agg = {}
     if "temperature_2m_mean" in daily.columns:
         agg["temperature_2m_mean"] = "mean"
+    if "temperature_2m_min" in daily.columns:
+        # Aggregation is the mean of daily minima (e.g. monthly average of daily Tmin),
+        # not the absolute minimum; consistent with the monthly Tmin used by
+        # Suttirat et al. (2026, TerraClimate).
+        agg["temperature_2m_min"] = "mean"
+    if "temperature_2m_max" in daily.columns:
+        # Aggregation is the mean of daily maxima (e.g. monthly average of daily Tmax),
+        # not the absolute maximum; consistent with the monthly Tmax used by
+        # Suttirat et al. (2026, TerraClimate).
+        agg["temperature_2m_max"] = "mean"
     if "precipitation_sum" in daily.columns:
         # min_count=1 makes an all-missing period sum to NaN instead of 0 —
         # a real zero-rainfall reading must stay distinguishable from "no

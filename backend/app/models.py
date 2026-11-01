@@ -9,10 +9,13 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
+ClimateVariable = Literal["temperature", "precipitation", "temperature_min", "temperature_max"]
+
+
 class IntegrationRequest(BaseModel):
     disease: str = Field(examples=["dengue"])
     region: str = Field(examples=["Thailand"])
-    variables: list[Literal["temperature", "precipitation"]] = Field(
+    variables: list[ClimateVariable] = Field(
         default=["temperature", "precipitation"], min_length=1
     )
     start_date: date
@@ -48,6 +51,8 @@ class PeriodRecord(BaseModel):
     population: float | None = None
     incidence_rate_per_100k: float | None = None
     temperature_mean_c: float | None = None
+    temperature_min_c: float | None = None
+    temperature_max_c: float | None = None
     precipitation_sum_mm: float | None = None
 
 
@@ -127,7 +132,7 @@ class ParsedRequest(BaseModel):
 
     disease: str | None = None
     region: str | None = None
-    variables: list[Literal["temperature", "precipitation"]] | None = None
+    variables: list[ClimateVariable] | None = None
     start_date: date | None = None
     end_date: date | None = None
     aggregation: Literal["native", "daily", "yearly", "decadal"] | None = None
@@ -143,7 +148,7 @@ class ChatMessage(BaseModel):
 class FormPrefillAction(BaseModel):
     disease: str | None = None
     region: str | None = None
-    variables: list[Literal["temperature", "precipitation"]] | None = None
+    variables: list[ClimateVariable] | None = None
     start_date: str | None = None
     end_date: str | None = None
     aggregation: Literal["native", "daily", "yearly", "decadal"] | None = None

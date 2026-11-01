@@ -124,6 +124,8 @@ def compute_statistics(records: Sequence[PeriodRecord], resolution: str) -> Stat
                 "case_count": r.case_count,
                 "incidence_rate_per_100k": r.incidence_rate_per_100k,
                 "temperature_mean_c": r.temperature_mean_c,
+                "temperature_min_c": r.temperature_min_c,
+                "temperature_max_c": r.temperature_max_c,
                 "precipitation_sum_mm": r.precipitation_sum_mm,
             }
         )
@@ -147,11 +149,19 @@ def compute_statistics(records: Sequence[PeriodRecord], resolution: str) -> Stat
         max_lag = 0
 
     correlations: list[CorrelationMetric] = []
-    if "temperature_mean_c" in df.columns:
+    if "temperature_mean_c" in df.columns and df["temperature_mean_c"].dropna().count() > 0:
         correlations.extend(
             compute_lagged_correlations(df, "temperature_mean_c", target_col, "temperature", max_lag=max_lag)
         )
-    if "precipitation_sum_mm" in df.columns:
+    if "temperature_min_c" in df.columns and df["temperature_min_c"].dropna().count() > 0:
+        correlations.extend(
+            compute_lagged_correlations(df, "temperature_min_c", target_col, "temperature_min", max_lag=max_lag)
+        )
+    if "temperature_max_c" in df.columns and df["temperature_max_c"].dropna().count() > 0:
+        correlations.extend(
+            compute_lagged_correlations(df, "temperature_max_c", target_col, "temperature_max", max_lag=max_lag)
+        )
+    if "precipitation_sum_mm" in df.columns and df["precipitation_sum_mm"].dropna().count() > 0:
         correlations.extend(
             compute_lagged_correlations(df, "precipitation_sum_mm", target_col, "precipitation", max_lag=max_lag)
         )

@@ -20,7 +20,8 @@ and follow the rules in §0.
 - **Phase:** literature-based motivation + requirements derivation (after
   supervisor feedback, §3). Code changes started 2026-10-31: A17 population
   interpolation DONE (by Claude, task D spec); 2026-11-01 task B DONE (Gemini,
-  reviewed by Claude): FR-23 lag columns 1–6 + lag buffer (A1, A22). Next: Gemini C;
+  reviewed by Claude): FR-23 lag columns 1–6 + lag buffer (A1, A22); task C DONE
+  (FR-24 Tmin/Tmax, A2, backend + minimal frontend). Next:
   A16 package (Sergi); frontend follow-up for lag columns (table, CSV/JSON export).
 - **Read + translated (Georgian study PDFs in `docs_ka/motivacia/papers/`):**
   P1 Suttirat 2026 (main case study), P3 OpenDengue 2024, P4 Lowe 2021
@@ -423,7 +424,7 @@ read in full text.
 |---|---|---|---|---|
 | 1 | Retrieve data from several sources | Source discovery, OpenDengue, WHO GHO, ERA5/NASA POWER, World Bank/UN WPP, upload; NL request via Gemini | `source_discovery.py`, `case_data.py`, `climate.py`, `population.py`, `who_gho.py`, `llm.py` | ✓ |
 | 2 | Harmonise changing admin units (Bueng Kan → Nong Khai) | not supported (country level only) | — | ✗ |
-| 3 | Climate variables Tmin, Tmax, etc. | only mean temperature + precipitation | `climate.py` | ~ |
+| 3 | Climate variables Tmin, Tmax, etc. | mean temperature, precipitation and (since 2026-11-01, FR-24) Tmin/Tmax from ERA5 / NASA POWER (TMD: none); no soil moisture, vapour pressure, wind, bioclim | `climate.py` | ~ |
 | 4 | Spatial aggregation of grid to province | climate from ONE point (lat/lon) per country | `climate.py` | ✗ |
 | 5 | Lag 1–3 feature columns | lags 0–3 only as correlations in the report | `statistics.py` | ~ |
 | 6 | Bioclimatic indices | not supported | — | ✗ |
@@ -446,7 +447,7 @@ newer than 1.2; extract and build procedure undocumented. OpenDengue
 |---|---|---|---|
 | FR-new-1 | Subnational (admin-1) spatial units | P1 | open — ask supervisors |
 | FR-new-2 | Area-averaged gridded climate per region (instead of a point) | P1 | open |
-| FR-new-3 | Tmin / Tmax variables | P1 | planned (Gemini task C) |
+| FR-24 (was FR-new-3) | Tmin / Tmax variables, aggregated as mean of daily min/max | P1 (p. 5), P4 (p. e211 "monthly mean daily minimum temperature") | implemented 2026-11-01 (task C); PDF table pending (A16) |
 | FR-23 (was FR-new-4) | Lagged climate feature columns (lag 1–6) in output table, computed with a climate lag buffer before start_date | P1, P4 (p. e211) | implemented 2026-11-01 (task B); backend only, frontend display/export pending |
 | FR-17 (existing) | Incidence per 100,000 | P1 (p. 7) | justified |
 | FR-19 (existing) | Lagged correlations 0–3 | P1 (p. 7), P4 | justified |
@@ -475,6 +476,10 @@ newer than 1.2; extract and build procedure undocumented. OpenDengue
 - ✗ "The system reproduces the Suttirat dataset exactly" → false (see §5).
 - ✗ "90 seconds instead of 2 weeks" → never measured; only use measured numbers.
 - ✗ Case study with WHO GHO malaria monthly lags → GHO is annual only.
+- ✗ "Our 6-month Thailand correlation (Tmin lag 1, Tmax lag 3) confirms
+  Suttirat et al." → n = 6, p > 0.05, seasonal confounding; never use as evidence.
+- ✗ "Suttirat et al. aggregated daily Tmin/Tmax to monthly means" → they used
+  monthly TerraClimate; the mean-of-daily-minima definition is from P4 (p. e211).
 
 ---
 
@@ -546,6 +551,7 @@ check correctness by comparing both tables. Protocol:
 | 2026-10-31 | P3 (OpenDengue) fully read and translated; findings: extract / version / licence requirements, Thailand data only from 2009. |
 | 2026-10-31 | Gemini tasks prepared (`docs_ka/motivacia/gemini_tasks_02.md`): A literature, B lag columns, C Tmin/Tmax. Code tasks only after A is reviewed. |
 | 2026-11-01 | Task B (FR-23): lags are computed on the climate series fetched `max(lag_periods)` periods before start_date (buffer measured in target-resolution periods, decade = 10 years per lag), then cut back to the requested period; case/population rows never include the buffer. The series is reindexed to a complete period grid before shifting, so a missing period yields NaN instead of a silently wrong value (found in Claude review). Lag columns are dynamic fields of `PeriodRecord` (`extra="allow"`); report: `docs_ka/motivacia/B_report.md`. |
+| 2026-11-01 | Task C (FR-24): Tmin/Tmax aggregated as MEAN of daily minima/maxima — justified by P4 Lowe 2021 p. e211 ("monthly mean daily minimum temperature"); P1 Suttirat used already-monthly TerraClimate Tmin/Tmax, so do NOT write "following Suttirat's aggregation". Gemini's C_report claimed a 6-month Thailand correlation "matches Suttirat" — rejected (n = 6, p > 0.05, seasonal confounding); the example only shows that columns are produced correctly. Report: `docs_ka/motivacia/C_report.md`. |
 
 ## 11. Related files
 
