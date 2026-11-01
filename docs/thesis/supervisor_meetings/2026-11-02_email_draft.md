@@ -3,7 +3,13 @@
 > **როგორ გამოიყენო:** ქვემოთ ინგლისური ტექსტია, მის ქვეშ კი ქართული თარგმანი, რომ ზუსტად იცოდე, რას აგზავნი.
 > ინგლისური განზრახ მარტივია: მოკლე წინადადებები, ჩვეულებრივი სიტყვები. ასე შენს ლაპარაკს ემთხვევა და
 > შეხვედრაზე იგივე სიტყვებით შეგიძლია ლაპარაკი. შეცვალე, რაც შენს სტილს არ ჰგავს, და დაამატე შენი აზრები.
-> დანართად მიამაგრე `docs/thesis/entwurf/entwurf_motivation_anforderungen.pdf`.
+>
+> **დანართები (ორივე):**
+> - `docs/thesis/entwurf/entwurf_motivation_anforderungen.pdf` (გერმანული, მთავარი ვერსია)
+> - `docs/thesis/entwurf/draft_motivation_requirements_en.pdf` (ინგლისური თარგმანი)
+>
+> **სტილი:** ჯერ ზოგადი, თავაზიანი სტილია. როცა მათი წერილის მაგალითს მომწერ, მიმართვასა და დამშვიდობებას
+> მათ სტილს მოვარგებ.
 
 ---
 
@@ -19,6 +25,8 @@ After your last feedback I worked on the motivation. I read three papers in deta
 - Lowe et al. (2021), dengue in Brazil,
 - Clarke et al. (2024), the OpenDengue dataset.
 
+I chose Suttirat et al. as the main case study because it describes the data preparation in detail and uses monthly data from Thailand. I was happy to see your name among the authors, Professor Haddawy. I hope it is okay to use this paper as the main example.
+
 From the methods sections I listed all data preparation steps that the authors did before the modelling. Both modelling papers do very similar steps: getting monthly case counts, calculating incidence per 100,000, adding Tmin and Tmax, creating lagged climate variables, and in Lowe et al. also loading climate data one year before the case data starts, because of the lags. Clarke et al. write that locating, extracting, processing and standardising data takes time, and they stress that the source of every record should be traceable.
 
 I used these steps to derive requirements. For each requirement I noted the paper and the page. Some of them were missing in my system, so I implemented them:
@@ -31,7 +39,7 @@ I used these steps to derive requirements. For each requirement I noted the pape
 
 I decided not to fill missing data automatically from another source, because the sources use different case definitions (for example, OpenDengue counts all reported cases, while Suttirat et al. use only DHF). The system shows the gaps and lets the user compare sources instead.
 
-I also started writing. The attached PDF is a first draft (in German) of the introduction and the requirements chapter, with a table that links each step in the papers to a requirement. Some parts are still open and marked in red.
+I also started writing. I attached a first draft of the introduction and the requirements chapter in German, and an English translation of the same text. The draft includes a table that links each step in the papers to a requirement. Some parts are still open and marked in red.
 
 On Monday I would like to ask you mainly about these points:
 
@@ -61,6 +69,8 @@ Sergi Koniashvili
 - Lowe et al. (2021), დენგე ბრაზილიაში;
 - Clarke et al. (2024), OpenDengue-ს მონაცემთა ნაკრები.
 
+Suttirat et al. მთავარ case study-დ ავირჩიე, რადგან მონაცემების მომზადებას დეტალურად აღწერს და ტაილანდის თვიურ მონაცემებს იყენებს. გამიხარდა, როცა ავტორებს შორის თქვენი სახელი დავინახე, პროფესორო ჰადავი. იმედი მაქვს, ამ სტატიის მთავარ მაგალითად გამოყენება მისაღებია.
+
 მეთოდების ნაწილებიდან ამოვწერე მონაცემთა მომზადების ყველა ნაბიჯი, რაც ავტორებმა მოდელირებამდე გააკეთეს. ორივე მოდელირების სტატია ძალიან მსგავს ნაბიჯებს აკეთებს: თვიური შემთხვევების მოპოვება, ინციდენტობის გამოთვლა 100 000-ზე, Tmin-ისა და Tmax-ის დამატება, დაგვიანებული (lag) კლიმატის ცვლადების შექმნა. Lowe et al. ამას გარდა კლიმატის მონაცემებს შემთხვევების დაწყებამდე ერთი წლით ადრეც იღებენ, lag-ების გამო. Clarke et al. წერენ, რომ მონაცემების მოძიება, ამოღება, დამუშავება და სტანდარტიზაცია დროს მოითხოვს, და ხაზს უსვამენ, რომ ყოველი ჩანაწერის წყარო მიკვლევადი უნდა იყოს.
 
 ამ ნაბიჯებიდან მოთხოვნები გამოვიყვანე. ყოველ მოთხოვნას სტატია და გვერდი მივუწერე. ზოგი მათგანი ჩემს სისტემას აკლდა, ამიტომ დავნერგე:
@@ -73,7 +83,7 @@ Sergi Koniashvili
 
 გადავწყვიტე, რომ გამოტოვებული მონაცემები სხვა წყაროდან ავტომატურად არ შევავსო, რადგან წყაროები შემთხვევის სხვადასხვა განსაზღვრებას იყენებენ (მაგ. OpenDengue ყველა რეგისტრირებულ შემთხვევას ითვლის, Suttirat et al. კი მხოლოდ DHF-ს). სისტემა ხარვეზებს აჩვენებს და მომხმარებელს წყაროების შედარების საშუალებას აძლევს.
 
-წერაც დავიწყე. თანდართული PDF შესავლისა და მოთხოვნების თავის პირველი მონახაზია (გერმანულად), ცხრილით, რომელიც სტატიების თითოეულ ნაბიჯს მოთხოვნას უკავშირებს. ზოგი ნაწილი ჯერ ღიაა და წითლად არის მონიშნული.
+წერაც დავიწყე. თან ვურთავ შესავლისა და მოთხოვნების თავის პირველ მონახაზს გერმანულად და იმავე ტექსტის ინგლისურ თარგმანს. მონახაზში არის ცხრილი, რომელიც სტატიების თითოეულ ნაბიჯს მოთხოვნას უკავშირებს. ზოგი ნაწილი ჯერ ღიაა და წითლად არის მონიშნული.
 
 ორშაბათს ძირითადად ამ საკითხებზე მინდა გკითხოთ:
 
@@ -86,3 +96,14 @@ Sergi Koniashvili
 
 პატივისცემით,
 სერგი კონიაშვილი
+
+---
+
+## თუ შეხვედრაზე Haddawy-ის თანაავტორობაზე გკითხეს (წერილში არ დაწერო)
+
+სტატიის ავტორთა წვლილის მიხედვით Haddawy-ის წვლილია „Writing – review & editing“; მონაცემების მომზადება სხვა
+ავტორებმა გააკეთეს (KB §2). შეგიძლია თქვა:
+
+*I describe only what is written in the methods section, so the analysis is independent.*
+
+(მხოლოდ იმას ვაღწერ, რაც მეთოდების ნაწილში წერია, ამიტომ ანალიზი დამოუკიდებელია.)
