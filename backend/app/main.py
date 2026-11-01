@@ -43,9 +43,12 @@ from app.models import (
     IntegrationResponse,
     ParsedRequest,
     StatisticalSummary,
+    SourceComparisonRequest,
+    SourceComparisonResponse,
 )
 from app.services import cache
 from app.services.chat import process_chat
+from app.services.source_comparison import compare_sources
 from app.services.etl import run_integration
 from app.services.llm import (
     explain_data_transformation,
@@ -232,7 +235,7 @@ def search_population_sources_endpoint(region: str, query: str = ""):
     return search_population_sources(REGIONS[region]["label"], query)
 
 
-def _validate_common(req: IntegrationRequest) -> None:
+def _validate_common(req: IntegrationRequest | SourceComparisonRequest) -> None:
     if req.region not in REGIONS:
         raise HTTPException(400, f"Region '{req.region}' is not available in this demo yet.")
     if req.disease not in DISEASES:
@@ -647,6 +650,37 @@ async def integrate_with_upload(
         statistical_summary=stat_summary,
         data_coverage=coverage_data,
     )
+
+
+@app.post("/api/compare-sources", response_model=SourceComparisonResponse)
+def compare_data_sources(req: SourceComparisonRequest):
+    """Compares two data sources over their temporal overlap (FR-27, A19).
+    Never mutates the main dataset or cache."""
+    _validate_common(req)
+    # Uploaded files are not stored on the server, so a comparison cannot
+    # re-run an integration that used one; say so instead of failing with 502.
+    uploaded = [
+        name for name, value in (
+            ("climate", req.climate_source),
+            ("case", req.case_data_source),
+            ("population", req.population_source),
+        )
+        if value == "custom_upload"
+    ]
+    if uploaded:
+        raise HTTPException(
+            400,
+            "Source comparison is not available for uploaded files "
+            f"({', '.join(uploaded)} data): uploads are not stored on the server.",
+        )
+    try:
+        return compare_sources(req)
+    except ConfigurationError as exc:
+        raise HTTPException(503, str(exc)) from exc
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(502, str(exc)) from exc
+    except requests.exceptions.RequestException as exc:
+        raise HTTPException(502, f"Could not reach an upstream data source: {exc}") from exc
 
 
 # Serve the built Flutter web app (if present) so a single deployed

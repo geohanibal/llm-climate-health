@@ -42,12 +42,12 @@ lib/
   main.dart, app.dart      entry point, MaterialApp shell
   pages/home_page.dart     top-level page: loads options, hosts form + results
   widgets/                 one file per UI section (form, natural-language
-                            card, results, chart, table, sources, data_coverage_card, ...)
+                            card, results, chart, table, sources, data_coverage_card, source_comparison_dialog, ...)
   services/                api_client.dart (HTTP), PDF/CSV export, world-map
                             GeoJSON loading
   models/                  plain data classes mirroring the backend's JSON;
                             export_metadata.dart builds the provenance block and coverage metrics
-                            written with every CSV/JSON export (FR-25, FR-26)
+                            written with every CSV/JSON export (FR-25, FR-26); source_comparison.dart (FR-27)
   core/                    responsive layout + formatting helpers
 test/                      model round-trip tests + a smoke test
 ```

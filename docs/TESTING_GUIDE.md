@@ -68,8 +68,8 @@ pytest -m "not network"       # fast, fully offline — what CI would run
 pytest                        # everything, including one live Open-Meteo call
 ```
 
-Expected result: `pytest -m "not network"` reports **152 passed**; the full
-`pytest` run reports **153 passed** (the extra one is
+Expected result: `pytest -m "not network"` reports **174 passed**; the full
+`pytest` run reports **175 passed** (the extra one is
 `test_integrate_end_to_end_dengue_thailand`, which needs internet access to
 reach the real Open-Meteo API — it's the only test in the suite that does).
 
@@ -82,14 +82,14 @@ flutter test
 flutter analyze
 ```
 
-Expected result: `flutter test` reports **72 passed**, `flutter
+Expected result: `flutter test` reports **85 passed**, `flutter
 analyze` reports no errors in application code.
 
 ### What's covered
 
 - **Backend**: every endpoint (`/api/health`, `/api/options`,
   `/api/parse-request`, `/api/integrate`, `/api/integrate/upload`,
-  `/api/search-case-sources`), every validation branch (unknown
+  `/api/search-case-sources`, `/api/compare-sources`), every validation branch (unknown
   disease/region, invalid date range, future end date, climate-source/region
   mismatch, missing custom-source fields), the full case-data pipeline (all
   four sources: builtin CSV, custom URL, custom upload, WHO GHO), climate
@@ -99,7 +99,7 @@ analyze` reports no errors in application code.
   the available years, missing middle year interpolated), climate feature
   lag generation (lags 1..6, column naming `<variable>_lag<k>`, lag buffer
   prior to `start_date` ensuring no initial-row data loss per Lowe et al. 2021,
-  and rejection of invalid lag values), the lagged-correlation
+  and rejection of invalid lag values), deterministic data coverage & gap detection (FR-26), alternative source comparison (FR-27: Pearson r, mean difference, MAD, rel MAD%, seasonal cycle note, resolution mismatch check), the lagged-correlation
   significance rule (at least 10 pairs and Pearson AND Spearman p < 0.05;
   regression test for 3-pair samples where Spearman p = 0.0), the in-memory cache, and the Gemini-backed parsing/
   explanation logic (both success and graceful-fallback paths).
@@ -109,7 +109,7 @@ analyze` reports no errors in application code.
   its multipart file-upload path and error handling), and the CSV/JSON/PDF
   export logic, including the provenance metadata (FR-25: JSON
   `{metadata, data}`, CSV plus separate `_metadata.json`, licences, system
-  version, covered case period) and lag columns in the CSV.
+  version, covered case period), lag columns in the CSV, the data completeness card (FR-26), and the alternative source comparison dialog with sparklines (FR-27).
 
 ## 4. Manual walkthrough
 
@@ -208,6 +208,20 @@ order — it touches every major feature.
       to 2010-12 in the form without auto-submitting).
     - The exported metadata JSON and PDF report contain the `data_coverage` breakdown.
 
+14. **Alternative source comparison (FR-27 / A19).** After running an integration
+    (e.g. Thailand Dengue with Open-Meteo ERA5), click the `Compare sources`
+    button next to the download bar:
+    - In the dialog, select an alternative climate source (e.g. NASA POWER MERRA-2).
+    - Click `Compare`. The backend runs deterministic integration for both sources
+      bypassing LLM generation.
+    - Inspect the side-by-side metrics: Pearson correlation coefficient r,
+      mean difference, Mean Absolute Difference (MAD), and relative MAD%.
+    - Observe the verdict chip (e.g. "Very similar" or "Similar") and the
+      scientific seasonal cycle note explaining that high correlation is partly
+      due to the shared annual cycle.
+    - Review the sparkline overlay showing both normalized series together.
+
+
 ## 5. Configuration reference
 
 | Variable | Required? | Effect if unset |
@@ -236,6 +250,7 @@ curl -X POST "$BASE/api/integrate" \
 
 ## 7. Known limitations (by design, not oversights)
 
+- **No automatic gap filling (A20)** — the platform detects data gaps and suggests alternative sources (FR-26), but deliberately never merges or interpolates missing values from a secondary source automatically. As discussed in Clarke et al. 2024, different sources often use incompatible case definitions (e.g. all suspected dengue cases vs. confirmed/DHF cases) or temporal resolutions (annual vs. monthly). Merging them silently would create artificial jumps and violate dataset transparency (NFR-01/FR-18).
 - **TMD's demo credential tier only returns the current year** — a
   registered (non-demo) account may unlock historical years, but that's
   unverified without one; see `backend/app/services/tmd.py`'s module

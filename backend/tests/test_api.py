@@ -337,3 +337,66 @@ def test_integrate_cache_hit_preserves_data_coverage(mock_climate):
     assert body2["cached"] is True
     assert body2["data_coverage"] == body1["data_coverage"]
 
+
+@patch("app.services.etl.fetch_climate")
+def test_compare_sources_climate_endpoint(mock_climate):
+    def fake_fetch_climate(*args, **kwargs):
+        return pd.DataFrame({
+            "period": ["2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06"],
+            "temperature_2m_mean": [25.0, 26.0, 27.0, 28.0, 29.0, 30.0],
+            "precipitation_sum": [10.0, 15.0, 20.0, 25.0, 30.0, 35.0],
+        })
+    mock_climate.side_effect = fake_fetch_climate
+
+    payload = {
+        "region": "Thailand",
+        "disease": "dengue",
+        "start_date": "2020-01-01",
+        "end_date": "2020-06-30",
+        "aggregation": "native",
+        "compare_kind": "climate",
+        "climate_source": "open-meteo-era5",
+        "alternative_climate_source": "nasa-power",
+    }
+    resp = client.post("/api/compare-sources", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["compare_kind"] == "climate"
+    assert "Open-Meteo" in data["source_a_label"]
+    assert "NASA POWER" in data["source_b_label"]
+    assert len(data["variables"]) >= 1
+    temp_comp = next((c for c in data["variables"] if "temperature" in c["variable"].lower()), None)
+    assert temp_comp is not None
+    assert temp_comp["verdict"] == "very_similar"
+    assert temp_comp["pearson_r"] == 1.0
+
+
+def test_compare_sources_rejects_unknown_region():
+    payload = {
+        "region": "Atlantis",
+        "disease": "dengue",
+        "start_date": "2020-01-01",
+        "end_date": "2020-06-30",
+        "aggregation": "native",
+        "compare_kind": "climate",
+        "climate_source": "open-meteo-era5",
+        "alternative_climate_source": "nasa-power",
+    }
+    resp = client.post("/api/compare-sources", json=payload)
+    assert resp.status_code == 400
+
+
+
+def test_compare_sources_rejects_uploaded_sources():
+    """Uploads are not stored server-side, so comparison must answer 400 clearly."""
+    payload = {
+        "region": "Thailand",
+        "disease": "dengue",
+        "start_date": "2020-01-01",
+        "end_date": "2020-06-30",
+        "case_data_source": "custom_upload",
+        "compare_kind": "climate",
+    }
+    resp = client.post("/api/compare-sources", json=payload)
+    assert resp.status_code == 400
+    assert "uploaded files" in resp.json()["detail"]

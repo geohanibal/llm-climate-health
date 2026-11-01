@@ -42,6 +42,7 @@ once real credentials are available (see that file's module docstring).
 | POST   | `/api/extract-literature`       | AI-based metadata extraction from uploaded paper PDFs or URLs    |
 | GET    | `/api/search-case-sources`      | Real-time search of official WHO GHO indicators and HDX datasets |
 | GET    | `/api/search-population-sources`| Real-time search of World Bank indicators and HDX demographics   |
+| POST   | `/api/compare-sources`          | Empirical comparison of two sources over overlapping periods (FR-27) |
 
 ## Request Options (`/api/integrate`)
 
@@ -69,6 +70,18 @@ period, and deterministic reasons (`outside_source_coverage`, `gaps_inside_sourc
 periods from the analysis. In accordance with A20, the backend never fills gaps
 with synthetic values.
 
+## Source Comparison (FR-27 / A19)
+
+`POST /api/compare-sources` compares two sources over their overlapping period
+(e.g., Open-Meteo ERA5 vs. NASA POWER MERRA-2 for climate, or builtin vs. custom_url
+for cases). It computes bivariate metrics for each base variable (Pearson $r$,
+formatted $p$-value, mean difference $B - A$, MAD, relative MAD%), returns deterministic
+heuristic verdicts (`very_similar`, `similar`, `clearly_different`, `too_few_points`),
+and surfaces domain notes on the shared seasonal cycle (climate) and case definition
+differences (cases; Clarke et al. 2024). It runs `run_integration` directly with
+`lag_periods=[]`, bypassing LLM generation for speed and preserving zero Gemini quota usage.
+The primary integrated dataset and cache remain completely unmodified.
+
 ## Tests
 
 ```bash
@@ -89,6 +102,7 @@ app/
   services/
     etl.py             orchestrates one integration run
     coverage.py        data coverage and gap detection (FR-26)
+    source_comparison.py  two-source comparison engine (FR-27)
     climate.py         Open-Meteo / NASA POWER clients
     case_data.py       builtin CSV + custom URL/upload case data
     lags.py            climate feature lag computation and lag buffer

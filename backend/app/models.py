@@ -218,3 +218,59 @@ class ChatResponse(BaseModel):
     suggested_action: FormPrefillAction | None = None
     suggested_prompts: list[str] = Field(default_factory=list)
 
+
+class SourceComparisonRequest(BaseModel):
+    disease: str = Field(examples=["dengue"])
+    region: str = Field(examples=["Thailand"])
+    variables: list[ClimateVariable] = Field(default=["temperature", "precipitation"])
+    start_date: date
+    end_date: date
+    aggregation: Literal["native", "daily", "yearly", "decadal"] = "native"
+    climate_source: Literal["open-meteo-era5", "nasa-power", "tmd", "custom_upload"] = "open-meteo-era5"
+    case_data_source: Literal["builtin", "custom_url", "custom_upload", "who_gho"] = "builtin"
+    population_source: Literal["worldbank", "un_wpp", "worldbank_indicator", "custom_url", "custom_upload"] = "worldbank"
+    custom_source_url: str | None = None
+    who_indicator_code: str | None = None
+    who_indicator_name: str | None = None
+    custom_population_url: str | None = None
+    population_indicator_code: str | None = None
+    population_indicator_name: str | None = None
+    compare_kind: Literal["climate", "cases"] = "climate"
+    alternative_climate_source: Literal["open-meteo-era5", "nasa-power", "tmd"] | None = "nasa-power"
+    alternative_case_data_source: Literal["builtin", "custom_url", "who_gho"] | None = None
+    alternative_custom_source_url: str | None = None
+    alternative_who_indicator_code: str | None = None
+    alternative_who_indicator_name: str | None = None
+
+
+class SeriesPoint(BaseModel):
+    period: str
+    value: float | None = None
+
+
+class VariableComparison(BaseModel):
+    variable: str
+    overlap_periods: int
+    pearson_r: float | None = None
+    p_value: float | None = None
+    formatted_p_value: str | None = None
+    mean_difference: float | None = None
+    mean_absolute_difference: float | None = None
+    relative_mean_absolute_difference_percent: float | None = None
+    verdict: str
+    verdict_explanation: str
+    too_few_points: bool = False
+    series_a: list[SeriesPoint] = Field(default_factory=list)
+    series_b: list[SeriesPoint] = Field(default_factory=list)
+
+
+class SourceComparisonResponse(BaseModel):
+    compare_kind: str
+    source_a_label: str
+    source_b_label: str
+    resolution: str
+    variables: list[VariableComparison] = Field(default_factory=list)
+    methodology_note: str
+    resolution_mismatch: bool = False
+    resolution_mismatch_message: str | None = None
+

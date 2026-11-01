@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../core/localization.dart';
 import '../models/integration_result.dart';
 import 'case_chart_card.dart';
 import 'data_audit_card.dart';
@@ -15,6 +16,7 @@ import 'explanation_card.dart';
 import 'kpi_summary_card.dart';
 import 'pipeline_steps_card.dart';
 import 'report_download_bar.dart';
+import 'source_comparison_dialog.dart';
 import 'sources_card.dart';
 import 'statistical_summary_card.dart';
 
@@ -39,7 +41,26 @@ class ResultsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ReportDownloadBar(result: result),
+        Wrap(
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              key: const Key('compare_sources_button'),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => SourceComparisonDialog(result: result),
+                );
+              },
+              icon: const Icon(Icons.compare_arrows, size: 18),
+              label: Text(I18n.t('compareSources')),
+            ),
+            ReportDownloadBar(result: result),
+          ],
+        ),
         if (result.transformationAudit != null) ...[
           const SizedBox(height: 12),
           DataAuditCard(audit: result.transformationAudit!),

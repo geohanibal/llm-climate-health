@@ -12,6 +12,7 @@ import 'package:climate_health_frontend/models/integration_result.dart';
 import 'package:climate_health_frontend/models/parsed_request.dart';
 import 'package:climate_health_frontend/models/platform_options.dart';
 import 'package:climate_health_frontend/models/period_record.dart';
+import 'package:climate_health_frontend/models/source_comparison.dart';
 
 void main() {
   group('DiseaseInfo.fromEntry', () {
@@ -408,6 +409,85 @@ void main() {
       expect(encoded['column'], 'case_count');
       expect(encoded['missing_count'], 48);
       expect(encoded['reason'], 'outside_source_coverage');
+    });
+  });
+
+  group('SourceComparison models (FR-27)', () {
+    test('decodes SourceComparisonResponse from JSON', () {
+      final json = {
+        'compare_kind': 'climate',
+        'source_a_label': 'Open-Meteo ERA5',
+        'source_b_label': 'NASA POWER',
+        'resolution': 'month',
+        'variables': [
+          {
+            'variable': 'Mean temperature (°C)',
+            'overlap_periods': 12,
+            'pearson_r': 0.98,
+            'p_value': 0.00001,
+            'formatted_p_value': 'p<0.001',
+            'mean_difference': 0.45,
+            'mean_absolute_difference': 0.52,
+            'relative_mean_absolute_difference_percent': 2.1,
+            'verdict': 'very_similar',
+            'verdict_explanation': 'Very strong agreement.',
+            'too_few_points': false,
+            'series_a': [
+              {'period': '2020-01', 'value': 25.5},
+              {'period': '2020-02', 'value': 26.8},
+            ],
+            'series_b': [
+              {'period': '2020-01', 'value': 26.0},
+              {'period': '2020-02', 'value': 27.2},
+            ],
+          }
+        ],
+        'methodology_note': 'Rule of thumb, not a statistical test.',
+        'resolution_mismatch': false,
+        'resolution_mismatch_message': null,
+      };
+
+      final resp = SourceComparisonResponse.fromJson(json);
+      expect(resp.compareKind, 'climate');
+      expect(resp.sourceALabel, 'Open-Meteo ERA5');
+      expect(resp.sourceBLabel, 'NASA POWER');
+      expect(resp.resolution, 'month');
+      expect(resp.variables, hasLength(1));
+
+      final v = resp.variables.first;
+      expect(v.variable, 'Mean temperature (°C)');
+      expect(v.overlapPeriods, 12);
+      expect(v.pearsonR, 0.98);
+      expect(v.formattedPValue, 'p<0.001');
+      expect(v.meanDifference, 0.45);
+      expect(v.relativeMeanAbsoluteDifferencePercent, 2.1);
+      expect(v.verdict, 'very_similar');
+      expect(v.verdictExplanation, 'Very strong agreement.');
+      expect(v.tooFewPoints, false);
+      expect(v.seriesA, hasLength(2));
+      expect(v.seriesA[0].period, '2020-01');
+      expect(v.seriesA[0].value, 25.5);
+      expect(v.seriesB, hasLength(2));
+    });
+
+    test('serializes SourceComparisonRequest to JSON', () {
+      final req = SourceComparisonRequest(
+        disease: 'dengue',
+        region: 'Thailand',
+        variables: ['temperature', 'precipitation'],
+        startDate: '2020-01-01',
+        endDate: '2020-12-31',
+        aggregation: 'native',
+        climateSource: 'open-meteo-era5',
+        alternativeClimateSource: 'nasa-power',
+      );
+      final json = req.toJson();
+      expect(json['disease'], 'dengue');
+      expect(json['region'], 'Thailand');
+      expect(json['start_date'], '2020-01-01');
+      expect(json['end_date'], '2020-12-31');
+      expect(json['climate_source'], 'open-meteo-era5');
+      expect(json['alternative_climate_source'], 'nasa-power');
     });
   });
 }

@@ -15,6 +15,7 @@ import '../models/integration_result.dart';
 import '../models/literature_item.dart';
 import '../models/parsed_request.dart';
 import '../models/platform_options.dart';
+import '../models/source_comparison.dart';
 
 /// Base URL of the FastAPI backend. Overridable at build time with
 /// `--dart-define=BACKEND_URL=https://your-deployment` for production
@@ -236,6 +237,20 @@ class ApiClient {
     final response = await http.Response.fromStream(streamed);
     _throwIfNotOk(response);
     return LiteratureExtractionResult.fromJson(_decodeJsonObject(response));
+  }
+
+  /// Compares two data sources (FR-27 / A19) over their temporal overlap.
+  Future<SourceComparisonResponse> compareSources(
+    SourceComparisonRequest req,
+  ) async {
+    final uri = Uri.parse('$backendBaseUrl/api/compare-sources');
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(req.toJson()),
+    );
+    _throwIfNotOk(response);
+    return SourceComparisonResponse.fromJson(_decodeJsonObject(response));
   }
 
   String _formatDate(DateTime d) =>
