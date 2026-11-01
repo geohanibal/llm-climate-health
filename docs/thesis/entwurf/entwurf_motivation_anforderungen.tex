@@ -1,0 +1,300 @@
+% Entwurf: Kapitel 1 (Einleitung/Motivation) und Kapitel 3 (Anforderungsanalyse)
+% Bachelorarbeit Sergi Koniashvili, Universität Bremen
+% Stand: 2026-11-01 — Diskussionsgrundlage für die Besprechung am 2026-11-02.
+% Fakten ausschließlich aus docs/thesis/THESIS_KNOWLEDGE_BASE.md (VERIFIED).
+% Nicht belegte Stellen sind mit [TODO] markiert.
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage[ngerman]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{csquotes}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\todo}[1]{\textcolor{red!70!black}{[TODO: #1]}}
+\newcommand{\frage}[1]{\par\smallskip\noindent\colorbox{blue!8}{\parbox{\dimexpr\linewidth-2\fboxsep}{\small\textbf{Frage an die Betreuer:} #1}}\par\smallskip}
+
+\title{Entwurf: Motivation und literaturbasierte Anforderungsanalyse\\[0.3em]
+\large LLM-gestützte Integration von Klima- und Gesundheitsdaten}
+\author{Sergi Koniashvili\\ Bachelorarbeit Informatik, Universität Bremen}
+\date{Stand: 1.~November 2026 -- Diskussionsgrundlage}
+
+\begin{document}
+\maketitle
+
+\noindent\textit{Hinweis:} Dieser Entwurf zeigt den geplanten Aufbau sowie erste
+Fassungen von Kapitel~1 und Kapitel~3. Rot markierte Stellen sind noch nicht
+belegt bzw.\ offen. Zitierstil vorläufig Autor-Jahr (siehe Frage in
+Abschnitt~\ref{sec:fragen}).
+
+\section*{Geplante Gliederung der Arbeit}
+\begin{enumerate}[nosep]
+  \item Einleitung (Motivation, Problemstellung, Zielsetzung, Aufbau)
+  \item Grundlagen (Klima und vektorübertragene Krankheiten; Datenquellen:
+        Fallzahlen, Reanalyse-Klimadaten, Bevölkerung; ETL; LLMs)
+  \item Anforderungsanalyse (Ableitung aus Beispielpublikationen)
+  \item Verwandte Arbeiten und Werkzeuge \todo{Werkzeuge aus offizieller Dokumentation prüfen}
+  \item Konzept und Architektur
+  \item Implementierung
+  \item Evaluation (Fallstudien CS1--CS3)
+  \item Diskussion, Grenzen und Ausblick
+  \item Fazit
+\end{enumerate}
+
+% ---------------------------------------------------------------------------
+\section{Einleitung}
+
+\subsection{Motivation}
+
+Die Wechselwirkung zwischen Klima und vektorübertragenen Krankheiten wie Dengue
+wird zunehmend mit datenbasierten Modellen untersucht. Ein aktuelles Beispiel
+ist die Studie von Suttirat et al.\ (2026), die monatliche Fallzahlen des
+Dengue-hämorrhagischen Fiebers (DHF) für 77 Provinzen Thailands über 20 Jahre
+(2003--2022) mit Klima-, Fernerkundungs- und sozioökonomischen Daten verknüpft
+und mit XGBoost und SHAP analysiert (S.~5--8). Lowe et al.\ (2021) untersuchen
+auf ähnliche Weise den Einfluss hydrometeorologischer Extreme und der
+Urbanisierung auf das Dengue-Risiko in 558 Mikroregionen Brasiliens
+(S.~e211--e212).
+
+Beiden Studien ist gemeinsam, dass vor der eigentlichen Modellierung eine
+umfangreiche Datenvorbereitung steht. Suttirat et al.\ beschreiben diese
+Schritte wie folgt:
+
+\begin{quote}
+\enquote{Gridded climatic and remote-sensing data were spatially aggregated to
+the provincial level; lagged variables and bioclimatic indices were then derived
+from monthly provincial temperature and precipitation series. Socioeconomic data
+were obtained directly at the provincial level: the biennially reported household
+income series was linearly interpolated to fill missing years, and all
+socioeconomic series were then upsampled to monthly resolution by assigning each
+year's reported value (typically released at year-end) to every month of that
+year.} (Suttirat et al., 2026, S.~4)
+\end{quote}
+
+Diese Schritte sind nicht spezifisch für eine einzelne Studie. Lowe et al.\
+(2021) führen weitgehend dieselben Schritte durch: Sie beziehen monatliche
+Fallzahlen aus dem nationalen Meldesystem, berechnen mit jährlichen
+Bevölkerungsschätzungen die Inzidenz pro 100\,000 Einwohner, aggregieren
+gerasterte Klimadaten (Tmin, Tmax, PDSI) flächengewichtet auf die
+Untersuchungseinheiten und laden Klimadaten für ein zusätzliches Jahr vor der
+ersten Fallbeobachtung, \enquote{to allow for a lag period before the first
+dengue observation in January, 2001} (S.~e211). Auch Suttirat et al.\ erzeugen
+zeitverzögerte Variablen (Lags von 1--3 Monaten) für alle Klima- und
+Fernerkundungsvariablen (S.~7). Tabelle~\ref{tab:schritte} stellt die Schritte
+beider Studien gegenüber.
+
+Die Daten selbst sind oft öffentlich verfügbar, aber nicht unmittelbar
+analysebereit. Lowe et al.\ nutzen ausschließlich offene Daten (S.~e218), jedoch
+aus fünf heterogenen Quellen mit unterschiedlichen Formaten und Auflösungen
+(monatlich, jährlich, statisch, 0,5°-Raster); die Zusammenstellung der Datenbank
+wird in den Autorenbeiträgen als eigene Aufgabe genannt (S.~e218). Für die
+Gesundheitsdaten halten Clarke et al.\ (2024) bei der Beschreibung des
+OpenDengue-Datensatzes fest:
+
+\begin{quote}
+\enquote{Dengue case data exists in multiple formats from a wide variety of
+sources that require various processing methodologies. [\ldots] Locating,
+extracting, processing and standardising data all takes time but is essential to
+enable reuse and re-analysis.} (Clarke et al., 2024, S.~2)
+\end{quote}
+
+OpenDengue löst damit die Sammlung der Fallzahlen. Die Verknüpfung mit
+Klimadaten, die Clarke et al.\ als einen Anwendungsfall nennen (S.~1, 9),
+bleibt jedoch Aufgabe der Forschenden.
+
+Schließlich setzt dieser Arbeitsablauf Programmierkenntnisse voraus: Suttirat
+et al.\ führten die Datenaufbereitung mit Python (pandas) durch und berechneten
+bioklimatische Indikatoren mit dem R-Paket \texttt{dismo} (S.~5, 8). Für
+Forschende ohne Programmierkenntnisse, etwa im Bereich Public Health, stellt
+dies eine Hürde dar \todo{Quelle zu fehlenden Programmier-/Data-Science-Kenntnissen im Public-Health-Bereich}.
+Bestehende Werkzeuge decken diese Schritte nur teilweise ab
+\todo{Verwandte Arbeiten: Copernicus CDS, Google Earth Engine, DHIS2 Climate \& Health, IRI ENACTS -- jeweils aus offizieller Dokumentation belegen}.
+
+\subsection{Problemstellung und Zielsetzung}
+
+Ziel dieser Arbeit ist ein System, das Forschenden die der Modellierung
+vorgelagerte Datenvorbereitung abnimmt -- Quellensuche, Bereinigung,
+Harmonisierung, Zusammenführung und Dokumentation --, und zwar ohne
+Programmierkenntnisse und nachvollziehbar, sodass sie sich auf das eigentliche
+Modell konzentrieren können. Die Forschenden beschreiben den benötigten
+Datensatz (Krankheit, Region, Zeitraum, Klimavariablen) in einem Formular oder
+in natürlicher Sprache; ein Large Language Model (LLM) überführt die Anfrage in
+eine strukturierte Integrationsanfrage. Das System wählt geeignete Quellen,
+führt die Daten zu einer analysebereiten Tabelle zusammen, berechnet abgeleitete
+Größen (Inzidenz, zeitverzögerte Variablen) und protokolliert jeden Schritt.
+
+Das System ist ausdrücklich \emph{kein} Vorhersagemodell: Es bereitet
+Eingangsdaten für nachgelagerte datenbasierte Modelle vor. Ob es den manuellen
+Aufwand tatsächlich reduziert, wird in der Evaluation gemessen
+(Kapitel~7, Fallstudie CS1: derselbe Zieldatensatz wird manuell mit
+Python/pandas und mit dem System erstellt; erfasst werden Zeit, Anzahl manueller
+Schritte und Übereinstimmung der Ergebnisse).
+
+\subsection{Aufbau der Arbeit}
+\todo{nach Festlegung der Gliederung ausformulieren}
+
+% ---------------------------------------------------------------------------
+\setcounter{section}{2}
+\section{Anforderungsanalyse}
+
+\subsection{Vorgehen}
+
+Die Anforderungen werden aus Beispielpublikationen der datenbasierten
+Klima-Gesundheits-Modellierung abgeleitet. Für jede Publikation werden die vor
+der Modellierung durchgeführten Datenvorbereitungsschritte aus dem Methodenteil
+extrahiert. Jeder Schritt, der für die Bereitstellung eines analysebereiten
+Datensatzes notwendig ist, wird in eine Anforderung überführt oder begründet
+ausgeschlossen (Abgrenzung). Die Zuordnung Schritt $\rightarrow$ Publikation
+(mit Seitenangabe) $\rightarrow$ Anforderung wird in einer Traceability-Matrix
+festgehalten (Tabelle~\ref{tab:trace}).
+
+Grundlage sind derzeit drei Publikationen:
+\begin{itemize}[nosep]
+  \item \textbf{Suttirat et al.\ (2026)}: Dengue, Thailand, 77 Provinzen,
+        2003--2022, XGBoost/SHAP -- Hauptfallstudie;
+  \item \textbf{Lowe et al.\ (2021)}: Dengue, Brasilien, 558 Mikroregionen,
+        2001--2019, bayesianisches hierarchisches Modell -- zeigt, dass die
+        Schritte typisch sind;
+  \item \textbf{Clarke et al.\ (2024)}: OpenDengue-Datensatz (Data Descriptor) --
+        Anforderungen an Herkunft, Version und Vergleichbarkeit der Fallzahlen.
+\end{itemize}
+
+\subsection{Datenvorbereitungsschritte in den Beispielpublikationen}
+
+\begin{longtable}{@{}p{0.27\linewidth}p{0.33\linewidth}p{0.33\linewidth}@{}}
+\caption{Datenvorbereitung vor der Modellierung (Auszug)}\label{tab:schritte}\\
+\toprule
+Schritt & Suttirat et al.\ (2026) & Lowe et al.\ (2021) \\
+\midrule
+\endfirsthead
+\toprule
+Schritt & Suttirat et al.\ (2026) & Lowe et al.\ (2021) \\
+\midrule
+\endhead
+Fallzahlen beziehen & monatliche DHF-Fälle, Bureau of Epidemiology (S.~5) &
+  monatliche Meldefälle, SINAN/DATASUS (S.~e211) \\
+Verwaltungseinheiten harmonisieren & Bueng Kan in Nong Khai zusammengeführt (S.~5) & -- \\
+Klimavariablen beziehen & TerraClimate: u.\,a.\ Niederschlag, Tmin, Tmax (S.~5) &
+  CRU TS 4.04: Tmin, Tmax, PDSI (S.~e211) \\
+Räumliche Aggregation & Raster auf Provinzebene gemittelt, Methode nicht angegeben (S.~5) &
+  flächengewichtetes Mittel mit \texttt{exactextractr} (S.~e211) \\
+Zeitverzögerte Variablen & Lags 1--3 Monate (S.~7) & Lags 0--6 Monate (DLNM, S.~e212) \\
+Puffer für Lags & -- & Klimadaten ein Jahr vor Beginn der Fallreihe (S.~e211) \\
+Inzidenz pro 100\,000 & ja (S.~7) & ja, mit jährlicher Bevölkerung (S.~e211) \\
+Jahreswerte $\rightarrow$ Monate & Jahreswert jedem Monat zugeordnet (S.~4--5) &
+  nicht beschrieben \\
+Fehlende Jahre auffüllen & Haushaltseinkommen linear interpoliert (S.~5) & -- \\
+Abgeleitete Indizes & 19 bioklimatische Indikatoren (\texttt{dismo}, S.~5) & -- \\
+Werkzeuge & Python/pandas, R (S.~5, 8) & R, \texttt{exactextractr}, R-INLA (S.~e211--e212) \\
+\bottomrule
+\end{longtable}
+
+\subsection{Abgeleitete Anforderungen (Traceability-Matrix)}
+
+\begin{longtable}{@{}p{0.27\linewidth}p{0.22\linewidth}p{0.33\linewidth}p{0.1\linewidth}@{}}
+\caption{Zuordnung Schritt $\rightarrow$ Publikation $\rightarrow$ Anforderung}\label{tab:trace}\\
+\toprule
+Schritt / Beobachtung & Beleg & Anforderung & Status \\
+\midrule
+\endfirsthead
+\toprule
+Schritt / Beobachtung & Beleg & Anforderung & Status \\
+\midrule
+\endhead
+Inzidenz pro 100\,000 als Zielgröße & Suttirat S.~7; Lowe S.~e211 &
+  FR-17: Bevölkerungsdaten anbinden, jährliche Werte auf Monate interpolieren, Inzidenz berechnen & umgesetzt \\
+Zeitverzögerte Klimavariablen & Suttirat S.~7 (1--3); Lowe S.~e212 (0--6) &
+  FR-23: Lag-Spalten 1--6 im Datensatz & umgesetzt \\
+Klimadaten vor Beginn der Fallreihe & Lowe S.~e211 &
+  FR-23: Lag-Puffer, damit keine Anfangszeilen verloren gehen & umgesetzt \\
+Tmin/Tmax statt nur Mitteltemperatur & Suttirat S.~5; Lowe S.~e211 &
+  FR-24: Tmin/Tmax als Mittel der täglichen Minima/Maxima & umgesetzt \\
+Unterschiedliche zeitliche Auflösungen & Suttirat S.~4--5 &
+  FR-20: Auflösungsharmonisierung \todo{Unterschied diskutieren: Suttirat wiederholt Jahreswerte (Bestandsgröße), FR-20 erhält Summen (Zählgröße)} & umgesetzt \\
+Herkunft muss nachvollziehbar sein; Version angeben & Clarke S.~2, 4, 12 &
+  FR-25: Export mit Metadaten (Quellen, Lizenzen, Version, Schritte) & umgesetzt \\
+Räumliche Abdeckung variiert zwischen Ländern (subnational nur für 40 von 102 Ländern) & Clarke S.~1, 8 &
+  FR-26: Datenlücken erkennen und begründen, nicht automatisch füllen & umgesetzt \\
+Vergleichbarkeit zwischen Quellen beurteilen & Clarke S.~2 &
+  FR-27: zwei Quellen im Überlappungszeitraum vergleichen & umgesetzt \\
+Zusammenhänge explorativ prüfen & Lags: Suttirat S.~7; Lowe S.~e212 &
+  FR-19: Kreuzkorrelationen Lag 0--3 (Pearson, Spearman) & umgesetzt \\
+\bottomrule
+\end{longtable}
+
+\noindent Zu FR-19 ist eine Grenze festzuhalten: Korrelationen erfassen keine
+nichtlinearen Schwelleneffekte, wie sie Suttirat et al.\ fanden (etwa
+21\,°C für Tmin mit Lag~1 und 32\,°C für Tmax mit Lag~3, S.~12); Lowe et al.\
+betonen, dass der Einfluss des Klimas \enquote{complex, non-linear, and often
+delayed} ist (S.~e211). Die Korrelationen dienen daher nur der explorativen
+Datenprüfung, nicht der Modellierung.
+
+\subsection{Anforderungen ohne direkten Literaturbezug}
+
+Der ursprüngliche Anforderungskatalog (FR-01 bis FR-22) entstand vor der
+Literaturanalyse. Ein Teil davon lässt sich nachträglich begründen (FR-17,
+FR-19, FR-20, siehe oben). Weitere Anforderungen ergeben sich aus dem Ziel
+\enquote{ohne Programmierkenntnisse} (natürlichsprachliche Anfrage FR-01,
+verständliche Erklärungen FR-09, Chat-Assistent FR-13, Weltkarte FR-22,
+PDF-Bericht FR-21) und aus Vorgaben der Betreuer (u.\,a.\ FR-03 bis FR-08).
+\frage{Sollen diese Anforderungen als Usability-Anforderungen mit dem Ziel
+\enquote{ohne Programmierung} begründet oder aus der Arbeit gestrichen werden?}
+
+\subsection{Abgrenzung}
+
+Folgende Schritte aus den Beispielpublikationen werden bewusst nicht umgesetzt;
+sie werden in Kapitel~8 als Grenzen diskutiert:
+\begin{itemize}[nosep]
+  \item subnationale Einheiten und räumliche Aggregation von Rasterdaten
+        (Suttirat S.~5; Lowe S.~e211) -- das System nutzt einen repräsentativen
+        Punkt pro Land;
+  \item Harmonisierung sich ändernder Verwaltungseinheiten (Suttirat S.~5);
+  \item bioklimatische Indikatoren und Fernerkundungsdaten (Suttirat S.~5);
+  \item automatisches Auffüllen von Lücken aus einer anderen Quelle: Fallzahlen
+        verschiedener Quellen beruhen auf unterschiedlichen Falldefinitionen --
+        OpenDengue zählt alle gemeldeten Fälle (Clarke S.~5), Suttirat et al.\
+        nur DHF (S.~5) --, sodass eine verdeckte Mischung die Vergleichbarkeit
+        beeinträchtigen würde. Das System erkennt Lücken (FR-26) und bietet einen
+        expliziten Quellenvergleich an (FR-27).
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+\section*{Offene Fragen für die Besprechung}\label{sec:fragen}
+\begin{enumerate}[nosep]
+  \item Entspricht die Argumentationskette der Motivation (Modelle $\rightarrow$
+        aufwendige, typische Datenvorbereitung $\rightarrow$ Programmierkenntnisse
+        nötig $\rightarrow$ System) Ihrer Vorstellung?
+  \item Reichen zwei Modellierungsstudien und ein Data Descriptor, oder sollen
+        weitere Studien (z.\,B.\ Malaria) aufgenommen werden?
+  \item Ist die Traceability-Matrix als Form der Anforderungsableitung geeignet?
+  \item Welcher Zitierstil wird erwartet (Autor-Jahr oder numerisch)?
+  \item Gliederung: Passt die Position von \enquote{Verwandte Arbeiten} nach der
+        Anforderungsanalyse?
+\end{enumerate}
+
+\section*{Literatur (Entwurf)}
+\begin{small}
+\begin{description}[nosep,leftmargin=1em,labelindent=0pt]
+\item Clarke, J., Lim, A., Gupte, P., Pigott, D.\,M., van Panhuis, W.\,G., \&
+  Brady, O.\,J. (2024). A global dataset of publicly available dengue case count
+  data. \emph{Scientific Data}, 11, 296.
+  \url{https://doi.org/10.1038/s41597-024-03120-7}
+\item Lowe, R., Lee, S.\,A., O'Reilly, K.\,M., Brady, O.\,J., Bastos, L.,
+  Carrasco-Escobar, G., et al.\ (2021). Combined effects of hydrometeorological
+  hazards and urbanisation on dengue risk in Brazil: a spatiotemporal modelling
+  study. \emph{The Lancet Planetary Health}, 5(4), e209--e219.
+  \url{https://doi.org/10.1016/S2542-5196(20)30292-8}
+\item Suttirat, P., Chadsuthi, S., Aekthong, S., Rocklöv, J., Bicout, D.\,J.,
+  Haddawy, P., Su Yin, M., Lawpoolsri, S., \& Modchang, C. (2026). Machine
+  learning reveals temperature as a key predictor of dengue risk across
+  Thailand's provinces: A 20-year analysis. \emph{PLoS Neglected Tropical
+  Diseases}, 20(7), e0014590.
+  \url{https://doi.org/10.1371/journal.pntd.0014590}
+\end{description}
+\end{small}
+
+\end{document}
