@@ -85,6 +85,18 @@ def is_significant(pearson_p: float | None, spearman_p: float | None, n: int) ->
     return pearson_p < ALPHA and spearman_p < ALPHA
 
 
+def format_p_value(p: float | None) -> str:
+    """Text form of a p-value for the pipeline steps, using the same
+    convention as the frontend card and the PDF: "p<0.001" for very small
+    values (a rounded "p=0.0" would wrongly suggest p is exactly zero),
+    otherwise three decimals."""
+    if p is None:
+        return "p=n/a"
+    if p < 0.001:
+        return "p<0.001"
+    return f"p={p:.3f}"
+
+
 def compute_lagged_correlations(
     df: pd.DataFrame,
     climate_col: str,

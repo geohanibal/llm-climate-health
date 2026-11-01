@@ -11,6 +11,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:climate_health_frontend/models/export_metadata.dart';
 import 'package:climate_health_frontend/models/integration_result.dart';
 import 'package:climate_health_frontend/models/period_record.dart';
 import 'package:climate_health_frontend/services/browser_download_service.dart';
@@ -171,6 +172,18 @@ void main() {
     expect(covList[0]['reason'], 'gaps_inside_source');
     expect(covList[0]['missing_ranges'], hasLength(1));
     expect(covList[0]['missing_ranges'][0]['start'], '2020-02');
+  });
+
+  test('metadata columns describe exactly the exported CSV columns', () {
+    const lagData = [
+      PeriodRecord(period: '2020-01', temperatureMaxC: 31.0, lagValues: {'temperature_max_lag3': 30.5}),
+    ];
+    final columns = ExportMetadata.describeColumns(lagData);
+    final csvHeader = const DatasetExportService().toCsv(lagData).split('\n').first.split(',');
+
+    expect(columns.keys.toList(), csvHeader);
+    expect(columns.containsKey('temperature_min_c'), isFalse);
+    expect(columns['temperature_max_lag3'], 'value of temperature_max 3 period(s) earlier');
   });
 
   test('export(csv) downloads the plain CSV plus a separate metadata JSON file', () {

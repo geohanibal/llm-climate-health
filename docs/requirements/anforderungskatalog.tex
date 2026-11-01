@@ -110,7 +110,7 @@ FR-15 & Das System muss Metadaten aus wissenschaftlichen PDF-Dateien oder Web-Li
 FR-16 & Das System muss eine Live-Suche f\"ur externe Fallzahldatenquellen (WHO GHO Indikatoren und HDX-Datens\"atze) bereitstellen. & Erweiterung / Daten & Umgesetzt \\
 FR-17 & Das System muss offizielle Demografiedaten (World Bank Indikatoren, UN WPP, Upload) durchsuchbar anbinden, j\"ahrliche Bev\"olkerungswerte linear auf Monats- bzw. Tageswerte interpolieren und Inzidenzraten pro 100.000 Einwohner berechnen. & Fachliche Anforderung; Literatur: Suttirat et al.\ 2026, Lowe et al.\ 2021 & Umgesetzt \\
 FR-18 & Das System muss f\"ur benutzerdefinierte Uploads einen l\"uckenlosen Transformations-Audit-Trail f\"uhren und verst\"andlich erl\"autern. & Qualit\"ats\-anforderung & Umgesetzt \\
-FR-19 & Das System muss zeitverz\"ogerte Kreuzkorrelationen (Lags 0--3) mit Pearson-$r$, Spearman-$\rho$ und $p$-Wert-Signifikanz berechnen. & Analytische Anforderung & Umgesetzt \\
+FR-19 & Das System muss zeitverz\"ogerte Kreuzkorrelationen (Lags 0--3) mit Pearson-$r$, Spearman-$\rho$ und $p$-Wert-Signifikanz berechnen; als signifikant gilt ein Zusammenhang nur bei mindestens 10 Wertepaaren und $p < 0{,}05$ in beiden Tests. & Analytische Anforderung & Umgesetzt \\
 FR-20 & Das System muss bei t\"aglicher Aufl\"osung eine massenerhaltende glatte zeitliche Interpolation durchf\"uhren und Aufl\"osungshinweise geben. & Methodische Anforderung & Umgesetzt \\
 FR-21 & Das System muss einen druckreifen wissenschaftlichen PDF-Analysebericht mit Diagrammen, Tabellen und Zitationen generieren k\"onnen. & Nutzer\-anforderung & Umgesetzt \\
 FR-22 & Das System muss eine interaktive Weltkarte zur intuitiven visuellen L\"anderauswahl bereitstellen. & Usability-Anforderung & Umgesetzt \\
@@ -202,7 +202,7 @@ FR-15 & The system must automatically extract and structure bibliographic metada
 FR-16 & The system must support real-time online discovery of official surveillance sources (live query of WHO GHO indicators and HDX datasets). & Data requirement & Implemented \\
 FR-17 & The system must integrate demographic indicators (World Bank Open Data, UN WPP, custom upload), linearly interpolate annual population to monthly or daily values, and compute disease incidence per 100,000 population. & Domain requirement; literature: Suttirat et al.\ 2026, Lowe et al.\ 2021 & Implemented \\
 FR-18 & The system must maintain an end-to-end Data Transformation Audit trail for custom uploads with natural-language explanation. & Audit requirement & Implemented \\
-FR-19 & The system must calculate time-lagged cross-correlations (Lags 0--3) with Pearson-$r$, Spearman-$\rho$, and $p$-value statistical significance. & Analytical requirement & Implemented \\
+FR-19 & The system must calculate time-lagged cross-correlations (Lags 0--3) with Pearson-$r$, Spearman-$\rho$, and $p$-value statistical significance; an association is labelled significant only with at least 10 pairs and $p < 0.05$ in both tests. & Analytical requirement & Implemented \\
 FR-20 & The system must apply mass-preserving smooth temporal downscaling for daily surveillance resolution with user guidance. & Methodological requirement & Implemented \\
 FR-21 & The system must generate downloadable, publication-ready scientific PDF report digests with charts, tables, and citations. & User requirement & Implemented \\
 FR-22 & The system must feature an interactive world map for visual region and coordinate selection. & Usability requirement & Implemented \\

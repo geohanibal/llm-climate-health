@@ -74,6 +74,11 @@ class ReportPdfService {
             _sectionTitle('Statistical & Lag Correlation Analysis'),
             if (result.statisticalSummary!.correlations.isNotEmpty)
               _statsTable(result.statisticalSummary!),
+            // Mirrors backend statistics.is_significant.
+            pw.Text(
+              '* Significant = at least 10 pairs and p < 0.05 in both the Pearson and the Spearman test.',
+              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+            ),
             if (result.statisticalSummary!.scientificDisclaimer.isNotEmpty) ...[
               pw.SizedBox(height: 4),
               pw.Text(
@@ -144,7 +149,7 @@ class ReportPdfService {
         'Pearson r',
         'p-value',
         'Spearman rho',
-        'Significant (p<0.05)',
+        'Significant*',
       ],
       data: stats.correlations
           .map((c) => [

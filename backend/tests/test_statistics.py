@@ -112,3 +112,14 @@ def test_significance_requires_both_tests_and_enough_pairs():
     assert is_significant(0.20, 0.01, 50) is False  # only Spearman supports it
     assert is_significant(0.01, 0.20, 50) is False  # only Pearson supports it
     assert is_significant(None, 0.01, 50) is False
+
+
+def test_format_p_value_never_prints_zero():
+    """A rounded "p=0.0" would suggest p is exactly zero; use the same
+    "p<0.001" convention as the frontend card and the PDF."""
+    from app.services.statistics import format_p_value
+
+    assert format_p_value(0.0) == "p<0.001"
+    assert format_p_value(0.00004) == "p<0.001"
+    assert format_p_value(0.0238) == "p=0.024"
+    assert format_p_value(None) == "p=n/a"

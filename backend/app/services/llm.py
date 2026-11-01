@@ -5,6 +5,7 @@ Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 """
 
 import json
+import re
 import time
 from collections import deque
 from datetime import date
@@ -146,9 +147,19 @@ def explain_pipeline(
     try:
         _wait_for_rate_limit_slot()
         resp = _client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
-        return resp.text.strip(), "llm"
+        return strip_inline_math(resp.text.strip()), "llm"
     except Exception:
         return FALLBACK_EXPLANATION, "fallback"
+
+
+_INLINE_MATH = re.compile(r"\$([^$\n]+)\$")
+
+
+def strip_inline_math(text: str) -> str:
+    """Removes LaTeX inline-math delimiters the model sometimes adds
+    ("$r = 0.82$" -> "r = 0.82"). The explanation is shown as plain text in
+    the UI and the PDF, where the dollar signs would appear literally."""
+    return _INLINE_MATH.sub(r"\1", text)
 
 
 def build_parse_prompt(

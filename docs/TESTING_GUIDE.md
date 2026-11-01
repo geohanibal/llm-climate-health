@@ -99,7 +99,9 @@ analyze` reports no errors in application code.
   the available years, missing middle year interpolated), climate feature
   lag generation (lags 1..6, column naming `<variable>_lag<k>`, lag buffer
   prior to `start_date` ensuring no initial-row data loss per Lowe et al. 2021,
-  and rejection of invalid lag values), the in-memory cache, and the Gemini-backed parsing/
+  and rejection of invalid lag values), the lagged-correlation
+  significance rule (at least 10 pairs and Pearson AND Spearman p < 0.05;
+  regression test for 3-pair samples where Spearman p = 0.0), the in-memory cache, and the Gemini-backed parsing/
   explanation logic (both success and graceful-fallback paths).
 - **Frontend**: every model's JSON decoding (including malformed/partial
   backend responses), the request form's region/source-compatibility logic
