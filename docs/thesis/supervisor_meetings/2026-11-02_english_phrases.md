@@ -79,7 +79,7 @@ data processing?*
 
 **5.2** *Which citation style should I use: numbers or author-year? Is there a template?*
 
-**5.3** *Is it okay that my main case study is a paper where Professor Haddawy is a co-author?*
+**5.3** *Peter, is it okay that my main case study is a paper where you are a co-author?*
 
 **5.4** *Are there rules for the structure and the length? And when is the deadline?*
 
