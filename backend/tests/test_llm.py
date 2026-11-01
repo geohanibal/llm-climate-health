@@ -142,3 +142,13 @@ def test_coerce_parsed_json_drops_invalid_dates_and_enums():
     assert result.aggregation is None
     assert result.climate_source is None
     assert result.variables == ["temperature"]
+
+
+def test_strip_inline_math_removes_latex_dollar_delimiters():
+    """The model sometimes writes "$r = 0.8183$"; UI and PDF show plain text,
+    so the dollar signs must not appear literally."""
+    from app.services.llm import strip_inline_math
+
+    text = "strongest association at a lag of 3 months ($r = 0.8183$)."
+    assert strip_inline_math(text) == "strongest association at a lag of 3 months (r = 0.8183)."
+    assert strip_inline_math("costs $5 per month") == "costs $5 per month"

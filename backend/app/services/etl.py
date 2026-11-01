@@ -19,7 +19,7 @@ from app.services.case_data import (
 from app.services.climate import fetch_climate
 from app.services.lags import add_lagged_climate_features, calculate_buffer_start_date
 from app.services.population import get_population_data
-from app.services.statistics import compute_statistics
+from app.services.statistics import MIN_PAIRS_FOR_SIGNIFICANCE, compute_statistics, format_p_value
 from app.services.tmd import fetch_tmd_climate
 from app.services.who_gho import fetch_who_gho_case_data
 
@@ -391,17 +391,20 @@ def run_integration(
         sig_corrs = [c for c in stat_summary.correlations if c.significant]
         if sig_corrs:
             sig_desc = ", ".join(
-                f"{c.variable} at Lag {c.lag_periods} (r={c.pearson_r}, p={c.pearson_p})"
+                f"{c.variable} at Lag {c.lag_periods} "
+                f"(r={c.pearson_r}, {format_p_value(c.pearson_p)}, n={c.sample_size})"
                 for c in sig_corrs[:3]
             )
             steps.append(
                 f"Conducted cross-correlation analysis across time lags (Lags 0-3). "
-                f"Identified statistically significant associations (p < 0.05): {sig_desc}."
+                f"Identified statistically significant associations (Pearson and "
+                f"Spearman p < 0.05, at least {MIN_PAIRS_FOR_SIGNIFICANCE} pairs): {sig_desc}."
             )
         else:
             steps.append(
                 "Conducted cross-correlation analysis across time lags (Lags 0-3). "
-                "No statistically significant bivariate association was detected at alpha=0.05."
+                "No statistically significant bivariate association was detected "
+                f"(rule: Pearson and Spearman p < 0.05, at least {MIN_PAIRS_FOR_SIGNIFICANCE} pairs)."
             )
 
     return steps, records, resolution, transformation_audit_data, stat_summary

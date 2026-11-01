@@ -11,6 +11,7 @@
 library;
 
 import 'integration_result.dart';
+import 'period_record.dart';
 
 /// Reminder exported with every dataset: case counts are not comparable
 /// across countries or years without checking how cases were defined
@@ -41,6 +42,10 @@ class ExportMetadata {
   final String? caseDataStart;
   final String? caseDataEnd;
 
+  /// Meaning and unit of every column that is actually in the exported
+  /// table (optional Tmin/Tmax and lag columns only when present).
+  final Map<String, String> columns;
+
   final List<String> sources;
   final List<String> licenses;
   final List<String> steps;
@@ -62,6 +67,7 @@ class ExportMetadata {
     required this.periodEnd,
     required this.caseDataStart,
     required this.caseDataEnd,
+    required this.columns,
     required this.sources,
     required this.licenses,
     required this.steps,
@@ -84,6 +90,7 @@ class ExportMetadata {
       periodEnd: data.isEmpty ? null : data.last.period,
       caseDataStart: withCases.isEmpty ? null : withCases.first.period,
       caseDataEnd: withCases.isEmpty ? null : withCases.last.period,
+      columns: describeColumns(data),
       sources: result.sources,
       licenses: result.licenses,
       steps: result.steps,
@@ -102,7 +109,7 @@ class ExportMetadata {
         'period_end': periodEnd,
         'case_data_start': caseDataStart,
         'case_data_end': caseDataEnd,
-        'columns': _columnDescriptions,
+        'columns': columns,
         'request': request,
         'sources': sources,
         'licenses': licenses,
@@ -114,17 +121,31 @@ class ExportMetadata {
         'notes': [caseDefinitionNote],
       };
 
-  /// Units and meaning of the fixed columns; lag columns follow the pattern
-  /// `<variable>_lag<k>` = value of that variable k periods earlier.
-  static const Map<String, String> _columnDescriptions = {
-    'period': 'time period label (YYYY-MM-DD, YYYY-MM, YYYY or YYYYs)',
-    'case_count': 'reported cases in the period',
-    'population': 'population (annual values linearly interpolated for monthly/daily data)',
-    'incidence_rate_per_100k': 'case_count / population * 100,000',
-    'temperature_mean_c': 'mean 2 m air temperature, degrees C',
-    'temperature_min_c': 'mean of daily minimum temperature, degrees C',
-    'temperature_max_c': 'mean of daily maximum temperature, degrees C',
-    'precipitation_sum_mm': 'total precipitation, mm',
-    '<variable>_lag<k>': 'value of <variable> k periods earlier',
-  };
+  /// Describes exactly the columns of the exported CSV, in the same order
+  /// and with the same "only when present" rule as
+  /// `DatasetExportService.toCsv`.
+  static Map<String, String> describeColumns(List<PeriodRecord> data) {
+    final hasMin = data.any((r) => r.temperatureMinC != null);
+    final hasMax = data.any((r) => r.temperatureMaxC != null);
+    return {
+      'period': 'time period label (YYYY-MM-DD, YYYY-MM, YYYY or YYYYs)',
+      'case_count': 'reported cases in the period',
+      'population': 'population (annual values linearly interpolated for monthly/daily data)',
+      'incidence_rate_per_100k': 'case_count / population * 100,000',
+      'temperature_mean_c': 'mean 2 m air temperature, degrees C',
+      if (hasMin) 'temperature_min_c': 'mean of daily minimum temperature, degrees C',
+      if (hasMax) 'temperature_max_c': 'mean of daily maximum temperature, degrees C',
+      'precipitation_sum_mm': 'total precipitation, mm',
+      for (final column in PeriodRecord.lagColumnNames(data))
+        column: _describeLag(column),
+    };
+  }
+
+  /// `temperature_max_lag3` -> "temperature_max 3 period(s) earlier".
+  static String _describeLag(String column) {
+    final index = column.lastIndexOf('_lag');
+    final variable = column.substring(0, index);
+    final lag = column.substring(index + 4);
+    return 'value of $variable $lag period(s) earlier';
+  }
 }
