@@ -46,9 +46,10 @@ class StatisticalSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Replaces an earlier unsourced claim ("1–2 months") with the
+          // verified wording of Lowe et al. (2021, p. e211).
           Text(
-            'Bivariate correlation between climate variables and disease metrics across delayed time lags. '
-            'In vector-borne diseases, weather changes lead case counts by 1–2 months due to breeding and incubation cycles.',
+            I18n.t('lagStatsIntro'),
             style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 14),
@@ -62,6 +63,13 @@ class StatisticalSummaryCard extends StatelessWidget {
             )
           else
             _buildCorrelationTable(context, colors, isDark, unitLabel),
+          if (stats.correlations.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              I18n.t('significanceRuleNote'),
+              style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+            ),
+          ],
           const SizedBox(height: 14),
           _buildMethodologicalDisclaimer(context, colors, isDark),
         ],
@@ -96,6 +104,7 @@ class StatisticalSummaryCard extends StatelessWidget {
               DataColumn(label: Text('Pearson r', style: TextStyle(fontWeight: FontWeight.bold))),
               DataColumn(label: Text('p-value', style: TextStyle(fontWeight: FontWeight.bold))),
               DataColumn(label: Text('Spearman ρ', style: TextStyle(fontWeight: FontWeight.bold))),
+              DataColumn(label: Text('n', style: TextStyle(fontWeight: FontWeight.bold)), numeric: true),
               DataColumn(label: Text('Significance', style: TextStyle(fontWeight: FontWeight.bold))),
             ],
             rows: [
@@ -156,6 +165,12 @@ class StatisticalSummaryCard extends StatelessWidget {
                     DataCell(
                       Text(
                         c.spearmanRho != null ? c.spearmanRho!.toStringAsFixed(3) : '—',
+                        style: const TextStyle(fontFamily: 'monospace'),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '${c.sampleSize}',
                         style: const TextStyle(fontFamily: 'monospace'),
                       ),
                     ),

@@ -369,6 +369,26 @@ void main() {
     expect(submitted!.lagPeriods, [1, 3]);
   });
 
+  testWidgets('lag section explains itself and previews the columns it will add', (tester) async {
+    await tester.pumpWidget(_wrap(_options()));
+    await tester.pumpAndSettle();
+
+    // Nothing selected yet: the preview says so.
+    expect(find.text(I18n.t('lagNoneSelected')), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(const Key('lag_chip_1')));
+    await tester.tap(find.byKey(const Key('lag_chip_1')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('temperature_lag1'), findsOneWidget);
+
+    // The explanation is collapsed until the user asks for it.
+    expect(find.text(I18n.t('lagHelpText')), findsNothing);
+    await tester.ensureVisible(find.byKey(const Key('lag_help_toggle')));
+    await tester.tap(find.byKey(const Key('lag_help_toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text(I18n.t('lagHelpText')), findsOneWidget);
+  });
+
   testWidgets('submit shows a validation error when custom_upload climate has no file picked', (tester) async {
     final key = GlobalKey<RequestFormCardState>();
     final options = _options(

@@ -55,6 +55,7 @@ class RequestFormCardState extends State<RequestFormCard> {
   /// Selected lags (FR-23): each adds one shifted copy of every climate
   /// variable as its own column, e.g. temperature_lag1.
   final Set<int> _lagPeriods = {};
+  bool _showLagHelp = false;
   DateTime _startDate = DateTime(2015, 1, 1);
   DateTime _endDate = DateTime(2023, 12, 1);
   late String _aggregation = widget.options.aggregations.first;
@@ -510,8 +511,7 @@ class RequestFormCardState extends State<RequestFormCard> {
           Text('Climate variables', style: Theme.of(context).textTheme.labelLarge),
           _buildVariableChips(),
           const SizedBox(height: 12),
-          Text(I18n.t('lagColumns'), style: Theme.of(context).textTheme.labelLarge),
-          _buildLagChips(),
+          _buildLagSection(),
           const SizedBox(height: 16),
           ResponsiveFieldRow(
             columns: 3,
@@ -637,30 +637,93 @@ class RequestFormCardState extends State<RequestFormCard> {
     );
   }
 
-  Widget _buildLagChips() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Wrap(
-          spacing: 8,
-          children: [
-            for (var lag = 1; lag <= 6; lag++)
-              FilterChip(
-                key: Key('lag_chip_$lag'),
-                label: Text('$lag'),
-                selected: _lagPeriods.contains(lag),
-                onSelected: (sel) => setState(() {
-                  sel ? _lagPeriods.add(lag) : _lagPeriods.remove(lag);
-                }),
+  /// Resolution the result will have, mirroring the backend rule used by
+  /// [_buildAggregationDropdown]; lags are counted in these periods.
+  String _effectiveResolution() {
+    switch (_aggregation) {
+      case 'daily':
+        return 'day';
+      case 'yearly':
+        return 'year';
+      case 'decadal':
+        return 'decade';
+    }
+    return _caseDataSource == 'who_gho'
+        ? 'year'
+        : (widget.options.diseases[_disease]?.nativeResolution ?? 'year');
+  }
+
+  /// Lag selection (FR-23) with a short, expandable explanation and a
+  /// preview of the columns that will be added, so a user without a
+  /// modelling background can see what the option does before running.
+  Widget _buildLagSection() {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final unit = I18n.t('lagUnit_${_effectiveResolution()}');
+    final lags = _lagPeriods.toList()..sort();
+    final preview = [
+      for (final v in _variables.toList()..sort())
+        for (final lag in lags) '${v}_lag$lag',
+    ];
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withAlpha(60),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colors.outlineVariant.withAlpha(90)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.history, size: 18, color: colors.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${I18n.t('lagColumns')} (${I18n.t('lagOptional')})',
+                  style: theme.textTheme.labelLarge,
+                ),
               ),
+              TextButton.icon(
+                key: const Key('lag_help_toggle'),
+                onPressed: () => setState(() => _showLagHelp = !_showLagHelp),
+                icon: Icon(_showLagHelp ? Icons.expand_less : Icons.help_outline, size: 18),
+                label: Text(I18n.t('lagWhatIsThis')),
+              ),
+            ],
+          ),
+          if (_showLagHelp) ...[
+            const SizedBox(height: 4),
+            Text(I18n.t('lagHelpText'), style: theme.textTheme.bodySmall),
+            const SizedBox(height: 8),
           ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          I18n.t('lagColumnsHint'),
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              for (var lag = 1; lag <= 6; lag++)
+                FilterChip(
+                  key: Key('lag_chip_$lag'),
+                  label: Text('$lag $unit'),
+                  selected: _lagPeriods.contains(lag),
+                  onSelected: (sel) => setState(() {
+                    sel ? _lagPeriods.add(lag) : _lagPeriods.remove(lag);
+                  }),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            preview.isEmpty
+                ? I18n.t('lagNoneSelected')
+                : '${I18n.t('lagAddsColumns')}: ${preview.join(', ')}',
+            style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
+        ],
+      ),
     );
   }
 
