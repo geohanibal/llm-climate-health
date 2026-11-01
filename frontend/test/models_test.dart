@@ -373,4 +373,41 @@ void main() {
       expect(encoded['temperature_max_c'], 31.2);
     });
   });
+
+  group('DataCoverage', () {
+    test('decodes data_coverage from IntegrationResult JSON and round-trips', () {
+      final json = {
+        'column': 'case_count',
+        'total_periods': 72,
+        'periods_with_value': 24,
+        'missing_count': 48,
+        'missing_percent': 66.7,
+        'missing_ranges': [
+          {'start': '2005-01', 'end': '2008-12'}
+        ],
+        'first_available': '2009-01',
+        'last_available': '2010-12',
+        'reason': 'outside_source_coverage',
+        'available_range': {'start': '2009-01', 'end': '2023-12'},
+      };
+      final cov = DataCoverage.fromJson(json);
+      expect(cov.column, 'case_count');
+      expect(cov.totalPeriods, 72);
+      expect(cov.periodsWithValue, 24);
+      expect(cov.missingCount, 48);
+      expect(cov.missingPercent, 66.7);
+      expect(cov.missingRanges, hasLength(1));
+      expect(cov.missingRanges[0].start, '2005-01');
+      expect(cov.missingRanges[0].end, '2008-12');
+      expect(cov.firstAvailable, '2009-01');
+      expect(cov.lastAvailable, '2010-12');
+      expect(cov.reason, 'outside_source_coverage');
+      expect(cov.availableRange, {'start': '2009-01', 'end': '2023-12'});
+
+      final encoded = cov.toJson();
+      expect(encoded['column'], 'case_count');
+      expect(encoded['missing_count'], 48);
+      expect(encoded['reason'], 'outside_source_coverage');
+    });
+  });
 }

@@ -398,7 +398,14 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 24),
         if (_isSubmitting) const Center(child: CircularProgressIndicator()),
         if (_submitError != null) ErrorCard(message: _submitError!),
-        if (_result != null) ResultsView(result: _result!),
+        if (_result != null)
+          ResultsView(
+            result: _result!,
+            onSearchCaseSources: () => _formKey.currentState?.openCaseSourceSearch(),
+            onSearchPopulationSources: () => _formKey.currentState?.openPopulationSourceSearch(),
+            onAdjustDateRange: (start, end) => _formKey.currentState?.applyDateRange(start, end),
+            onChangeClimateSource: (source) => _formKey.currentState?.applyClimateSource(source),
+          ),
       ],
     );
   }

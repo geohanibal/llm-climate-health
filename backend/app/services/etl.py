@@ -17,6 +17,7 @@ from app.services.case_data import (
     get_case_data_from_url,
 )
 from app.services.climate import fetch_climate
+from app.services.coverage import analyze_data_coverage
 from app.services.lags import add_lagged_climate_features, calculate_buffer_start_date
 from app.services.population import get_population_data
 from app.services.statistics import compute_statistics
@@ -404,5 +405,19 @@ def run_integration(
                 "No statistically significant bivariate association was detected at alpha=0.05."
             )
 
-    return steps, records, resolution, transformation_audit_data, stat_summary
+    coverage_data, coverage_step = analyze_data_coverage(
+        records=records,
+        disease_key=disease_key,
+        region=region,
+        variables=variables,
+        case_data_source=case_data_source,
+        climate_source=climate_source,
+        population_source=population_source,
+        start_date=start,
+        end_date=end,
+        resolution=resolution,
+    )
+    steps.append(coverage_step)
+
+    return steps, records, resolution, transformation_audit_data, stat_summary, coverage_data
 

@@ -316,3 +316,24 @@ def test_integrate_upload_marks_user_data_licence_as_uploader_responsibility(moc
     )
     assert resp.status_code == 200
     assert "uploader's responsibility" in resp.json()["licenses"][1]
+
+
+@patch("app.services.etl.fetch_climate")
+def test_integrate_cache_hit_preserves_data_coverage(mock_climate):
+    mock_climate.return_value = pd.DataFrame(
+        {"period": ["2020-01", "2020-02"], "temperature_2m_mean": [25.0, 26.0], "precipitation_sum": [1.0, 2.0]}
+    )
+    req_data = _valid_request(region="Thailand", start_date="2020-01-01", end_date="2020-02-28")
+    resp1 = client.post("/api/integrate", json=req_data)
+    assert resp1.status_code == 200
+    body1 = resp1.json()
+    assert body1["cached"] is False
+    assert "data_coverage" in body1
+    assert len(body1["data_coverage"]) > 0
+
+    resp2 = client.post("/api/integrate", json=req_data)
+    assert resp2.status_code == 200
+    body2 = resp2.json()
+    assert body2["cached"] is True
+    assert body2["data_coverage"] == body1["data_coverage"]
+

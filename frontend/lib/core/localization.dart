@@ -258,6 +258,19 @@ class I18n {
       'dailyDownscalingWarningTitle': 'შენიშვნა დღიურ გარჩევადობაზე:',
       'dailyDownscalingWarningBody':
           'ჯანდაცვის ორიგინალი მონაცემი რეგისტრირებულია წლიურ ან თვიურ დონეზე. დღიურ რეჟიმში სისტემა იყენებს მასის შემნახველ გლუვ ინტერპოლაციას (Temporal Downscaling). ავთენტური დღიური ცვალებადობისთვის რეკომენდებულია დღიური CSV ფაილის ატვირთვა.',
+          // Data coverage & gap detection (FR-26)
+      'dataCoverageTitle': 'მონაცემთა სისრულე და ხარვეზები',
+      'dataCoverageComplete': 'ყველა მოთხოვნილ პერიოდს აქვს სრული მონაცემები (100%).',
+      'dataCoverageMissing': 'აკლია {missing} პერიოდი {total}-დან ({ranges})',
+      'reasonOutsideSourceCoverage': 'მიზეზი: წყაროს მონაცემთა დიაპაზონია {range}. მოთხოვნილი პერიოდის ნაწილი წყაროს დაფარვის ფარგლებს გარეთაა.',
+      'reasonGapsInsideSource': 'მიზეზი: წყაროს შიდა ხარვეზები (მონაცემები ზოგიერთ პერიოდში არ არის დაფიქსირებული).',
+      'reasonNotProvidedBySource': 'მიზეზი: ეს წყარო ამ ცვლადს საერთოდ არ შეიცავს.',
+      'reasonUnknown': 'მიზეზი: უცნობია / მონაცემი არ არის მოწოდებული.',
+      'searchOtherCaseSources': 'სხვა შემთხვევათა წყაროს მოძებნა',
+      'searchPopulationSources': 'მოსახლეობის წყაროების მოძებნა',
+      'adjustPeriodToAvailableData': 'პერიოდის მორგება ხელმისაწვდომ მონაცემებზე ({range})',
+      'tryAlternativeClimateSource': 'ალტერნატიული კლიმატის წყარო: {source}',
+      'coverageComparabilityNote': 'შენიშვნა: სხვადასხვა წყაროს მონაცემთა შედარებისას გაითვალისწინეთ განსხვავებული მეთოდოლოგია (Clarke et al. 2024).',
     },
 
     AppLanguage.en: {
@@ -409,6 +422,19 @@ class I18n {
       'dailyDownscalingWarningTitle': 'Note on Daily Resolution:',
       'dailyDownscalingWarningBody':
           'Primary surveillance data is reported at yearly or monthly resolution. In daily mode, the platform applies mass-preserving smooth temporal downscaling. For genuine day-by-day variation, please upload a daily resolution CSV.',
+          // Data coverage & gap detection (FR-26)
+      'dataCoverageTitle': 'Data Completeness & Gaps',
+      'dataCoverageComplete': 'All requested periods have complete data (100%).',
+      'dataCoverageMissing': 'missing for {missing} of {total} periods ({ranges})',
+      'reasonOutsideSourceCoverage': 'Reason: the selected source only covers {range}. Part of the requested range lies outside the source\'s coverage.',
+      'reasonGapsInsideSource': 'Reason: gaps inside source data (values were not recorded for certain periods).',
+      'reasonNotProvidedBySource': 'Reason: this variable is not provided by this data source.',
+      'reasonUnknown': 'Reason: unknown / values not reported.',
+      'searchOtherCaseSources': 'Search other case-data sources',
+      'searchPopulationSources': 'Search population sources',
+      'adjustPeriodToAvailableData': 'Adjust period to available data ({range})',
+      'tryAlternativeClimateSource': 'Alternative climate source: {source}',
+      'coverageComparabilityNote': 'Note: when comparing data across different sources, consider differing methodologies and definitions (Clarke et al. 2024).',
     },
 
     AppLanguage.de: {
@@ -560,6 +586,19 @@ class I18n {
       'dailyDownscalingWarningTitle': 'Hinweis zur täglichen Auflösung:',
       'dailyDownscalingWarningBody':
           'Die primären Meldedaten liegen auf Jahres- oder Monatsebene vor. Im Tagesmodus wendet die Plattform eine massenerhaltende glatte zeitliche Interpolation an. Für authentische tägliche Schwankungen laden Sie bitte eine tägliche CSV-Datei hoch.',
+          // Data coverage & gap detection (FR-26)
+      'dataCoverageTitle': 'Datenvollständigkeit & Lücken',
+      'dataCoverageComplete': 'Alle angefragten Zeiträume enthalten vollständige Daten (100%).',
+      'dataCoverageMissing': 'fehlt für {missing} von {total} Zeiträumen ({ranges})',
+      'reasonOutsideSourceCoverage': 'Grund: Die gewählte Quelle deckt nur {range} ab. Ein Teil des angefragten Zeitraums liegt außerhalb der Abdeckung.',
+      'reasonGapsInsideSource': 'Grund: Lücken innerhalb der Quelle (Werte wurden für bestimmte Zeiträume nicht erfasst).',
+      'reasonNotProvidedBySource': 'Grund: Diese Variable wird von dieser Datenquelle generell nicht bereitgestellt.',
+      'reasonUnknown': 'Grund: Unbekannt / Werte nicht übermittelt.',
+      'searchOtherCaseSources': 'Andere Falldatenquellen suchen',
+      'searchPopulationSources': 'Bevölkerungsdatenquellen suchen',
+      'adjustPeriodToAvailableData': 'Zeitraum an verfügbare Daten anpassen ({range})',
+      'tryAlternativeClimateSource': 'Alternative Klimadatenquelle: {source}',
+      'coverageComparabilityNote': 'Hinweis: Beim Vergleich von Daten aus verschiedenen Quellen sind unterschiedliche Erfassungsstandards zu beachten (Clarke et al. 2024).',
     },
   };
 }

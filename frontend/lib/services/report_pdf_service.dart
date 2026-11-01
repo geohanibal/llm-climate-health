@@ -82,6 +82,11 @@ class ReportPdfService {
               ),
             ],
           ],
+          if (result.dataCoverage.any((c) => c.missingCount > 0)) ...[
+            pw.SizedBox(height: 12),
+            _sectionTitle('Data Completeness & Temporal Gaps'),
+            _coverageTable(result.dataCoverage.where((c) => c.missingCount > 0).toList()),
+          ],
           pw.SizedBox(height: 12),
           _sectionTitle('Integrated dataset'),
           _datasetTable(result),
@@ -194,6 +199,31 @@ class ReportPdfService {
       cellStyle: const pw.TextStyle(fontSize: 8),
       cellAlignment: pw.Alignment.centerLeft,
       border: null,
+    );
+  }
+
+  pw.Widget _coverageTable(List<DataCoverage> items) {
+    return pw.TableHelper.fromTextArray(
+      headers: const ['Column', 'Completeness', 'Missing Periods', 'Reason'],
+      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: PdfColors.white),
+      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey700),
+      cellStyle: const pw.TextStyle(fontSize: 8),
+      cellPadding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+      data: items.map((c) {
+        final ranges = c.missingRanges
+            .map((r) => r.start == r.end ? r.start : '${r.start}-${r.end}')
+            .join(', ');
+        String reasonStr = c.reason ?? 'none';
+        if (c.reason == 'outside_source_coverage' && c.availableRange != null) {
+          reasonStr = 'outside coverage (${c.availableRange!['start']}..${c.availableRange!['end']})';
+        }
+        return [
+          _clean(c.column),
+          '${(100.0 - c.missingPercent).toStringAsFixed(1)}% (${c.periodsWithValue}/${c.totalPeriods})',
+          _clean('${c.missingCount} ($ranges)'),
+          _clean(reasonStr),
+        ];
+      }).toList(),
     );
   }
 }

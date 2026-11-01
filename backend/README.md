@@ -58,6 +58,17 @@ otherwise Render's `RENDER_GIT_COMMIT`, otherwise the local `git-<short commit>`
 `app/config.py`, each with the official page and check date in a comment.
 The frontend exports them with the data.
 
+## Data Coverage & Gap Detection (FR-26)
+
+Every integration response includes `data_coverage: list[DataCoverage]` analyzing
+temporal completeness for each integrated data column (case_count, population,
+incidence, climate variables). It computes total periods, periods with values,
+missing counts, missing percentage, consecutive missing ranges, first/last available
+period, and deterministic reasons (`outside_source_coverage`, `gaps_inside_source`,
+`not_provided_by_source`, or `unknown`). Excludes any Task B climate lag-buffer
+periods from the analysis. In accordance with A20, the backend never fills gaps
+with synthetic values.
+
 ## Tests
 
 ```bash
@@ -77,6 +88,7 @@ app/
   models.py            Pydantic request/response schemas
   services/
     etl.py             orchestrates one integration run
+    coverage.py        data coverage and gap detection (FR-26)
     climate.py         Open-Meteo / NASA POWER clients
     case_data.py       builtin CSV + custom URL/upload case data
     lags.py            climate feature lag computation and lag buffer

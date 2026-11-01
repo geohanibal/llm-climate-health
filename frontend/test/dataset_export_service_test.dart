@@ -128,6 +128,49 @@ void main() {
     expect(metadata['system_version'], 'git-abc1234');
     expect((metadata['request'] as Map)['start_date'], '2020-01-01');
     expect((metadata['notes'] as List).single, contains('Case definitions'));
+    expect(metadata['data_coverage'], isEmpty);
+  });
+
+  test('exported metadata includes data_coverage breakdown (FR-26)', () {
+    const covResult = IntegrationResult(
+      disease: 'dengue',
+      region: 'Thailand',
+      resolution: 'month',
+      steps: ['Test step'],
+      explanation: 'test',
+      explanationSource: 'fallback',
+      data: data,
+      sources: ['Source A'],
+      cached: false,
+      lastVerified: '2026-11-01T10:00:00Z',
+      dataCoverage: [
+        DataCoverage(
+          column: 'case_count',
+          totalPeriods: 2,
+          periodsWithValue: 1,
+          missingCount: 1,
+          missingPercent: 50.0,
+          missingRanges: [MissingRange(start: '2020-02', end: '2020-02')],
+          firstAvailable: '2020-01',
+          lastAvailable: '2020-01',
+          reason: 'gaps_inside_source',
+        ),
+      ],
+    );
+    final fake = _FakeDownloadService();
+    DatasetExportService(download: fake).export(covResult, ExportFormat.json, exportedAt: exportedAt);
+
+    final decoded = jsonDecode(fake.downloads.single.content) as Map<String, dynamic>;
+    final metadata = decoded['metadata'] as Map<String, dynamic>;
+    expect(metadata['data_coverage'], isA<List>());
+    final covList = metadata['data_coverage'] as List;
+    expect(covList, hasLength(1));
+    expect(covList[0]['column'], 'case_count');
+    expect(covList[0]['missing_count'], 1);
+    expect(covList[0]['missing_percent'], 50.0);
+    expect(covList[0]['reason'], 'gaps_inside_source');
+    expect(covList[0]['missing_ranges'], hasLength(1));
+    expect(covList[0]['missing_ranges'][0]['start'], '2020-02');
   });
 
   test('export(csv) downloads the plain CSV plus a separate metadata JSON file', () {

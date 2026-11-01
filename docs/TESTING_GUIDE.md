@@ -193,6 +193,19 @@ order — it touches every major feature.
     thanks to the automatic climate lag buffer (Lowe et al. 2021), and that the
     pipeline steps visibly report the lag buffer and feature additions.
 
+13. **Data completeness and gap detection (FR-26).** Request dengue for Thailand
+    from 2005-01 to 2010-12 (monthly). OpenDengue for Thailand only starts in 2009-01,
+    so the first 48 of 72 months (2005-01 – 2008-12) have no case counts.
+    Verify that:
+    - A `Data Completeness & Gaps` warning card appears above the chart.
+    - It explains that case data is missing for 48 of 72 periods (66.7%), gives the
+      exact missing range, and states the deterministic reason (`outside_source_coverage`
+      with available range 2009-01 – 2023-12).
+    - It offers one-click action buttons: "Search other case-data sources" (opens
+      `SourceSearchDialog`) and "Adjust period to available data" (pre-fills 2009-01
+      to 2010-12 in the form without auto-submitting).
+    - The exported metadata JSON and PDF report contain the `data_coverage` breakdown.
+
 ## 5. Configuration reference
 
 | Variable | Required? | Effect if unset |

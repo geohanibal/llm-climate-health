@@ -36,6 +36,7 @@ from pydantic import BaseModel
 from app.models import (
     ChatRequest,
     ChatResponse,
+    DataCoverage,
     DataTransformationAudit,
     DiscoveredSource,
     IntegrationRequest,
@@ -330,6 +331,7 @@ def _build_response(
     population_uploaded_file_name: str | None = None,
     transformation_audit: DataTransformationAudit | None = None,
     statistical_summary: StatisticalSummary | None = None,
+    data_coverage: list[DataCoverage] | None = None,
 ) -> IntegrationResponse:
     explanation, explanation_source = explain_pipeline(
         req.disease, req.region, steps, records, statistical_summary=statistical_summary
@@ -389,6 +391,7 @@ def _build_response(
         last_verified=last_verified,
         transformation_audit=transformation_audit,
         statistical_summary=statistical_summary,
+        data_coverage=data_coverage or [],
     )
 
 
@@ -428,6 +431,11 @@ def integrate(req: IntegrationRequest):
             if hit.get("statistical_summary")
             else None
         )
+        cached_coverage = (
+            [DataCoverage(**c) for c in hit["data_coverage"]]
+            if hit.get("data_coverage")
+            else []
+        )
         return _build_response(
             req,
             hit["steps"],
@@ -437,9 +445,10 @@ def integrate(req: IntegrationRequest):
             hit["last_verified"],
             transformation_audit=cached_audit,
             statistical_summary=cached_stats,
+            data_coverage=cached_coverage,
         )
 
-    steps, records, resolution, audit_data, stat_summary = _run_integration_or_502(
+    steps, records, resolution, audit_data, stat_summary, coverage_data = _run_integration_or_502(
         req.disease,
         req.region,
         req.variables,
@@ -485,6 +494,7 @@ def integrate(req: IntegrationRequest):
             "statistical_summary": (
                 stat_summary.model_dump() if stat_summary else None
             ),
+            "data_coverage": [c.model_dump() for c in coverage_data],
         },
     )
     return _build_response(
@@ -496,6 +506,7 @@ def integrate(req: IntegrationRequest):
         last_verified,
         transformation_audit=transformation_audit,
         statistical_summary=stat_summary,
+        data_coverage=coverage_data,
     )
 
 
@@ -590,7 +601,7 @@ async def integrate_with_upload(
                 413, f"Uploaded population file exceeds the {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit."
             )
 
-    steps, records, resolution, audit_data, stat_summary = _run_integration_or_502(
+    steps, records, resolution, audit_data, stat_summary, coverage_data = _run_integration_or_502(
         req.disease,
         req.region,
         req.variables,
@@ -634,6 +645,7 @@ async def integrate_with_upload(
         population_uploaded_file_name=pop_file_name,
         transformation_audit=transformation_audit,
         statistical_summary=stat_summary,
+        data_coverage=coverage_data,
     )
 
 

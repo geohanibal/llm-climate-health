@@ -52,6 +52,7 @@ class ExportMetadata {
   /// When the user clicked "export" (UTC, ISO 8601).
   final String exportedAt;
   final String systemVersion;
+  final List<DataCoverage> dataCoverage;
 
   const ExportMetadata({
     required this.disease,
@@ -69,6 +70,7 @@ class ExportMetadata {
     required this.fromCache,
     required this.exportedAt,
     required this.systemVersion,
+    this.dataCoverage = const [],
   });
 
   /// [exportedAt] is injectable so tests get a fixed timestamp.
@@ -91,6 +93,7 @@ class ExportMetadata {
       fromCache: result.cached,
       exportedAt: (exportedAt ?? DateTime.now()).toUtc().toIso8601String(),
       systemVersion: result.systemVersion,
+      dataCoverage: result.dataCoverage,
     );
   }
 
@@ -111,6 +114,7 @@ class ExportMetadata {
         'from_cache': fromCache,
         'exported_at': exportedAt,
         'system_version': systemVersion,
+        'data_coverage': dataCoverage.map((c) => c.toJson()).toList(),
         'notes': [caseDefinitionNote],
       };
 

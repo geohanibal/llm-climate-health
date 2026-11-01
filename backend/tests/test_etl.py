@@ -115,7 +115,7 @@ def test_run_integration_decadal_aggregation_averages_yearly_climate(mock_climat
             "precipitation_sum": [100.0, 200.0],
         }
     )
-    steps, records, resolution, audit, stat_summary = run_integration(
+    steps, records, resolution, audit, stat_summary, coverage = run_integration(
         "dengue",
         "Thailand",
         ["temperature", "precipitation"],
@@ -142,7 +142,7 @@ def test_run_integration_with_lag_periods_and_buffer(mock_climate):
             "precipitation_sum": [10.0, 11.0, 12.0, 13.0, 14.0, 15.0],
         }
     )
-    steps, records, resolution, audit, stat_summary = run_integration(
+    steps, records, resolution, audit, stat_summary, coverage = run_integration(
         "dengue",
         "Thailand",
         ["temperature", "precipitation"],
@@ -174,7 +174,7 @@ def test_run_integration_with_tmin_tmax_and_lags(mock_climate):
             "temperature_2m_max": [27.0, 28.0, 29.0, 30.0, 31.0, 32.0],
         }
     )
-    steps, records, resolution, audit, stat_summary = run_integration(
+    steps, records, resolution, audit, stat_summary, coverage = run_integration(
         "dengue",
         "Thailand",
         ["temperature_min", "temperature_max"],
@@ -196,3 +196,52 @@ def test_run_integration_with_tmin_tmax_and_lags(mock_climate):
     corr_vars = {c.variable for c in stat_summary.correlations}
     assert "temperature_min" in corr_vars
     assert "temperature_max" in corr_vars
+
+
+@patch("app.services.etl.fetch_climate")
+def test_run_integration_coverage_detects_outside_source_gaps_thailand_2005_2010(mock_climate):
+    # Mock 72 months of climate data for 2005-01 .. 2010-12
+    periods = []
+    for y in range(2005, 2011):
+        for m in range(1, 13):
+            periods.append(f"{y}-{m:02d}")
+    mock_climate.return_value = pd.DataFrame(
+        {
+            "period": periods,
+            "temperature_2m_mean": [28.0] * len(periods),
+        }
+    )
+    steps, records, resolution, audit, stat_summary, coverage = run_integration(
+        "dengue",
+        "Thailand",
+        ["temperature"],
+        date(2005, 1, 1),
+        date(2010, 12, 31),
+        aggregation="native",
+    )
+    assert resolution == "month"
+    assert len(records) == 72
+
+    # Check coverage results
+    cov_by_col = {c.column: c for c in coverage}
+    assert "case_count" in cov_by_col
+    cases_cov = cov_by_col["case_count"]
+    assert cases_cov.total_periods == 72
+    assert cases_cov.missing_count == 48
+    assert cases_cov.periods_with_value == 24
+    assert cases_cov.missing_percent == 66.7
+    assert cases_cov.reason == "outside_source_coverage"
+    assert cases_cov.first_available == "2009-01"
+    assert cases_cov.last_available == "2010-12"
+    assert len(cases_cov.missing_ranges) == 1
+    assert cases_cov.missing_ranges[0].start == "2005-01"
+    assert cases_cov.missing_ranges[0].end == "2008-12"
+
+    # Climate (temperature) has full coverage
+    temp_cov = cov_by_col["temperature_mean_c"]
+    assert temp_cov.missing_count == 0
+    assert temp_cov.missing_percent == 0.0
+
+    # Provenance steps note coverage
+    assert any("Checked data completeness:" in s for s in steps)
+

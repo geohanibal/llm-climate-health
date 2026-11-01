@@ -371,6 +371,23 @@ class RequestFormCardState extends State<RequestFormCard> {
   DateTime get currentStartDate => _startDate;
   DateTime get currentEndDate => _endDate;
 
+  void applyDateRange(DateTime start, DateTime end) {
+    setState(() {
+      _startDate = DateTime(start.year, start.month, start.day);
+      _endDate = DateTime(end.year, end.month, end.day);
+    });
+  }
+
+  void applyClimateSource(String source) {
+    if (widget.options.climateSources.any((s) => s.id == source)) {
+      setState(() => _climateSource = source);
+    }
+  }
+
+  void openCaseSourceSearch() => _openSourceSearch();
+
+  void openPopulationSourceSearch() => _openPopulationSearch();
+
   /// Public programmatic submission for callers like [HomePage] driving
   /// searches triggered directly from the Climate-Health Copilot drawer.
   void submitForm() => _submit();

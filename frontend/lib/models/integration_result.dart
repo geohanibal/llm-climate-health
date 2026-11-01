@@ -121,6 +121,86 @@ class StatisticalSummary {
   }
 }
 
+/// Temporal gap range within a single data column.
+class MissingRange {
+  final String start;
+  final String end;
+
+  const MissingRange({required this.start, required this.end});
+
+  factory MissingRange.fromJson(Map<String, dynamic> json) {
+    return MissingRange(
+      start: json['start'] as String? ?? '',
+      end: json['end'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'start': start,
+        'end': end,
+      };
+}
+
+/// Completeness and temporal gap metrics for an integrated column (FR-26).
+class DataCoverage {
+  final String column;
+  final int totalPeriods;
+  final int periodsWithValue;
+  final int missingCount;
+  final double missingPercent;
+  final List<MissingRange> missingRanges;
+  final String? firstAvailable;
+  final String? lastAvailable;
+  final String? reason;
+  final Map<String, String>? availableRange;
+
+  const DataCoverage({
+    required this.column,
+    required this.totalPeriods,
+    required this.periodsWithValue,
+    required this.missingCount,
+    required this.missingPercent,
+    this.missingRanges = const [],
+    this.firstAvailable,
+    this.lastAvailable,
+    this.reason,
+    this.availableRange,
+  });
+
+  factory DataCoverage.fromJson(Map<String, dynamic> json) {
+    final rangesJson = json['missing_ranges'] as List?;
+    final availJson = json['available_range'] as Map<String, dynamic>?;
+    return DataCoverage(
+      column: json['column'] as String? ?? '',
+      totalPeriods: (json['total_periods'] as num?)?.toInt() ?? 0,
+      periodsWithValue: (json['periods_with_value'] as num?)?.toInt() ?? 0,
+      missingCount: (json['missing_count'] as num?)?.toInt() ?? 0,
+      missingPercent: (json['missing_percent'] as num?)?.toDouble() ?? 0.0,
+      missingRanges: rangesJson
+              ?.map((e) => MissingRange.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      firstAvailable: json['first_available'] as String?,
+      lastAvailable: json['last_available'] as String?,
+      reason: json['reason'] as String?,
+      availableRange: availJson?.map((k, v) => MapEntry(k, v.toString())),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'column': column,
+        'total_periods': totalPeriods,
+        'periods_with_value': periodsWithValue,
+        'missing_count': missingCount,
+        'missing_percent': missingPercent,
+        'missing_ranges': missingRanges.map((e) => e.toJson()).toList(),
+        if (firstAvailable != null) 'first_available': firstAvailable,
+        if (lastAvailable != null) 'last_available': lastAvailable,
+        if (reason != null) 'reason': reason,
+        if (availableRange != null) 'available_range': availableRange,
+      };
+}
+
 /// The full result of one ETL integration run: the plain-language
 /// explanation, the step-by-step pipeline trace, the joined dataset (at
 /// whatever [resolution] was resolved), the cited scientific sources, and
@@ -148,6 +228,7 @@ class IntegrationResult {
   final String lastVerified;
   final DataTransformationAudit? transformationAudit;
   final StatisticalSummary? statisticalSummary;
+  final List<DataCoverage> dataCoverage;
 
   const IntegrationResult({
     required this.disease,
@@ -165,12 +246,14 @@ class IntegrationResult {
     required this.lastVerified,
     this.transformationAudit,
     this.statisticalSummary,
+    this.dataCoverage = const [],
   });
 
   factory IntegrationResult.fromJson(Map<String, dynamic> json) {
     final requestEcho = json['request_echo'] as Map<String, dynamic>? ?? const {};
     final auditJson = json['transformation_audit'] as Map<String, dynamic>?;
     final statsJson = json['statistical_summary'] as Map<String, dynamic>?;
+    final covJson = json['data_coverage'] as List?;
     return IntegrationResult(
       disease: requestEcho['disease'] as String? ?? '',
       region: requestEcho['region'] as String? ?? '',
@@ -190,6 +273,10 @@ class IntegrationResult {
       lastVerified: json['last_verified'] as String? ?? '',
       transformationAudit: auditJson != null ? DataTransformationAudit.fromJson(auditJson) : null,
       statisticalSummary: statsJson != null ? StatisticalSummary.fromJson(statsJson) : null,
+      dataCoverage: covJson
+              ?.map((e) => DataCoverage.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
   }
 }

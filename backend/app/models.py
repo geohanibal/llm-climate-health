@@ -93,6 +93,29 @@ class StatisticalSummary(BaseModel):
     scientific_disclaimer: str = ""
 
 
+class MissingRange(BaseModel):
+    start: str
+    end: str
+
+
+class DataCoverage(BaseModel):
+    column: str
+    total_periods: int
+    periods_with_value: int
+    missing_count: int
+    missing_percent: float
+    missing_ranges: list[MissingRange] = Field(default_factory=list)
+    first_available: str | None = None
+    last_available: str | None = None
+    reason: Literal[
+        "outside_source_coverage",
+        "gaps_inside_source",
+        "not_provided_by_source",
+        "unknown",
+    ] | None = None
+    available_range: dict[str, str] | None = None
+
+
 class IntegrationResponse(BaseModel):
     request_echo: IntegrationRequest
     resolution: Literal["day", "month", "year", "decade"]
@@ -109,6 +132,7 @@ class IntegrationResponse(BaseModel):
     last_verified: str
     transformation_audit: DataTransformationAudit | None = None
     statistical_summary: StatisticalSummary | None = None
+    data_coverage: list[DataCoverage] = Field(default_factory=list)
 
 
 class DiscoveredSource(BaseModel):

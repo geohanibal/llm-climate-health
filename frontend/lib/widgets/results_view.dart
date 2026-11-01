@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../models/integration_result.dart';
 import 'case_chart_card.dart';
 import 'data_audit_card.dart';
+import 'data_coverage_card.dart';
 import 'dataset_table_card.dart';
 import 'explanation_card.dart';
 import 'kpi_summary_card.dart';
@@ -19,8 +20,19 @@ import 'statistical_summary_card.dart';
 
 class ResultsView extends StatelessWidget {
   final IntegrationResult result;
+  final VoidCallback? onSearchCaseSources;
+  final VoidCallback? onSearchPopulationSources;
+  final void Function(DateTime start, DateTime end)? onAdjustDateRange;
+  final void Function(String source)? onChangeClimateSource;
 
-  const ResultsView({super.key, required this.result});
+  const ResultsView({
+    super.key,
+    required this.result,
+    this.onSearchCaseSources,
+    this.onSearchPopulationSources,
+    this.onAdjustDateRange,
+    this.onChangeClimateSource,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +64,18 @@ class ResultsView extends StatelessWidget {
             resolution: result.resolution,
           ),
         ],
+        if (result.dataCoverage.any((c) => c.missingCount > 0)) ...[
+          const SizedBox(height: 16),
+          DataCoverageCard(
+            coverage: result.dataCoverage,
+            currentClimateSource:
+                result.requestEcho['climate_source'] as String? ?? 'open-meteo-era5',
+            onSearchCaseSources: onSearchCaseSources,
+            onSearchPopulationSources: onSearchPopulationSources,
+            onAdjustDateRange: onAdjustDateRange,
+            onChangeClimateSource: onChangeClimateSource,
+          ),
+        ],
         const SizedBox(height: 16),
         CaseChartCard(data: result.data, resolution: result.resolution),
         const SizedBox(height: 16),
@@ -62,4 +86,3 @@ class ResultsView extends StatelessWidget {
     );
   }
 }
-
