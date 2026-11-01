@@ -352,6 +352,23 @@ void main() {
     expect(submitted!.caseDataSource, 'builtin');
   });
 
+  testWidgets('selected lag chips are passed to onSubmit as sorted lagPeriods (FR-23)', (tester) async {
+    IntegrationRequestParams? submitted;
+    await tester.pumpWidget(_wrap(_options(), onSubmit: (p) => submitted = p));
+    await tester.pumpAndSettle();
+
+    for (final lag in [3, 1]) {
+      await tester.ensureVisible(find.byKey(Key('lag_chip_$lag')));
+      await tester.tap(find.byKey(Key('lag_chip_$lag')));
+      await tester.pumpAndSettle();
+    }
+    await tester.ensureVisible(find.text('Run integration'));
+    await tester.tap(find.text('Run integration'));
+    await tester.pumpAndSettle();
+
+    expect(submitted!.lagPeriods, [1, 3]);
+  });
+
   testWidgets('submit shows a validation error when custom_upload climate has no file picked', (tester) async {
     final key = GlobalKey<RequestFormCardState>();
     final options = _options(

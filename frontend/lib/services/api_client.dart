@@ -143,6 +143,7 @@ class ApiClient {
         'custom_population_url': params.customPopulationUrl,
         'population_indicator_code': params.populationIndicatorCode,
         'population_indicator_name': params.populationIndicatorName,
+        'lag_periods': params.lagPeriods,
       }),
     );
     _throwIfNotOk(response);
@@ -165,6 +166,11 @@ class ApiClient {
       ..fields['climate_source'] = params.climateSource
       ..fields['case_data_source'] = params.caseDataSource
       ..fields['population_source'] = params.populationSource;
+
+    if (params.lagPeriods.isNotEmpty) {
+      // The multipart endpoint expects a comma-separated list ("1,3").
+      request.fields['lag_periods'] = params.lagPeriods.join(',');
+    }
 
     if (params.customPopulationUrl != null) {
       request.fields['custom_population_url'] = params.customPopulationUrl!;

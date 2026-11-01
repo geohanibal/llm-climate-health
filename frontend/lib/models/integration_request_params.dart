@@ -31,6 +31,9 @@ class IntegrationRequestParams {
   final Uint8List? populationUploadBytes;
   final String? populationUploadFileName;
 
+  /// Lagged climate columns to add (FR-23), e.g. [1, 3]; empty = none.
+  final List<int> lagPeriods;
+
   const IntegrationRequestParams({
     required this.disease,
     required this.region,
@@ -53,5 +56,6 @@ class IntegrationRequestParams {
     this.populationIndicatorName,
     this.populationUploadBytes,
     this.populationUploadFileName,
+    this.lagPeriods = const [],
   });
 }

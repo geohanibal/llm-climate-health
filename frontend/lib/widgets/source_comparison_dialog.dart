@@ -42,6 +42,7 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
   late String _altClimateSource; // 'open-meteo-era5', 'nasa-power', 'tmd', 'custom_upload'
   late String _altCaseSource; // 'who_gho', 'custom_url', 'custom_upload'
   late final TextEditingController _customCaseUrlCtrl;
+  final ScrollController _resultsScrollCtrl = ScrollController();
 
   // WHO GHO indicator selection
   String? _whoIndicatorCode;
@@ -78,6 +79,7 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
 
   @override
   void dispose() {
+    _resultsScrollCtrl.dispose();
     _customCaseUrlCtrl.dispose();
     super.dispose();
   }
@@ -241,10 +243,12 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-    final dialogWidth = (size.width * 0.9).clamp(520.0, 860.0);
-    final dialogHeight = (size.height * 0.88).clamp(420.0, 760.0);
+    final dialogWidth = (size.width * 0.92).clamp(520.0, 960.0);
+    // Nearly full height so both variable cards fit on common laptop screens.
+    final dialogHeight = (size.height * 0.95).clamp(420.0, 1100.0);
 
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: dialogWidth, maxHeight: dialogHeight),
@@ -623,7 +627,13 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
       );
     }
 
-    return ListView(
+    // Visible scrollbar: without it users did not notice that the second
+    // variable card is below the fold (live test 2026-11-01).
+    return Scrollbar(
+      controller: _resultsScrollCtrl,
+      thumbVisibility: true,
+      child: ListView(
+      controller: _resultsScrollCtrl,
       children: [
         // Subtitle row: Source A vs Source B
         Row(
@@ -721,6 +731,7 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
           ),
         ),
       ],
+      ),
     );
   }
 

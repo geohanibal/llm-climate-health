@@ -129,7 +129,8 @@ void main() {
     // Verify explanation with seasonal cycle sentence
     expect(
       find.textContaining('A high r partly reflects the shared seasonal cycle'),
-      findsOneWidget,
+      // The taller dialog shows both variable cards, so the note can appear twice.
+      findsWidgets,
     );
 
     // Verify metrics in expansion tile

@@ -51,6 +51,10 @@ class RequestFormCardState extends State<RequestFormCard> {
   late String _disease = widget.options.diseases.keys.first;
   late String? _region = _initialRegion();
   final Set<String> _variables = {'temperature', 'precipitation'};
+
+  /// Selected lags (FR-23): each adds one shifted copy of every climate
+  /// variable as its own column, e.g. temperature_lag1.
+  final Set<int> _lagPeriods = {};
   DateTime _startDate = DateTime(2015, 1, 1);
   DateTime _endDate = DateTime(2023, 12, 1);
   late String _aggregation = widget.options.aggregations.first;
@@ -450,6 +454,7 @@ class RequestFormCardState extends State<RequestFormCard> {
         disease: _disease,
         region: _region!,
         variables: _variables.toList(),
+        lagPeriods: (_lagPeriods.toList()..sort()),
         startDate: _startDate,
         endDate: _endDate,
         aggregation: _aggregation,
@@ -504,6 +509,9 @@ class RequestFormCardState extends State<RequestFormCard> {
           const SizedBox(height: 16),
           Text('Climate variables', style: Theme.of(context).textTheme.labelLarge),
           _buildVariableChips(),
+          const SizedBox(height: 12),
+          Text(I18n.t('lagColumns'), style: Theme.of(context).textTheme.labelLarge),
+          _buildLagChips(),
           const SizedBox(height: 16),
           ResponsiveFieldRow(
             columns: 3,
@@ -626,6 +634,33 @@ class RequestFormCardState extends State<RequestFormCard> {
           }),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildLagChips() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          children: [
+            for (var lag = 1; lag <= 6; lag++)
+              FilterChip(
+                key: Key('lag_chip_$lag'),
+                label: Text('$lag'),
+                selected: _lagPeriods.contains(lag),
+                onSelected: (sel) => setState(() {
+                  sel ? _lagPeriods.add(lag) : _lagPeriods.remove(lag);
+                }),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          I18n.t('lagColumnsHint'),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
     );
   }
 
