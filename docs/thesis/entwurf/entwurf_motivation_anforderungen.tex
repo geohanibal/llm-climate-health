@@ -230,7 +230,7 @@ Klimadaten vor Beginn der Fallreihe & Lowe S.~e211 &
 Tmin/Tmax statt nur Mitteltemperatur & Suttirat S.~5; Lowe S.~e211 &
   FR-24: Tmin/Tmax als Mittel der täglichen Minima/Maxima & umgesetzt \\
 Unterschiedliche zeitliche Auflösungen & Suttirat S.~4--5 &
-  FR-20: Auflösungsharmonisierung \todo{Unterschied diskutieren: Suttirat wiederholt Jahreswerte (Bestandsgröße), FR-20 erhält Summen (Zählgröße)} & umgesetzt \\
+  FR-20: Auflösungsharmonisierung (Bestands- vs.\ Stromgrößen, siehe unten) & umgesetzt \\
 Herkunft muss nachvollziehbar sein; Version angeben & Clarke S.~2, 4, 12 &
   FR-25: Export mit Metadaten (Quellen, Lizenzen, Version, Schritte) & umgesetzt \\
 Räumliche Abdeckung variiert zwischen Ländern (subnational nur für 40 von 102 Ländern) & Clarke S.~1, 8 &
@@ -248,6 +248,20 @@ nichtlinearen Schwelleneffekte, wie sie Suttirat et al.\ fanden (etwa
 betonen, dass der Einfluss des Klimas \enquote{complex, non-linear, and often
 delayed} ist (S.~e211). Die Korrelationen dienen daher nur der explorativen
 Datenprüfung, nicht der Modellierung.
+
+\noindent Bei der Harmonisierung zeitlicher Auflösungen (FR-17, FR-20) sind zwei
+Arten von Größen zu unterscheiden. \emph{Bestandsgrößen} beschreiben einen Zustand
+(z.\,B.\ Bevölkerung, Haushaltseinkommen); bei feinerer Auflösung bleibt ihr Wert
+gleich oder wird zwischen bekannten Werten interpoliert. Suttirat et al.\ ordnen
+jährliche sozioökonomische Werte jedem Monat des Jahres zu (S.~4--5) und füllen
+fehlende Jahre des Haushaltseinkommens durch lineare Interpolation (S.~5); das
+System interpoliert die jährliche Bevölkerung linear auf Monate (FR-17).
+\emph{Stromgrößen} summieren sich dagegen über die Zeit (z.\,B.\ Fallzahlen,
+Niederschlag): Beim Vergröbern werden sie summiert, beim Verfeinern so verteilt,
+dass die Summe erhalten bleibt (FR-20, NFR-06). Würde man eine monatliche Fallzahl
+wie eine Bestandsgröße jedem Tag des Monats zuordnen, ergäbe sich etwa die
+dreißigfache Fallzahl. Mittelwerte wie die Temperatur werden beim Vergröbern
+gemittelt.
 
 \subsection{Anforderungen ohne direkten Literaturbezug}
 

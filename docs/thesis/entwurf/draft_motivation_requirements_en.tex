@@ -229,7 +229,7 @@ Climate data prior to case start & Lowe p.~e211 &
 Tmin/Tmax rather than only mean & Suttirat p.~5; Lowe p.~e211 &
   FR-24: Tmin/Tmax aggregated as mean of daily extrema & Implemented \\
 Disparate temporal resolutions & Suttirat pp.~4--5 &
-  FR-20: Temporal resolution harmonisation \todo{Discuss difference: Suttirat repeats annual stock values, FR-20 preserves sums of count variables} & Implemented \\
+  FR-20: Temporal resolution harmonisation (stock vs.\ flow variables, see below) & Implemented \\
 Provenance must be traceable; cite versions & Clarke pp.~2, 4, 12 &
   FR-25: Export metadata package (sources, licences, version, audit steps) & Implemented \\
 Reporting coverage varies across countries & Clarke pp.~1, 8 &
@@ -248,6 +248,19 @@ Tmin with lag~1 and 32\,°C for Tmax with lag~3, p.~12); Lowe et al.\ emphasize 
 climate impacts on transmission are \enquote{complex, non-linear, and often delayed}
 (p.~e211). Consequently, correlation coefficients serve strictly for exploratory data
 verification, not as predictive model specifications.
+
+\noindent When harmonising temporal resolutions (FR-17, FR-20), two kinds of
+quantities must be distinguished. \emph{Stock variables} describe a state (e.g.\
+population, household income); at a finer resolution their value stays the same or
+is interpolated between known values. Suttirat et al.\ assign annual socioeconomic
+values to every month of the year (pp.~4--5) and fill missing years of household
+income by linear interpolation (p.~5); the system linearly interpolates the annual
+population to months (FR-17). \emph{Flow variables}, in contrast, add up over time
+(e.g.\ case counts, precipitation): when coarsening they are summed, when refining
+they are distributed so that the total is preserved (FR-20, NFR-06). Assigning a
+monthly case count to every day of the month, as if it were a stock variable, would
+yield roughly thirty times the number of cases. Averages such as temperature are
+averaged when coarsening.
 
 \subsection{Requirements Without Direct Literature Origin}
 
