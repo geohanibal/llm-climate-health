@@ -137,8 +137,8 @@ dieselbe Anfrage ergibt daher dieselbe Tabelle. Die Ausgaben des LLM müssen
 dennoch kontrolliert werden: In einem eigenen Test bezeichnete das Modell eine
 nicht signifikante Korrelation (Lag~3, $n = 9$) als stärksten Zusammenhang.
 Seitdem erhält es zu jeder Korrelation die Signifikanzkennzeichnung und die
-Anzahl der Wertepaare und darf nur signifikante Zusammenhänge als Befund
-nennen. Wie zuverlässig die LLM-Komponenten arbeiten, wird in der Evaluation
+Anzahl der Wertepaare und wird angewiesen, nur signifikante Zusammenhänge als
+Befund zu nennen. Wie zuverlässig die LLM-Komponenten arbeiten, wird in der Evaluation
 geprüft \todo{Kriterien festlegen, z.\,B.\ Anteil korrekt ausgefüllter Formularfelder}.
 
 Das System ist ausdrücklich \emph{kein} Vorhersagemodell: Es bereitet
@@ -259,8 +259,10 @@ System interpoliert die jährliche Bevölkerung linear auf Monate (FR-17).
 \emph{Stromgrößen} summieren sich dagegen über die Zeit (z.\,B.\ Fallzahlen,
 Niederschlag): Beim Vergröbern werden sie summiert, beim Verfeinern so verteilt,
 dass die Summe erhalten bleibt (FR-20, NFR-06). Würde man eine monatliche Fallzahl
-wie eine Bestandsgröße jedem Tag des Monats zuordnen, ergäbe sich etwa die
-dreißigfache Fallzahl. Mittelwerte wie die Temperatur werden beim Vergröbern
+wie eine Bestandsgröße jedem Tag des Monats zuordnen, ergäbe die Summe der
+Tageswerte das 28- bis 31-Fache der tatsächlichen Fallzahl: Aus 300 Fällen im Juni
+würden $30 \cdot 300 = 9\,000$. Bei korrekter Verteilung entfallen auf jeden Tag
+10 Fälle, und die Summe bleibt 300. Mittelwerte wie die Temperatur werden beim Vergröbern
 gemittelt.
 
 \subsection{Anforderungen ohne direkten Literaturbezug}

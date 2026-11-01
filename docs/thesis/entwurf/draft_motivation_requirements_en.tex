@@ -136,7 +136,7 @@ program components; the same request therefore yields the same table. The LLM's
 output still has to be checked: in an own test, the model described a
 non-significant correlation (lag~3, $n = 9$) as the strongest association. Since
 then it receives the significance flag and the number of value pairs for every
-correlation and may only name significant associations as findings. How reliably
+correlation and is instructed to report only significant associations as findings. How reliably
 the LLM components work will be examined in the evaluation
 \todo{define criteria, e.g.\ share of correctly filled form fields}.
 
@@ -259,7 +259,9 @@ population to months (FR-17). \emph{Flow variables}, in contrast, add up over ti
 (e.g.\ case counts, precipitation): when coarsening they are summed, when refining
 they are distributed so that the total is preserved (FR-20, NFR-06). Assigning a
 monthly case count to every day of the month, as if it were a stock variable, would
-yield roughly thirty times the number of cases. Averages such as temperature are
+make the sum of the daily values 28 to 31 times the actual count: 300 cases in June
+would become $30 \cdot 300 = 9{,}000$. With correct distribution each day receives
+10 cases and the total remains 300. Averages such as temperature are
 averaged when coarsening.
 
 \subsection{Requirements Without Direct Literature Origin}
