@@ -83,6 +83,14 @@ data processing?*
 
 **5.4** *Are there rules for the structure and the length? And when is the deadline?*
 
+**5.5** *I use AI tools, Claude and Gemini, for coding, for help with formulating and translating the text, and for
+grammar. The decisions, the literature and the checking of the results are my own work. What are the rules at the
+university for this, and how should I declare it in the thesis?*
+
+(AI ხელსაწყოებს, Claude-ს და Gemini-ს, ვიყენებ კოდისთვის, ტექსტის ფორმულირებაში და თარგმნაში დასახმარებლად და
+გრამატიკისთვის. გადაწყვეტილებები, ლიტერატურა და შედეგების შემოწმება ჩემი სამუშაოა. რა წესები აქვს უნივერსიტეტს ამაზე
+და როგორ უნდა მივუთითო ეს ნაშრომში?)
+
 (5.2: მონახაზში ახლა author-year არის.)
 
 ---
