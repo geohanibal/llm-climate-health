@@ -8,24 +8,24 @@
 > - `docs/thesis/entwurf/entwurf_motivation_anforderungen.pdf` (გერმანული, მთავარი ვერსია)
 > - `docs/thesis/entwurf/draft_motivation_requirements_en.pdf` (ინგლისური თარგმანი)
 >
-> **სტილი:** ჯერ ზოგადი, თავაზიანი სტილია. როცა მათი წერილის მაგალითს მომწერ, მიმართვასა და დამშვიდობებას
-> მათ სტილს მოვარგებ.
+> **სტილი:** უშუალო, როგორც შენი წინა წერილი („Hi Thomas, Peter and Lin“): სახელებით, ტიტულების გარეშე,
+> მოკლე წინადადებებით.
 
 ---
 
 **Subject:** Update before our meeting on Monday – motivation and requirements
 
-Dear Professor Haddawy, dear Dr. Barkowsky,
+Hi Thomas, Peter and Lin,
 
-before our meeting on Monday I would like to give you a short update, so that we can use the time for your feedback.
+here is a short update before our meeting on Monday, so we can use the time for your feedback.
 
-After your last feedback I worked on the motivation. I read three papers in detail:
+Since your last feedback I have worked on the motivation. I read three papers in detail:
 
 - Suttirat et al. (2026), dengue in Thailand – I use it as the main case study,
 - Lowe et al. (2021), dengue in Brazil,
 - Clarke et al. (2024), the OpenDengue dataset.
 
-I chose Suttirat et al. as the main case study because it describes the data preparation in detail and uses monthly data from Thailand. I was happy to see your name among the authors, Professor Haddawy. I hope it is okay to use this paper as the main example.
+I chose Suttirat et al. as the main case study because it describes the data preparation in detail and uses monthly data from Thailand. Peter, I was happy to see your name among the authors. I hope it is okay to use this paper as the main example.
 
 From the methods sections I listed all data preparation steps that the authors did before the modelling. Both modelling papers do very similar steps: getting monthly case counts, calculating incidence per 100,000, adding Tmin and Tmax, creating lagged climate variables, and in Lowe et al. also loading climate data one year before the case data starts, because of the lags. Clarke et al. write that locating, extracting, processing and standardising data takes time, and they stress that the source of every record should be traceable.
 
@@ -39,9 +39,9 @@ I used these steps to derive requirements. For each requirement I noted the pape
 
 I decided not to fill missing data automatically from another source, because the sources use different case definitions (for example, OpenDengue counts all reported cases, while Suttirat et al. use only DHF). The system shows the gaps and lets the user compare sources instead.
 
-I also started writing. I attached a first draft of the introduction and the requirements chapter in German, and an English translation of the same text. The draft includes a table that links each step in the papers to a requirement. Some parts are still open and marked in red.
+I have also started writing. Attached is a first draft of the introduction and the requirements chapter in German, plus an English translation of the same text. The draft includes a table that links each step in the papers to a requirement. Some parts are still open and marked in red.
 
-On Monday I would like to ask you mainly about these points:
+On Monday I would mainly like to discuss these points:
 
 1. Is this the kind of motivation you had in mind?
 2. Are two modelling papers and one dataset paper enough, or should I add more studies?
@@ -50,8 +50,10 @@ On Monday I would like to ask you mainly about these points:
 
 The current version is online: https://llm-climate-health.onrender.com/
 
-Best regards,
-Sergi Koniashvili
+See you on Monday!
+
+Best,
+Sergi
 
 ---
 
@@ -59,17 +61,17 @@ Sergi Koniashvili
 
 **თემა:** განახლება ორშაბათის შეხვედრამდე – მოტივაცია და მოთხოვნები
 
-პატივცემულო პროფესორო ჰადავი, პატივცემულო დოქტორო ბარკოვსკი,
+გამარჯობა თომას, პიტერ და ლინ,
 
-ორშაბათის შეხვედრამდე მინდა მოკლედ მოგიყვეთ, რა გავაკეთე, რომ შეხვედრის დრო თქვენს შენიშვნებს დავუთმოთ.
+ორშაბათის შეხვედრამდე მოკლე განახლებას გიგზავნით, რომ შეხვედრის დრო თქვენს შენიშვნებს დავუთმოთ.
 
-თქვენი ბოლო შენიშვნის შემდეგ მოტივაციაზე ვიმუშავე. სამი სტატია დეტალურად წავიკითხე:
+თქვენი ბოლო შენიშვნის შემდეგ მოტივაციაზე ვმუშაობდი. სამი სტატია დეტალურად წავიკითხე:
 
 - Suttirat et al. (2026), დენგე ტაილანდში, მთავარ case study-დ ვიყენებ;
 - Lowe et al. (2021), დენგე ბრაზილიაში;
 - Clarke et al. (2024), OpenDengue-ს მონაცემთა ნაკრები.
 
-Suttirat et al. მთავარ case study-დ ავირჩიე, რადგან მონაცემების მომზადებას დეტალურად აღწერს და ტაილანდის თვიურ მონაცემებს იყენებს. გამიხარდა, როცა ავტორებს შორის თქვენი სახელი დავინახე, პროფესორო ჰადავი. იმედი მაქვს, ამ სტატიის მთავარ მაგალითად გამოყენება მისაღებია.
+Suttirat et al. მთავარ case study-დ ავირჩიე, რადგან მონაცემების მომზადებას დეტალურად აღწერს და ტაილანდის თვიურ მონაცემებს იყენებს. პიტერ, გამიხარდა, როცა ავტორებს შორის შენი სახელი დავინახე. იმედი მაქვს, ამ სტატიის მთავარ მაგალითად გამოყენება მისაღებია.
 
 მეთოდების ნაწილებიდან ამოვწერე მონაცემთა მომზადების ყველა ნაბიჯი, რაც ავტორებმა მოდელირებამდე გააკეთეს. ორივე მოდელირების სტატია ძალიან მსგავს ნაბიჯებს აკეთებს: თვიური შემთხვევების მოპოვება, ინციდენტობის გამოთვლა 100 000-ზე, Tmin-ისა და Tmax-ის დამატება, დაგვიანებული (lag) კლიმატის ცვლადების შექმნა. Lowe et al. ამას გარდა კლიმატის მონაცემებს შემთხვევების დაწყებამდე ერთი წლით ადრეც იღებენ, lag-ების გამო. Clarke et al. წერენ, რომ მონაცემების მოძიება, ამოღება, დამუშავება და სტანდარტიზაცია დროს მოითხოვს, და ხაზს უსვამენ, რომ ყოველი ჩანაწერის წყარო მიკვლევადი უნდა იყოს.
 
@@ -85,7 +87,7 @@ Suttirat et al. მთავარ case study-დ ავირჩიე, რა�
 
 წერაც დავიწყე. თან ვურთავ შესავლისა და მოთხოვნების თავის პირველ მონახაზს გერმანულად და იმავე ტექსტის ინგლისურ თარგმანს. მონახაზში არის ცხრილი, რომელიც სტატიების თითოეულ ნაბიჯს მოთხოვნას უკავშირებს. ზოგი ნაწილი ჯერ ღიაა და წითლად არის მონიშნული.
 
-ორშაბათს ძირითადად ამ საკითხებზე მინდა გკითხოთ:
+ორშაბათს ძირითადად ამ საკითხების განხილვა მინდა:
 
 1. ასეთ მოტივაციას გულისხმობდით?
 2. საკმარისია ორი მოდელირების სტატია და ერთი მონაცემთა სტატია, თუ მეტი კვლევა დავამატო?
@@ -94,8 +96,10 @@ Suttirat et al. მთავარ case study-დ ავირჩიე, რა�
 
 მიმდინარე ვერსია ონლაინ არის: https://llm-climate-health.onrender.com/
 
-პატივისცემით,
-სერგი კონიაშვილი
+ორშაბათამდე!
+
+საუკეთესო სურვილებით,
+სერგი
 
 ---
 
