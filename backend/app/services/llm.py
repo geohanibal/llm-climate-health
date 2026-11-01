@@ -90,10 +90,10 @@ def build_prompt(
     if statistical_summary:
         corr_lines = []
         for c in statistical_summary.correlations:
-            sig_flag = " [p<0.05, statistically significant]" if c.significant else ""
+            sig_flag = " [SIGNIFICANT]" if c.significant else " [not significant]"
             corr_lines.append(
                 f"- {c.variable} at Lag {c.lag_periods}: Pearson r={c.pearson_r} (p={c.pearson_p}), "
-                f"Spearman rho={c.spearman_rho} (p={c.spearman_p}){sig_flag}"
+                f"Spearman rho={c.spearman_rho} (p={c.spearman_p}), n={c.sample_size}{sig_flag}"
             )
         stat_text = (
             f"\n\nFull-Series Statistical & Epidemiological Profile ({statistical_summary.sample_size} periods):\n"
@@ -117,9 +117,13 @@ def build_prompt(
         "physically consistent reconstruction of historical weather, not a "
         "raw station reading), highlight any observable seasonal trends, "
         "incidence rates per 100,000 population or associations between "
-        "weather conditions and disease activity (specifically note which time lag "
-        "shows the strongest association), and make clear this is descriptive "
-        "integrated data, not a disease prediction.\n\n"
+        "weather conditions and disease activity, and make clear this is descriptive "
+        "integrated data, not a disease prediction. When you mention an "
+        "association, use ONLY those marked [SIGNIFICANT] (at least 10 pairs and "
+        "p < 0.05 in both tests) and name its time lag; never present a "
+        "[not significant] correlation as a finding, even if its r is high "
+        "(few pairs make r unreliable). If none is significant, say that no clear "
+        "association can be seen in this period.\n\n"
         f"Disease: {disease}\nRegion: {region}\n\n"
         "Pipeline steps performed:\n"
         + "\n".join(f"- {s}" for s in steps)

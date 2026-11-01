@@ -58,7 +58,7 @@ class ResultsView extends StatelessWidget {
                   builder: (ctx) => SourceComparisonDialog(result: result, options: options),
                 );
               },
-              icon: const Icon(Icons.compare_arrows, size: 18),
+              icon: const Icon(Icons.show_chart, size: 18),
               label: Text(I18n.t('compareSources')),
             ),
             ReportDownloadBar(result: result),

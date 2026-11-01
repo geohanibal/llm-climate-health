@@ -678,7 +678,7 @@ class RequestFormCardState extends State<RequestFormCard> {
         children: [
           Row(
             children: [
-              Icon(Icons.history, size: 18, color: colors.primary),
+              Icon(Icons.calendar_month, size: 18, color: colors.primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

@@ -152,3 +152,27 @@ def test_strip_inline_math_removes_latex_dollar_delimiters():
     text = "strongest association at a lag of 3 months ($r = 0.8183$)."
     assert strip_inline_math(text) == "strongest association at a lag of 3 months (r = 0.8183)."
     assert strip_inline_math("costs $5 per month") == "costs $5 per month"
+
+
+def test_build_prompt_marks_non_significant_correlations():
+    """The explanation must not present a high-r but non-significant lag
+    (e.g. n=9 at lag 3) as a finding: the prompt labels every correlation
+    and passes n (live test 2026-11-01)."""
+    from app.models import CorrelationMetric, StatisticalSummary
+
+    stats = StatisticalSummary(
+        sample_size=12,
+        correlations=[
+            CorrelationMetric(variable="temperature_min", lag_periods=3, pearson_r=0.93,
+                              pearson_p=0.0003, spearman_rho=0.51, spearman_p=0.16,
+                              significant=False, sample_size=9),
+            CorrelationMetric(variable="temperature_min", lag_periods=1, pearson_r=0.63,
+                              pearson_p=0.037, spearman_rho=0.68, spearman_p=0.02,
+                              significant=True, sample_size=11),
+        ],
+    )
+    records = [PeriodRecord(period="2022-01", case_count=1)]
+    prompt = build_prompt("dengue", "Thailand", ["step"], records, stats)
+    assert "Lag 3: Pearson r=0.93" in prompt and "n=9 [not significant]" in prompt
+    assert "n=11 [SIGNIFICANT]" in prompt
+    assert "never present a [not significant] correlation as a finding" in prompt

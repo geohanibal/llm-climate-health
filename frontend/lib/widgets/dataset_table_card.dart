@@ -45,8 +45,7 @@ class DatasetTableCard extends StatelessWidget {
           ),
         ],
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
+      child: _HorizontalScroll(
         child: DataTable(
           columns: [
             const DataColumn(label: Text('Period')),
@@ -83,4 +82,40 @@ class DatasetTableCard extends StatelessWidget {
   /// Lag columns reuse the unit formatting of their base variable.
   static String _formatLag(String column, double? value) =>
       column.startsWith('precipitation') ? Formatting.precipitation(value) : Formatting.temperature(value);
+}
+
+/// Horizontal scroll area with an always-visible scrollbar: with lag
+/// columns the table is wider than the card, and without a visible bar
+/// users did not notice the hidden columns (live test 2026-11-01).
+class _HorizontalScroll extends StatefulWidget {
+  final Widget child;
+
+  const _HorizontalScroll({required this.child});
+
+  @override
+  State<_HorizontalScroll> createState() => _HorizontalScrollState();
+}
+
+class _HorizontalScrollState extends State<_HorizontalScroll> {
+  final ScrollController _controller = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scrollbar(
+      controller: _controller,
+      thumbVisibility: true,
+      child: SingleChildScrollView(
+        controller: _controller,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.only(bottom: 12),
+        child: widget.child,
+      ),
+    );
+  }
 }

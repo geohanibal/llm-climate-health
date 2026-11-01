@@ -267,7 +267,9 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
                       color: theme.colorScheme.primary.withAlpha(25),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.compare_arrows, color: theme.colorScheme.primary, size: 28),
+                    // Icons.compare_arrows did not render in the web build (live test
+                    // 2026-11-01); show_chart renders and fits two compared series.
+                    child: Icon(Icons.show_chart, color: theme.colorScheme.primary, size: 28),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
