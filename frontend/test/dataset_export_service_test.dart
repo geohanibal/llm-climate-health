@@ -107,6 +107,19 @@ void main() {
     expect(rows[1]['case_count'], isNull);
   });
 
+  test('export(json) rows keep only the columns listed in metadata (no all-null Tmin/Tmax)', () {
+    final fake = _FakeDownloadService();
+    DatasetExportService(download: fake)
+        .export(result, ExportFormat.json, fileNamePrefix: 'my_dataset', exportedAt: exportedAt);
+
+    final decoded = jsonDecode(fake.downloads.single.content) as Map<String, dynamic>;
+    final columns = (decoded['metadata']['columns'] as Map<String, dynamic>).keys.toSet();
+    for (final row in decoded['data'] as List) {
+      expect((row as Map<String, dynamic>).keys.toSet(), columns);
+    }
+    expect(columns.contains('temperature_min_c'), isFalse);
+  });
+
   test('exported metadata answers what, where, when, from which source, licence and version', () {
     final fake = _FakeDownloadService();
     DatasetExportService(download: fake).export(result, ExportFormat.json, exportedAt: exportedAt);

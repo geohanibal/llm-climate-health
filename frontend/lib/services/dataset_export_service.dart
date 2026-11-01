@@ -91,10 +91,17 @@ class DatasetExportService {
     return buffer.toString();
   }
 
+  /// JSON export: each row keeps exactly the columns listed in
+  /// `metadata.columns`, so unrequested Tmin/Tmax fields do not appear as
+  /// all-null keys (found in the live export check 2026-11-01).
   String toJson(List<PeriodRecord> data, ExportMetadata metadata) {
+    final keep = metadata.columns.keys.toSet();
     return _encoder.convert({
       'metadata': metadata.toJson(),
-      'data': data.map((r) => r.toJson()).toList(),
+      'data': [
+        for (final r in data)
+          Map.fromEntries(r.toJson().entries.where((e) => keep.contains(e.key))),
+      ],
     });
   }
 }

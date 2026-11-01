@@ -270,8 +270,12 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
                   ],
                   selected: {_compareKind},
                   onSelectionChanged: (val) {
+                    // Drop the previous result: a climate result must not stay
+                    // visible under the "cases" tab (and vice versa).
                     setState(() {
                       _compareKind = val.first;
+                      _comparisonResult = null;
+                      _errorMessage = null;
                     });
                     if (_compareKind == 'climate') {
                       _runComparison();
@@ -302,7 +306,11 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
                   ),
                 ],
                 ElevatedButton.icon(
-                  onPressed: _loading ? null : _runComparison,
+                  // Cases need an alternative URL before anything can run.
+                  onPressed: _loading ||
+                          (_compareKind == 'cases' && _customCaseUrlCtrl.text.trim().isEmpty)
+                      ? null
+                      : _runComparison,
                   icon: const Icon(Icons.refresh, size: 18),
                   label: Text(I18n.t('compareButton')),
                 ),
@@ -312,8 +320,9 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
               const SizedBox(height: 10),
               TextField(
                 controller: _customCaseUrlCtrl,
+                onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  labelText: 'Alternative cases CSV URL',
+                  labelText: I18n.t('alternativeCaseUrlLabel'),
                   hintText: 'https://example.org/cases_data.csv',
                   isDense: true,
                   border: const OutlineInputBorder(),
