@@ -1,109 +1,190 @@
-# შეხვედრა 2026-11-02: ინგლისური ფრაზები (ფურცლიდან წასაკითხად)
+# შეხვედრა 2026-11-02: ინგლისური ფრაზები (B1 დონე, ფურცლიდან წასაკითხად)
 
-> მოკლე, მარტივი წინადადებებია, რომ ხმამაღლა მარტივად წაიკითხო. ქართული განმარტება ფრჩხილებშია.
+> **B1 ენა:** მოკლე წინადადებები და ყოველდღიური სიტყვები. თითოეულ წინადადებაში ერთი აზრია.
+> სპეციალური სიტყვები მხოლოდ იქ დავტოვე, სადაც სხვა გზა არ არის; მათი ახსნა ქვემოთ, ლექსიკონშია.
+> თითოეულ ფრაზას ქვემოთ ქართული თარგმანი აქვს.
 > ნომრები ემთხვევა `2026-11-02_motivacia_da_moTxovnebi.md`-ის კითხვებს. პასუხები იქ ჩაწერე.
+
+---
+
+## ლექსიკონი (ეს სიტყვები შეხვედრაზე ხშირად გაისმება)
+
+| ინგლისური | ქართული |
+|---|---|
+| paper / study | სტატია / კვლევა |
+| data preparation | მონაცემების მომზადება |
+| step | ნაბიჯი |
+| requirement | მოთხოვნა |
+| case study | საქმის შესწავლა (სისტემის ჩვენება მაგალითზე) |
+| dataset | მონაცემთა ნაკრები (ცხრილი) |
+| source | წყარო |
+| feature | ფუნქცია (სისტემაში) |
+| gap / missing data | ხარვეზი / გამოტოვებული მონაცემები |
+| lag | დაგვიანება (კლიმატის ეფექტი თვეების შემდეგ) |
+| limitation | შეზღუდვა |
+| future work | სამომავლო სამუშაო |
+| evaluation | შეფასება |
+| reference / citation | წყარო ლიტერატურის სიაში / ციტირება |
+| deadline | ბოლო ვადა |
 
 ---
 
 ## 0. როცა რამე ვერ გაიგე (ყველაზე მნიშვნელოვანი)
 
-- *Sorry, could you say that again more slowly?* (გაიმეორეთ ნელა)
-- *Just to make sure I understood: you mean that …?* (სწორად გავიგე, რომ …?)
-- *Could you write that in the chat, please?* (ჩატში დაწერეთ, თუ შეიძლება; ონლაინ შეხვედრაზე ძალიან გამოსადეგია)
-- *Let me think about it and answer by email.* (დავფიქრდები და მეილით გიპასუხებთ)
-- *I will note that down.* (ჩავიწერ)
+- *Sorry, can you say that again, more slowly?*
+  (ბოდიში, შეგიძლიათ გაიმეოროთ, უფრო ნელა?)
+- *Sorry, I did not understand the word "…". What does it mean?*
+  (ბოდიში, სიტყვა „…“ ვერ გავიგე. რას ნიშნავს?)
+- *Do you mean that …?*
+  (გულისხმობთ, რომ …?)
+- *Can you write it in the chat, please?*
+  (შეგიძლიათ ჩატში დაწეროთ?)
+- *I need a moment to think.*
+  (ერთი წუთით დავფიქრდები.)
+- *I am not sure. I will check it and write you an email.*
+  (დარწმუნებული არ ვარ. შევამოწმებ და მეილს მოგწერთ.)
+- *Okay, I will write that down.*
+  (კარგი, ჩავიწერ.)
 
 ---
 
 ## 1. დასაწყისი (1–2 წუთი)
 
-*Thank you for your time. I sent you an email with a short update and a first draft. In short: I read three papers,
-listed the data preparation steps, and derived requirements from them. I implemented five missing features and
-started writing the introduction and the requirements chapter. Today I would mainly like your feedback.*
+*Thank you for your time. This morning I sent you an email and a first draft. Here is the short version. I read three
+papers. I wrote down all the steps the authors did to prepare their data. From these steps I made the requirements for
+my system. Five features were missing, so I built them. I also started to write the first chapters. Today I would like
+to hear your opinion.*
 
-(მადლობა დროისთვის. მეილი გამოგიგზავნეთ მოკლე განახლებით და პირველი მონახაზით. მოკლედ: სამი სტატია
-წავიკითხე, მონაცემთა მომზადების ნაბიჯები ამოვწერე და მათგან მოთხოვნები გამოვიყვანე. ხუთი ფუნქცია, რომელიც
-აკლდა, დავნერგე და შესავლისა და მოთხოვნების თავის წერა დავიწყე. დღეს ძირითადად თქვენი აზრი მაინტერესებს.)
+(მადლობა დროისთვის. დილით მეილი და პირველი მონახაზი გამოგიგზავნეთ. აი, მოკლედ. სამი სტატია წავიკითხე.
+ჩავიწერე ყველა ნაბიჯი, რაც ავტორებმა მონაცემების მოსამზადებლად გააკეთეს. ამ ნაბიჯებიდან ჩემი სისტემის
+მოთხოვნები შევადგინე. ხუთი ფუნქცია აკლდა, ამიტომ ავაწყვე. პირველი თავების წერაც დავიწყე. დღეს თქვენი აზრის
+მოსმენა მინდა.)
 
 ---
 
 ## 2. მიდგომა
 
-**2.1** *Is this the kind of motivation you had in mind? Researchers need data for their models, preparing the data
-takes many manual steps, and my system makes these steps easier.*
+**2.1** *Is this the motivation you wanted? My idea is: researchers need data for their models. Preparing this data
+takes many steps by hand. My system makes these steps easier.*
 
-**2.2** *Are two modelling papers and one dataset paper enough? Or should I add more studies to show that the steps
-are typical?*
+(ასეთი მოტივაცია გინდოდათ? ჩემი იდეა ასეთია: მკვლევრებს მოდელებისთვის მონაცემები სჭირდებათ. ამ მონაცემების
+მომზადებას ბევრი ხელით გადადგმული ნაბიჯი სჭირდება. ჩემი სისტემა ამ ნაბიჯებს ამარტივებს.)
 
-**2.3** *Is a table "step in the paper → requirement" a good way to derive the requirements? And what should I do with
-the older requirements that do not come from the literature, like the chat, the map or the PDF report? Should I
-justify them as usability requirements, or remove them?*
+**2.2** *I use two papers with models and one paper about a dataset. Is this enough? Or should I add more papers?*
+
+(ვიყენებ ორ სტატიას მოდელებით და ერთ სტატიას მონაცემთა ნაკრებზე. ეს საკმარისია? თუ მეტი სტატია დავამატო?)
+
+**2.3** *I made a table: on the left the step in the paper, on the right the requirement. Is this a good way? And some
+features I added myself to make the system easier to use, like the chat and the map. They do not come from the papers.
+Should I explain them as "easy to use" features, or remove them from the thesis?*
+
+(ცხრილი გავაკეთე: მარცხნივ ნაბიჯი სტატიიდან, მარჯვნივ მოთხოვნა. ეს კარგი გზაა? ზოგი ფუნქცია, მაგალითად
+ჩატი და რუკა, თვითონ დავამატე, რომ სისტემით სარგებლობა მარტივი ყოფილიყო. ისინი სტატიებიდან არ მოდის.
+„მარტივად გამოსაყენებელ“ ფუნქციებად ავხსნა, თუ ნაშრომიდან ამოვიღო?)
 
 ---
 
 ## 3. Case studies
 
-**3.1** *For case study 1, I want to build the same simplified dataset two times: once by hand with Python, and once
-with the system. Then I compare time, number of steps and the results. Is this a good evaluation? Is it okay if I am
-the only tester, or do I need a second person?*
+**3.1** *For case study 1, I want to make the same small dataset two times. First by hand with Python. Then with my
+system. After that I compare the time, the number of steps and the results. Is this a good evaluation? Can I do the
+test alone, or do I need a second person?*
 
-**3.2** *May I use the Zenodo data of Suttirat et al. for the comparison?*
+(case study 1-ისთვის ერთი და იგივე პატარა მონაცემთა ნაკრების ორჯერ შექმნა მინდა. ჯერ ხელით, Python-ით.
+შემდეგ ჩემი სისტემით. მერე შევადარებ დროს, ნაბიჯების რაოდენობას და შედეგებს. ეს კარგი შეფასებაა? ტესტის
+მარტო ჩატარება შემიძლია, თუ მეორე ადამიანი მჭირდება?)
 
-**3.3** (Haddawy-ს) *Do you know roughly how long the data preparation took in the Suttirat study? May I cite this as
-a personal communication?*
+**3.2** *Can I use the data of Suttirat et al. from Zenodo for the comparison?*
 
-**3.4** *Which studies would you recommend for case study 2 and 3? My ideas are: Brazil, because Lowe et al. share
-their data; malaria or cholera, but the WHO data is only yearly; or a researcher's own CSV file with automatic climate
-matching.*
+(შედარებისთვის შემიძლია Suttirat et al.-ის მონაცემები Zenodo-დან გამოვიყენო?)
+
+**3.3** (Peter-ს) *Do you know how long the data preparation took in the Suttirat study? Can I write this in my thesis
+as "personal communication"?*
+
+(იცი, Suttirat-ის კვლევაში მონაცემების მომზადებას რამდენი დრო დასჭირდა? შემიძლია ეს ნაშრომში „პირადი
+კომუნიკაციის“ სახით მივუთითო?)
+
+**3.4** *Which studies do you suggest for case study 2 and 3? I have three ideas. First, Brazil, because Lowe et al.
+share their data. Second, malaria or cholera, but the WHO data is only yearly. Third, a researcher's own CSV file, and
+the system adds the climate data.*
+
+(case study 2-ისა და 3-ისთვის რომელ კვლევებს მირჩევთ? სამი იდეა მაქვს. პირველი, ბრაზილია, რადგან Lowe et al.
+თავიანთ მონაცემებს აზიარებენ. მეორე, მალარია ან ქოლერა, მაგრამ WHO-ს მონაცემები მხოლოდ წლიურია. მესამე,
+მკვლევრის საკუთარი CSV ფაილი, რომელსაც სისტემა კლიმატის მონაცემებს უმატებს.)
 
 ---
 
 ## 4. სისტემის ფარგლები
 
-**4.1** *Both papers average the climate over the whole region. My system uses one point per country. Which extensions
-are necessary for a bachelor thesis, and which can I describe as limitations or future work? For example: area
-average instead of one point, the province level, weekly data.*
+**4.1** *Both papers use the average climate of the whole region. My system uses only one point for each country. What
+do I need to add for a bachelor thesis? And what can I describe as a limitation or as future work? For example: the
+average of a region instead of one point, provinces, or weekly data.*
+
+(ორივე სტატია მთელი რეგიონის საშუალო კლიმატს იყენებს. ჩემი სისტემა თითო ქვეყნისთვის მხოლოდ ერთ წერტილს
+იყენებს. ბაკალავრის ნაშრომისთვის რა უნდა დავამატო? და რა შემიძლია აღვწერო შეზღუდვად ან სამომავლო სამუშაოდ?
+მაგალითად: რეგიონის საშუალო ერთი წერტილის ნაცვლად, პროვინციები ან კვირის მონაცემები.)
 
 (Tmin/Tmax და lag სვეტები უკვე გაკეთებულია, აღარ იკითხო.)
 
-**4.2** *I decided not to fill missing data automatically from another source, because the sources use different case
-definitions. Instead, the system shows the gaps and lets the user compare two sources. Do you agree with this
-decision?*
+**4.2** *I decided not to fill missing data from another source. The reason is: the sources count cases in different
+ways. So the system shows the gaps, and the user can compare two sources. Do you agree?*
+
+(გადავწყვიტე, რომ გამოტოვებული მონაცემები სხვა წყაროდან არ შევავსო. მიზეზი ასეთია: წყაროები შემთხვევებს
+სხვადასხვანაირად ითვლიან. ამიტომ სისტემა ხარვეზებს აჩვენებს და მომხმარებელს ორი წყაროს შედარება შეუძლია.
+ეთანხმებით?)
 
 ---
 
 ## 5. ფორმალური საკითხები
 
-**5.1** *About how many references do you expect? Which topics must be covered, for example related tools or LLMs in
-data processing?*
+**5.1** *How many references do you expect, more or less? Which topics must I write about? For example other tools, or
+LLMs for data work?*
 
-**5.2** *Which citation style should I use: numbers or author-year? Is there a template?*
+(დაახლოებით რამდენ წყაროს ელით? რომელ თემებზე უნდა დავწერო? მაგალითად სხვა ხელსაწყოებზე ან LLM-ებზე
+მონაცემებთან მუშაობისთვის?)
 
-**5.3** *Peter, is it okay that my main case study is a paper where you are a co-author?*
+**5.2** *Which citation style should I use: numbers, or author and year? Is there a template?*
 
-**5.4** *Are there rules for the structure and the length? And when is the deadline?*
+(ციტირების რომელი სტილი გამოვიყენო: ნომრები, თუ ავტორი და წელი? არის შაბლონი?)
 
-**5.5** *I use AI tools, Claude and Gemini, for coding, for help with formulating and translating the text, and for
-grammar. The decisions, the literature and the checking of the results are my own work. What are the rules at the
-university for this, and how should I declare it in the thesis?*
+(მონახაზში ახლა „ავტორი და წელი“ არის.)
 
-(AI ხელსაწყოებს, Claude-ს და Gemini-ს, ვიყენებ კოდისთვის, ტექსტის ფორმულირებაში და თარგმნაში დასახმარებლად და
-გრამატიკისთვის. გადაწყვეტილებები, ლიტერატურა და შედეგების შემოწმება ჩემი სამუშაოა. რა წესები აქვს უნივერსიტეტს ამაზე
-და როგორ უნდა მივუთითო ეს ნაშრომში?)
+**5.3** *Peter, my main case study is a paper where you are a co-author. Is this okay?*
 
-(5.2: მონახაზში ახლა author-year არის.)
+(პიტერ, ჩემი მთავარი case study სტატიაა, რომლის თანაავტორიც ხარ. ეს მისაღებია?)
+
+**5.4** *Are there rules for the structure and the number of pages? And when is the deadline?*
+
+(არის წესები სტრუქტურასა და გვერდების რაოდენობაზე? და როდის არის ბოლო ვადა?)
+
+**5.5** *I use AI tools, Claude and Gemini. I use them for code, for help with writing and translating, and for grammar.
+The decisions, the papers and the checking of the results are my own work. What are the rules at the university? And
+how should I write this in the thesis?*
+
+(AI ხელსაწყოებს ვიყენებ, Claude-ს და Gemini-ს. ვიყენებ კოდისთვის, წერასა და თარგმნაში დასახმარებლად და
+გრამატიკისთვის. გადაწყვეტილებები, სტატიები და შედეგების შემოწმება ჩემი სამუშაოა. რა წესები აქვს უნივერსიტეტს?
+და როგორ დავწერო ეს ნაშრომში?)
 
 ---
 
 ## 6. თუ გკითხეს: „რატომ მხოლოდ დენგე?“
 
-*Dengue is my validation case because OpenDengue has open monthly data. In the papers, the climate effect comes with a
-delay of zero to six months. With yearly data, like the WHO data for malaria and cholera, you cannot see this. Malaria
-and cholera are already in the system, and users can upload their own monthly data as CSV. To show that it also works
-for other diseases, I plan a second case study.*
+*I use dengue as my main example because OpenDengue has free monthly data. In the papers, the weather affects dengue
+after zero to six months. With yearly data you cannot see this. The WHO data for malaria and cholera is only yearly.
+Malaria and cholera are already in the system. Users can also upload their own monthly data as a CSV file. I plan a
+second case study to show that the system works for other diseases too.*
 
-**თუ მალარიაზე გკითხეს:** *The WHO malaria numbers are modelled estimates, not reported cases. So I would be careful
-to use them as input for a new model.*
+(დენგეს მთავარ მაგალითად ვიყენებ, რადგან OpenDengue-ს უფასო თვიური მონაცემები აქვს. სტატიებში ამინდი დენგეზე
+ნულიდან ექვს თვემდე პერიოდის შემდეგ მოქმედებს. წლიური მონაცემებით ამას ვერ დაინახავ. WHO-ს მონაცემები
+მალარიასა და ქოლერაზე მხოლოდ წლიურია. მალარია და ქოლერა სისტემაში უკვე არის. მომხმარებლებს საკუთარი თვიური
+მონაცემების CSV ფაილად ატვირთვაც შეუძლიათ. მეორე case study-ს ვგეგმავ, რომ ვაჩვენო, რომ სისტემა სხვა
+დაავადებებისთვისაც მუშაობს.)
+
+**თუ მალარიაზე გკითხეს:** *The WHO malaria numbers are estimates from a model. They are not counted cases. So I would
+be careful to use them for a new model.*
+
+(WHO-ს მალარიის რიცხვები მოდელით გამოთვლილი შეფასებებია. ისინი დათვლილი შემთხვევები არ არის. ამიტომ ახალი
+მოდელისთვის მათ ფრთხილად გამოვიყენებდი.)
 
 (WHO-ს შეფასების მეთოდი ჯერ არ წაგიკითხავს: არ თქვა, რომ ისინი კლიმატს იყენებენ.)
 
@@ -111,7 +192,6 @@ to use them as input for a new model.*
 
 ## 7. დასასრული
 
-*Thank you very much. I will summarise the decisions and send them to you by email. When would be a good time for the
-next meeting?*
+*Thank you very much. I will write down what we decided and send it to you by email. When can we meet next time?*
 
-(დიდი მადლობა. გადაწყვეტილებებს შევაჯამებ და მეილით გამოგიგზავნით. როდის იქნება მოსახერხებელი შემდეგი შეხვედრა?)
+(დიდი მადლობა. რაც გადავწყვიტეთ, ჩავიწერ და მეილით გამოგიგზავნით. შემდეგ როდის შეგვიძლია შეხვედრა?)
