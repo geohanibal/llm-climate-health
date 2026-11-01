@@ -54,7 +54,7 @@ In addition to core parameters (`disease`, `region`, `start_date`, `end_date`, `
 Every `/api/integrate` and `/api/integrate/upload` response contains, next to
 `sources`, a `licenses` list (licence / terms of use of each source, same
 order as `sources`) and `system_version` (`APP_VERSION` environment variable,
-otherwise `git-<short commit>`, otherwise `unknown`). Licences are defined in
+otherwise Render's `RENDER_GIT_COMMIT`, otherwise the local `git-<short commit>`, otherwise `unknown`). Licences are defined in
 `app/config.py`, each with the official page and check date in a comment.
 The frontend exports them with the data.
 

@@ -49,3 +49,16 @@ def test_at_least_one_climate_source_is_region_unrestricted():
     one configured climate source must have no region restriction at all."""
     unrestricted = [key for key in CLIMATE_SOURCES if key not in CLIMATE_SOURCE_REGIONS]
     assert unrestricted, "every climate source is region-restricted — the frontend's default-region case would break"
+
+
+def test_system_version_prefers_app_version_then_render_commit(monkeypatch):
+    """FR-25: the version written into exports comes from APP_VERSION, else
+    from Render's RENDER_GIT_COMMIT (the Docker image has no git)."""
+    from app.config import _detect_system_version
+
+    monkeypatch.setenv("APP_VERSION", "1.2.0")
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "abcdef1234567890")
+    assert _detect_system_version() == "1.2.0"
+
+    monkeypatch.delenv("APP_VERSION")
+    assert _detect_system_version() == "git-abcdef1"

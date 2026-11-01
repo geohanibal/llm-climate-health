@@ -23,11 +23,15 @@ TMD_API_UKEY = os.environ.get("TMD_API_UKEY", "")
 def _detect_system_version() -> str:
     """Version of this software that produced a dataset (FR-25, provenance).
 
-    Docker builds set APP_VERSION explicitly; in a local git checkout the short
-    commit hash is used instead. "unknown" is returned rather than a guess."""
+    Order: APP_VERSION (set explicitly), RENDER_GIT_COMMIT (set by Render for
+    every deploy; the Docker image has no git), then the short commit hash of
+    a local git checkout. "unknown" is returned rather than a guess."""
     env_version = os.environ.get("APP_VERSION", "").strip()
     if env_version:
         return env_version
+    render_commit = os.environ.get("RENDER_GIT_COMMIT", "").strip()
+    if render_commit:
+        return f"git-{render_commit[:7]}"
     try:
         commit = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
