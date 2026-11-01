@@ -1,28 +1,36 @@
-/// Modal dialog for comparing two data sources (FR-27 / Task F / A19).
+/// Modal dialog for comparing two data sources (FR-27 / Task F & F2 / A19).
 ///
-/// Compares two climate sources (e.g. Open-Meteo ERA5 vs NASA POWER) or two case
-/// sources (builtin vs custom_url) over their temporal overlap, computing Pearson r,
-/// mean difference, and deterministic heuristic verdicts without modifying the
-/// main integrated dataset.
+/// Compares two climate sources (e.g. Open-Meteo ERA5 vs NASA POWER or custom upload)
+/// or two case sources (builtin vs WHO GHO, custom_url, or uploaded CSV) over their
+/// temporal overlap, computing Pearson r, mean difference, and deterministic heuristic verdicts
+/// without modifying the main integrated dataset.
 ///
 /// Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 library;
 
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../core/localization.dart';
+import '../models/discovered_source.dart';
 import '../models/integration_result.dart';
+import '../models/platform_options.dart';
 import '../models/source_comparison.dart';
 import '../services/api_client.dart';
+import 'source_search_dialog.dart';
 
 class SourceComparisonDialog extends StatefulWidget {
   final IntegrationResult result;
   final ApiClient apiClient;
+  final PlatformOptions? options;
 
   const SourceComparisonDialog({
     super.key,
     required this.result,
     this.apiClient = const ApiClient(),
+    this.options,
   });
 
   @override
@@ -30,9 +38,20 @@ class SourceComparisonDialog extends StatefulWidget {
 }
 
 class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
-  late String _compareKind;
-  late String _altClimateSource;
+  late String _compareKind; // 'climate' or 'cases'
+  late String _altClimateSource; // 'open-meteo-era5', 'nasa-power', 'tmd', 'custom_upload'
+  late String _altCaseSource; // 'who_gho', 'custom_url', 'custom_upload'
   late final TextEditingController _customCaseUrlCtrl;
+
+  // WHO GHO indicator selection
+  String? _whoIndicatorCode;
+  String? _whoIndicatorName;
+
+  // File uploads for Source B
+  Uint8List? _caseUploadBytes;
+  String? _caseUploadFileName;
+  Uint8List? _climateUploadBytes;
+  String? _climateUploadFileName;
 
   bool _loading = false;
   String? _errorMessage;
@@ -42,11 +61,17 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
   void initState() {
     super.initState();
     _compareKind = 'climate';
+    _altCaseSource = 'who_gho';
+
     final curClim = widget.result.requestEcho['climate_source'] as String? ?? 'open-meteo-era5';
     _altClimateSource = curClim == 'open-meteo-era5' ? 'nasa-power' : 'open-meteo-era5';
+
     _customCaseUrlCtrl = TextEditingController(
       text: widget.result.requestEcho['custom_source_url'] as String? ?? '',
     );
+    _whoIndicatorCode = widget.result.requestEcho['who_indicator_code'] as String?;
+    _whoIndicatorName = widget.result.requestEcho['who_indicator_name'] as String?;
+
     // Auto-run climate comparison on open for immediate feedback
     _runComparison();
   }
@@ -57,7 +82,91 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
     super.dispose();
   }
 
+  Future<void> _pickFile({required bool isClimate}) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    setState(() {
+      if (isClimate) {
+        _climateUploadBytes = result.files.single.bytes;
+        _climateUploadFileName = result.files.single.name;
+        _altClimateSource = 'custom_upload';
+      } else {
+        _caseUploadBytes = result.files.single.bytes;
+        _caseUploadFileName = result.files.single.name;
+        _altCaseSource = 'custom_upload';
+      }
+    });
+    _runComparison();
+  }
+
+  Future<void> _openWhoGhoSearch() async {
+    final picked = await showDialog<DiscoveredSource>(
+      context: context,
+      builder: (ctx) => SourceSearchDialog(
+        diseaseKey: widget.result.disease,
+        diseaseLabel: widget.result.disease,
+        region: widget.result.region,
+      ),
+    );
+    if (picked != null) {
+      setState(() {
+        if (picked.isWhoGho) {
+          _whoIndicatorCode = picked.indicatorCode;
+          _whoIndicatorName = picked.title;
+          _altCaseSource = 'who_gho';
+        } else {
+          _altCaseSource = 'custom_url';
+          _customCaseUrlCtrl.text = picked.resourceUrl ?? picked.datasetUrl;
+        }
+      });
+      _runComparison();
+    }
+  }
+
+  bool _isTmdAvailable() {
+    if (widget.result.region != 'Thailand') return false;
+    // Hidden until the backend confirms that TMD API keys are configured.
+    return widget.options?.tmdConfigured ?? false;
+  }
+
   Future<void> _runComparison() async {
+    // Validate inputs
+    if (_compareKind == 'cases') {
+      if (_altCaseSource == 'who_gho' && _whoIndicatorCode == null) {
+        setState(() {
+          _errorMessage = I18n.t('pickWhoIndicator');
+          _comparisonResult = null;
+        });
+        return;
+      }
+      if (_altCaseSource == 'custom_url' && _customCaseUrlCtrl.text.trim().isEmpty) {
+        setState(() {
+          _errorMessage = I18n.t('enterCaseUrl');
+          _comparisonResult = null;
+        });
+        return;
+      }
+      if (_altCaseSource == 'custom_upload' && _caseUploadBytes == null) {
+        setState(() {
+          _errorMessage = I18n.t('noFileSelected');
+          _comparisonResult = null;
+        });
+        return;
+      }
+    } else {
+      if (_altClimateSource == 'custom_upload' && _climateUploadBytes == null) {
+        setState(() {
+          _errorMessage = I18n.t('noFileSelected');
+          _comparisonResult = null;
+        });
+        return;
+      }
+    }
+
     setState(() {
       _loading = true;
       _errorMessage = null;
@@ -84,12 +193,34 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
         populationIndicatorName: echo['population_indicator_name'] as String?,
         compareKind: _compareKind,
         alternativeClimateSource: _altClimateSource,
-        alternativeCaseDataSource: _compareKind == 'cases' ? 'custom_url' : null,
+        alternativeCaseDataSource: _compareKind == 'cases' ? _altCaseSource : null,
         alternativeCustomSourceUrl:
-            _compareKind == 'cases' ? _customCaseUrlCtrl.text.trim() : null,
+            _compareKind == 'cases' && _altCaseSource == 'custom_url'
+                ? _customCaseUrlCtrl.text.trim()
+                : null,
+        alternativeWhoIndicatorCode:
+            _compareKind == 'cases' && _altCaseSource == 'who_gho' ? _whoIndicatorCode : null,
+        alternativeWhoIndicatorName:
+            _compareKind == 'cases' && _altCaseSource == 'who_gho' ? _whoIndicatorName : null,
       );
 
-      final res = await widget.apiClient.compareSources(req);
+      final SourceComparisonResponse res;
+      if (_compareKind == 'cases' && _altCaseSource == 'custom_upload') {
+        res = await widget.apiClient.compareSourcesWithUpload(
+          req,
+          _caseUploadBytes!,
+          _caseUploadFileName ?? 'cases.csv',
+        );
+      } else if (_compareKind == 'climate' && _altClimateSource == 'custom_upload') {
+        res = await widget.apiClient.compareSourcesWithUpload(
+          req,
+          _climateUploadBytes!,
+          _climateUploadFileName ?? 'climate.csv',
+        );
+      } else {
+        res = await widget.apiClient.compareSources(req);
+      }
+
       if (mounted) {
         setState(() {
           _comparisonResult = res;
@@ -110,8 +241,8 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-    final dialogWidth = (size.width * 0.9).clamp(520.0, 840.0);
-    final dialogHeight = (size.height * 0.85).clamp(420.0, 720.0);
+    final dialogWidth = (size.width * 0.9).clamp(520.0, 860.0);
+    final dialogHeight = (size.height * 0.88).clamp(420.0, 760.0);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -146,7 +277,9 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
                         const SizedBox(height: 4),
                         Text(
                           I18n.t('compareSourcesSubtitle'),
-                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -241,12 +374,14 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
   }
 
   Widget _buildSelectorRow(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+      color: theme.colorScheme.surfaceContainerHighest.withAlpha(80),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -270,8 +405,6 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
                   ],
                   selected: {_compareKind},
                   onSelectionChanged: (val) {
-                    // Drop the previous result: a climate result must not stay
-                    // visible under the "cases" tab (and vice versa).
                     setState(() {
                       _compareKind = val.first;
                       _comparisonResult = null;
@@ -287,49 +420,171 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
                   DropdownButton<String>(
                     value: _altClimateSource,
                     isDense: true,
-                    items: const [
-                      DropdownMenuItem(
+                    items: [
+                      const DropdownMenuItem(
                         value: 'open-meteo-era5',
                         child: Text('Open-Meteo (ERA5)'),
                       ),
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: 'nasa-power',
                         child: Text('NASA POWER (MERRA-2)'),
                       ),
+                      if (_isTmdAvailable())
+                        const DropdownMenuItem(
+                          value: 'tmd',
+                          child: Text('TMD (Thailand)'),
+                        ),
+                      DropdownMenuItem(
+                        value: 'custom_upload',
+                        child: Text(I18n.t('uploadCsvFile')),
+                      ),
                     ],
                     onChanged: (val) {
-                      if (val != null && val != _altClimateSource) {
+                      if (val != null) {
                         setState(() => _altClimateSource = val);
-                        _runComparison();
+                        if (val != 'custom_upload') {
+                          _runComparison();
+                        }
                       }
                     },
                   ),
                 ],
                 ElevatedButton.icon(
-                  // Cases need an alternative URL before anything can run.
-                  onPressed: _loading ||
-                          (_compareKind == 'cases' && _customCaseUrlCtrl.text.trim().isEmpty)
-                      ? null
-                      : _runComparison,
+                  onPressed: _loading ? null : _runComparison,
                   icon: const Icon(Icons.refresh, size: 18),
                   label: Text(I18n.t('compareButton')),
                 ),
               ],
             ),
-            if (_compareKind == 'cases') ...[
+
+            // Climate Upload sub-row
+            if (_compareKind == 'climate' && _altClimateSource == 'custom_upload') ...[
               const SizedBox(height: 10),
-              TextField(
-                controller: _customCaseUrlCtrl,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  labelText: I18n.t('alternativeCaseUrlLabel'),
-                  hintText: 'https://example.org/cases_data.csv',
-                  isDense: true,
-                  border: const OutlineInputBorder(),
-                  helperText: I18n.t('caseComparisonUrlNote'),
-                  helperMaxLines: 2,
-                ),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => _pickFile(isClimate: true),
+                    icon: const Icon(Icons.upload_file, size: 18),
+                    label: Text(
+                      _climateUploadFileName != null
+                          ? I18n.t('selectedFile').replaceAll('{file}', _climateUploadFileName!)
+                          : I18n.t('pickCsvFile'),
+                    ),
+                  ),
+                  if (_climateUploadFileName != null) ...[
+                    const SizedBox(width: 8),
+                    const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                  ],
+                ],
               ),
+            ],
+
+            // Cases Source B Sub-Controls
+            if (_compareKind == 'cases') ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text('${I18n.t('sourceBType')}:', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  SegmentedButton<String>(
+                    segments: [
+                      ButtonSegment(
+                        value: 'who_gho',
+                        label: Text(I18n.t('whoGhoIndicator')),
+                        icon: const Icon(Icons.search, size: 16),
+                      ),
+                      const ButtonSegment(
+                        value: 'custom_url',
+                        label: Text('URL'),
+                        icon: Icon(Icons.link, size: 16),
+                      ),
+                      ButtonSegment(
+                        value: 'custom_upload',
+                        label: Text(I18n.t('uploadCsvFile')),
+                        icon: const Icon(Icons.upload_file, size: 16),
+                      ),
+                    ],
+                    selected: {_altCaseSource},
+                    onSelectionChanged: (val) {
+                      setState(() {
+                        _altCaseSource = val.first;
+                        _errorMessage = null;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Cases: WHO GHO
+              if (_altCaseSource == 'who_gho') ...[
+                Row(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: _openWhoGhoSearch,
+                      icon: const Icon(Icons.search, size: 18),
+                      label: Text(I18n.t('pickWhoIndicator')),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _whoIndicatorCode != null
+                            ? I18n.t('selectedIndicator').replaceAll('{indicator}', _whoIndicatorName ?? _whoIndicatorCode!)
+                            : I18n.t('noPopulationSourcesFound'),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontStyle: _whoIndicatorCode == null ? FontStyle.italic : FontStyle.normal,
+                          color: _whoIndicatorCode != null ? theme.colorScheme.primary : null,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'WHO GHO data is annual. Both sources will be compared at yearly resolution.',
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ],
+
+              // Cases: Custom URL
+              if (_altCaseSource == 'custom_url') ...[
+                TextField(
+                  controller: _customCaseUrlCtrl,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: I18n.t('alternativeCaseUrlLabel'),
+                    hintText: 'https://example.org/cases_data.csv',
+                    isDense: true,
+                    border: const OutlineInputBorder(),
+                    helperText: I18n.t('caseComparisonUrlNote'),
+                    helperMaxLines: 2,
+                  ),
+                ),
+              ],
+
+              // Cases: Custom Upload
+              if (_altCaseSource == 'custom_upload') ...[
+                Row(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _pickFile(isClimate: false),
+                      icon: const Icon(Icons.upload_file, size: 18),
+                      label: Text(
+                        _caseUploadFileName != null
+                            ? I18n.t('selectedFile').replaceAll('{file}', _caseUploadFileName!)
+                            : I18n.t('pickCsvFile'),
+                      ),
+                    ),
+                    if (_caseUploadFileName != null) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                    ],
+                  ],
+                ),
+              ],
             ],
           ],
         ),
@@ -350,21 +605,18 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 48),
+              const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 48),
               const SizedBox(height: 12),
               Text(
                 I18n.t('resolutionMismatchError'),
                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
               ),
-              if (res.resolutionMismatchMessage != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  res.resolutionMismatchMessage!,
-                  style: theme.textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-              ],
+              const SizedBox(height: 8),
+              Text(
+                res.resolutionMismatchMessage ?? '',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
             ],
           ),
         ),
@@ -373,211 +625,340 @@ class _SourceComparisonDialogState extends State<SourceComparisonDialog> {
 
     return ListView(
       children: [
-        // Source comparison subtitle / banner
+        // Subtitle row: Source A vs Source B
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${res.sourceALabel} vs. ${res.sourceBLabel}',
+                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withAlpha(80),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                res.resolution.toUpperCase(),
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Yearly Resolution Banner (if applicable)
+        if (res.comparedAtYearlyResolution) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.amber.withAlpha(25),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.amber.withAlpha(100)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.calendar_month, size: 20, color: Colors.orange),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        I18n.t('comparedAtYearlyResolutionNote'),
+                        style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+                if (res.excludedYears.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    I18n.t('excludedIncompleteYears').replaceAll('{years}', res.excludedYears.join(', ')),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.red.shade800,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // Variables comparison cards
+        for (final cmp in res.variables) ...[
+          _buildVariableComparisonCard(context, cmp, res),
+          const SizedBox(height: 14),
+        ],
+
+        // Footer methodology note
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withAlpha(50),
+            color: theme.colorScheme.surfaceContainerHighest.withAlpha(60),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${res.sourceALabel}  ↔  ${res.sourceBLabel} (${res.resolution})',
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                '• ${I18n.t('ruleOfThumbDisclaimer')}',
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
-              const SizedBox(height: 4),
-              Text(
-                I18n.t('ruleOfThumbDisclaimer'),
-                style: theme.textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic, color: theme.colorScheme.onSurfaceVariant),
-              ),
+              if (res.compareKind == 'climate') ...[
+                const SizedBox(height: 4),
+                Text(
+                  '• ${I18n.t('seasonalCycleNote')}',
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ],
             ],
           ),
         ),
-        const SizedBox(height: 12),
-
-        // Variable cards
-        for (final v in res.variables) _buildVariableCard(context, v, res),
       ],
     );
   }
 
-  Widget _buildVariableCard(
+  Widget _buildVariableComparisonCard(
     BuildContext context,
-    VariableComparison v,
+    VariableComparison cmp,
     SourceComparisonResponse res,
   ) {
     final theme = Theme.of(context);
-    final (chipColor, chipIcon, verdictLabelKey) = switch (v.verdict) {
-      'very_similar' => (Colors.green, Icons.check_circle_outline, 'verdictVerySimilar'),
-      'similar' => (Colors.teal, Icons.info_outline, 'verdictSimilar'),
-      'clearly_different' => (Colors.orange.shade800, Icons.warning_amber_outlined, 'verdictClearlyDifferent'),
-      _ => (Colors.grey.shade700, Icons.help_outline, 'verdictTooFewPoints'),
-    };
+
+    final Color verdictColor;
+    final IconData verdictIcon;
+    final String verdictLabel;
+
+    switch (cmp.verdict) {
+      case 'very_similar':
+        verdictColor = Colors.green;
+        verdictIcon = Icons.check_circle_outline;
+        verdictLabel = I18n.t('verdictVerySimilar');
+        break;
+      case 'similar':
+        verdictColor = Colors.teal;
+        verdictIcon = Icons.published_with_changes;
+        verdictLabel = I18n.t('verdictSimilar');
+        break;
+      case 'too_few_points':
+        verdictColor = Colors.orange;
+        verdictIcon = Icons.warning_amber_rounded;
+        verdictLabel = I18n.t('verdictTooFewPoints');
+        break;
+      default:
+        verdictColor = Colors.deepOrange;
+        verdictIcon = Icons.error_outline;
+        verdictLabel = I18n.t('verdictClearlyDifferent');
+    }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top row: Variable name & Verdict chip
+            // Title + Verdict Chip
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    v.variable,
+                    cmp.variable,
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: chipColor.withAlpha(30),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: chipColor.withAlpha(120)),
+                Chip(
+                  visualDensity: VisualDensity.compact,
+                  avatar: Icon(verdictIcon, size: 16, color: verdictColor),
+                  label: Text(
+                    verdictLabel,
+                    style: TextStyle(
+                      color: verdictColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(chipIcon, size: 16, color: chipColor),
-                      const SizedBox(width: 6),
-                      Text(
-                        I18n.t(verdictLabelKey),
-                        style: TextStyle(
-                          color: chipColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
+                  backgroundColor: verdictColor.withAlpha(20),
+                  side: BorderSide(color: verdictColor.withAlpha(80)),
                 ),
               ],
             ),
             const SizedBox(height: 8),
 
-            // Plain-language explanation
+            // Plain-Language Verdict Explanation
             Text(
-              v.verdictExplanation,
+              cmp.verdictExplanation,
               style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
             ),
+
+            if (cmp.tooFewPoints && res.comparedAtYearlyResolution) ...[
+              const SizedBox(height: 6),
+              Text(
+                I18n.t('fewYearlyPointsWarning').replaceAll('{n}', cmp.overlapPeriods.toString()),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.orange.shade800,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+
             const SizedBox(height: 12),
 
-            // Sparkline Visualization of both series
-            if (v.seriesA.isNotEmpty && v.seriesB.isNotEmpty) ...[
-              Container(
-                height: 120,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withAlpha(40),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: theme.colorScheme.outlineVariant.withAlpha(80)),
+            // Sparkline Overlay
+            if (cmp.seriesA.isNotEmpty && cmp.seriesB.isNotEmpty) ...[
+              SizedBox(
+                height: 85,
+                child: CustomPaint(
+                  painter: ComparisonSparklinePainter(
+                    seriesA: cmp.seriesA.map((p) => p.value).toList(),
+                    seriesB: cmp.seriesB.map((p) => p.value).toList(),
+                    colorA: Colors.teal.shade700,
+                    colorB: Colors.deepOrange.shade600,
+                  ),
+                  size: Size.infinite,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        _buildLegendItem(Colors.blue, res.sourceALabel),
-                        const SizedBox(width: 16),
-                        _buildLegendItem(Colors.orange.shade800, res.sourceBLabel),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Expanded(
-                      child: CustomPaint(
-                        size: Size.infinite,
-                        painter: ComparisonSparklinePainter(
-                          seriesA: v.seriesA,
-                          seriesB: v.seriesB,
-                          colorA: Colors.blue,
-                          colorB: Colors.orange.shade800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(width: 14, height: 3, color: Colors.teal.shade700),
+                  const SizedBox(width: 6),
+                  Text(res.sourceALabel, style: const TextStyle(fontSize: 11)),
+                  const SizedBox(width: 16),
+                  Container(width: 14, height: 3, color: Colors.deepOrange.shade600),
+                  const SizedBox(width: 6),
+                  Text(res.sourceBLabel, style: const TextStyle(fontSize: 11)),
+                ],
               ),
               const SizedBox(height: 12),
             ],
 
-            // Key metrics table
-            Wrap(
-              spacing: 16,
-              runSpacing: 8,
-              children: [
-                _buildMetricChip(
-                  label: I18n.t('nOverlappingPoints'),
-                  value: '${v.overlapPeriods}',
+            // Expandable details table for experts
+            Theme(
+              data: theme.copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: EdgeInsets.zero,
+                dense: true,
+                title: Text(
+                  'Detailed metrics (n = ${cmp.overlapPeriods})',
+                  style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                if (v.pearsonR != null)
-                  _buildMetricChip(
-                    label: 'Pearson r',
-                    value: '${v.pearsonR!.toStringAsFixed(2)} (${v.formattedPValue ?? ""})',
+                children: [
+                  Table(
+                    border: TableBorder.all(
+                      color: theme.dividerColor.withAlpha(40),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    columnWidths: const {
+                      0: FlexColumnWidth(2),
+                      1: FlexColumnWidth(1),
+                    },
+                    children: [
+                      TableRow(children: [
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(I18n.t('nOverlappingPoints'), style: const TextStyle(fontSize: 12)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(
+                            cmp.overlapPeriods.toString(),
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ]),
+                      TableRow(children: [
+                        const Padding(
+                          padding: EdgeInsets.all(6.0),
+                          child: Text('Pearson correlation (r)', style: TextStyle(fontSize: 12)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(
+                            cmp.pearsonR != null ? cmp.pearsonR!.toStringAsFixed(4) : 'n/a',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ]),
+                      TableRow(children: [
+                        const Padding(
+                          padding: EdgeInsets.all(6.0),
+                          child: Text('p-value', style: TextStyle(fontSize: 12)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(
+                            cmp.formattedPValue ?? 'n/a',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ]),
+                      TableRow(children: [
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(I18n.t('meanDifference'), style: const TextStyle(fontSize: 12)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(
+                            cmp.meanDifference != null ? '${cmp.meanDifference! >= 0 ? '+' : ''}${cmp.meanDifference!.toStringAsFixed(2)}' : 'n/a',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ]),
+                      TableRow(children: [
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(I18n.t('meanAbsoluteDifference'), style: const TextStyle(fontSize: 12)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(
+                            cmp.meanAbsoluteDifference != null ? cmp.meanAbsoluteDifference!.toStringAsFixed(2) : 'n/a',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ]),
+                      TableRow(children: [
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(I18n.t('relativeMad'), style: const TextStyle(fontSize: 12)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Text(
+                            cmp.relativeMeanAbsoluteDifferencePercent != null
+                                ? '${cmp.relativeMeanAbsoluteDifferencePercent!.toStringAsFixed(1)}%'
+                                : 'n/a',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ]),
+                    ],
                   ),
-                if (v.meanDifference != null)
-                  _buildMetricChip(
-                    label: I18n.t('meanDifference'),
-                    value: '${v.meanDifference! >= 0 ? "+" : ""}${v.meanDifference!.toStringAsFixed(2)}',
-                  ),
-                if (v.meanAbsoluteDifference != null)
-                  _buildMetricChip(
-                    label: I18n.t('meanAbsoluteDifference'),
-                    value: v.meanAbsoluteDifference!.toStringAsFixed(2),
-                  ),
-                if (v.relativeMeanAbsoluteDifferencePercent != null)
-                  _buildMetricChip(
-                    label: I18n.t('relativeMad'),
-                    value: '${v.relativeMeanAbsoluteDifferencePercent!.toStringAsFixed(1)}%',
-                  ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildLegendItem(Color color, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 12, height: 4, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-      ],
-    );
-  }
-
-  Widget _buildMetricChip({required String label, required String value}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.grey.withAlpha(25),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-          const SizedBox(height: 2),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
 }
 
-/// Custom painter for side-by-side time series sparkline
+/// Custom sparkline painter for rendering both normalized series side by side.
 class ComparisonSparklinePainter extends CustomPainter {
-  final List<SeriesPoint> seriesA;
-  final List<SeriesPoint> seriesB;
+  final List<double?> seriesA;
+  final List<double?> seriesB;
   final Color colorA;
   final Color colorB;
 
@@ -590,56 +971,75 @@ class ComparisonSparklinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final values = [
-      ...seriesA.map((p) => p.value).whereType<double>(),
-      ...seriesB.map((p) => p.value).whereType<double>(),
-    ];
-    if (values.isEmpty) return;
+    if (seriesA.isEmpty || seriesB.isEmpty) return;
 
-    final minVal = values.reduce((a, b) => a < b ? a : b);
-    final maxVal = values.reduce((a, b) => a > b ? a : b);
-    final range = (maxVal - minVal).abs();
-    final effectiveRange = range == 0 ? 1.0 : range;
+    // Determine min/max over non-null values across both series
+    final nonNullA = seriesA.whereType<double>().toList();
+    final nonNullB = seriesB.whereType<double>().toList();
+    if (nonNullA.isEmpty || nonNullB.isEmpty) return;
+
+    final allVals = [...nonNullA, ...nonNullB];
+    final minVal = allVals.reduce((a, b) => a < b ? a : b);
+    final maxVal = allVals.reduce((a, b) => a > b ? a : b);
+    final range = (maxVal - minVal).abs() > 1e-6 ? maxVal - minVal : 1.0;
 
     final paintA = Paint()
       ..color = colorA
       ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
 
     final paintB = Paint()
       ..color = colorB
       ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
 
-    void drawSeries(List<SeriesPoint> series, Paint paint) {
-      final path = Path();
-      bool started = false;
-      final n = series.length;
-      if (n <= 1) return;
+    final n = seriesA.length;
+    final dx = n > 1 ? size.width / (n - 1) : 0.0;
 
-      for (int i = 0; i < n; i++) {
-        final val = series[i].value;
-        if (val == null) {
-          started = false;
-          continue;
-        }
-        final x = (i / (n - 1)) * size.width;
-        final y = size.height - ((val - minVal) / effectiveRange) * size.height;
+    _drawSeries(canvas, size, seriesA, minVal, range, dx, paintA);
+    _drawSeries(canvas, size, seriesB, minVal, range, dx, paintB);
+  }
 
-        if (!started) {
-          path.moveTo(x, y);
-          started = true;
-        } else {
-          path.lineTo(x, y);
-        }
+  void _drawSeries(
+    Canvas canvas,
+    Size size,
+    List<double?> series,
+    double minVal,
+    double range,
+    double dx,
+    Paint paint,
+  ) {
+    final path = Path();
+    bool started = false;
+
+    for (int i = 0; i < series.length; i++) {
+      final val = series[i];
+      if (val == null) {
+        started = false;
+        continue;
       }
-      canvas.drawPath(path, paint);
+      final x = i * dx;
+      final normY = (val - minVal) / range;
+      final y = size.height - (normY * (size.height - 8)) - 4;
+
+      if (!started) {
+        path.moveTo(x, y);
+        started = true;
+      } else {
+        path.lineTo(x, y);
+      }
     }
 
-    drawSeries(seriesA, paintA);
-    drawSeries(seriesB, paintB);
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant ComparisonSparklinePainter oldDelegate) {
+    return oldDelegate.seriesA != seriesA ||
+        oldDelegate.seriesB != seriesB ||
+        oldDelegate.colorA != colorA ||
+        oldDelegate.colorB != colorB;
+  }
 }

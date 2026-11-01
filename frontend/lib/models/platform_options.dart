@@ -24,6 +24,7 @@ class PlatformOptions {
 
   final List<DataSourceInfo> caseDataSources;
   final List<DataSourceInfo> populationSources;
+  final bool tmdConfigured;
 
   const PlatformOptions({
     required this.diseases,
@@ -34,6 +35,7 @@ class PlatformOptions {
     required this.climateSourceRegions,
     required this.caseDataSources,
     this.populationSources = const [],
+    this.tmdConfigured = false,
   });
 
   factory PlatformOptions.fromJson(Map<String, dynamic> json) {
@@ -67,6 +69,7 @@ class PlatformOptions {
       populationSources: populationSourcesJson.entries
           .map((e) => DataSourceInfo.fromEntry(e.key, e.value as Map<String, dynamic>))
           .toList(),
+      tmdConfigured: json['tmd_configured'] as bool? ?? false,
     );
   }
 }

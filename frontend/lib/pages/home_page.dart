@@ -401,6 +401,7 @@ class _HomePageState extends State<HomePage> {
         if (_result != null)
           ResultsView(
             result: _result!,
+            options: _options,
             onSearchCaseSources: () => _formKey.currentState?.openCaseSourceSearch(),
             onSearchPopulationSources: () => _formKey.currentState?.openPopulationSourceSearch(),
             onAdjustDateRange: (start, end) => _formKey.currentState?.applyDateRange(start, end),

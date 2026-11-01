@@ -43,6 +43,7 @@ once real credentials are available (see that file's module docstring).
 | GET    | `/api/search-case-sources`      | Real-time search of official WHO GHO indicators and HDX datasets |
 | GET    | `/api/search-population-sources`| Real-time search of World Bank indicators and HDX demographics   |
 | POST   | `/api/compare-sources`          | Empirical comparison of two sources over overlapping periods (FR-27) |
+| POST   | `/api/compare-sources/upload`   | Multipart comparison of Source A against an uploaded Source B CSV (FR-27) |
 
 ## Request Options (`/api/integrate`)
 
@@ -72,15 +73,16 @@ with synthetic values.
 
 ## Source Comparison (FR-27 / A19)
 
-`POST /api/compare-sources` compares two sources over their overlapping period
-(e.g., Open-Meteo ERA5 vs. NASA POWER MERRA-2 for climate, or builtin vs. custom_url
-for cases). It computes bivariate metrics for each base variable (Pearson $r$,
-formatted $p$-value, mean difference $B - A$, MAD, relative MAD%), returns deterministic
-heuristic verdicts (`very_similar`, `similar`, `clearly_different`, `too_few_points`),
-and surfaces domain notes on the shared seasonal cycle (climate) and case definition
-differences (cases; Clarke et al. 2024). It runs `run_integration` directly with
-`lag_periods=[]`, bypassing LLM generation for speed and preserving zero Gemini quota usage.
-The primary integrated dataset and cache remain completely unmodified.
+`POST /api/compare-sources` and `POST /api/compare-sources/upload` compare two sources
+over their overlapping period. Source B options include:
+- **Climate:** Open-Meteo ERA5, NASA POWER MERRA-2, TMD (only if configured and region is Thailand), or an uploaded CSV.
+- **Disease cases:** WHO GHO indicator chosen via search, `custom_url`, or an uploaded CSV.
+
+Key features:
+- **WHO GHO complete calendar years:** When comparing with WHO GHO, both runs aggregate to yearly resolution. To avoid distortion from incomplete years, baseline monthly records are checked for all 12 complete calendar months; incomplete or partial years are excluded from the comparison, listed in `excluded_years`, and presented to the user with a low-sample warning if $n < 6$. No disaggregation to months is ever performed.
+- **Multipart upload (`/api/compare-sources/upload`):** Accepts `request` (JSON string) and `file` (multipart CSV, max 10 MB). The file is used strictly in-memory for the comparison and never stored. If Source A was an upload, the endpoint returns 400.
+- **Bivariate metrics & verdicts:** Computes bivariate metrics for each base variable (Pearson $r$, formatted $p$-value, mean difference $B - A$, MAD, relative MAD%), returns deterministic heuristic verdicts (`very_similar`, `similar`, `clearly_different`, `too_few_points`), and surfaces domain notes on the shared seasonal cycle (climate) and case definition differences (cases; Clarke et al. 2024).
+- **Non-destructive & fast:** Calls `run_integration` directly with `lag_periods=[]`, bypassing LLM generation for speed and preserving zero Gemini quota usage. The primary integrated dataset and cache remain completely unmodified.
 
 ## Tests
 

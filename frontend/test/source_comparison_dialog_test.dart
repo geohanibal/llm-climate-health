@@ -132,7 +132,14 @@ void main() {
       findsOneWidget,
     );
 
-    // Verify metrics chips
+    // Verify metrics in expansion tile
+    final expansionFinder = find.textContaining('Detailed metrics');
+    expect(expansionFinder, findsOneWidget);
+    await tester.ensureVisible(expansionFinder);
+    await tester.pumpAndSettle();
+    await tester.tap(expansionFinder);
+    await tester.pumpAndSettle();
+
     expect(find.text('6'), findsOneWidget); // 6 overlapping points
     expect(find.text('+0.25'), findsOneWidget); // mean difference
     expect(find.text('1.2%'), findsOneWidget); // rel MAD
@@ -172,5 +179,89 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Resolution mismatch:'), findsOneWidget);
+  });
+
+  testWidgets('shows yearly resolution banner and excluded years when comparedAtYearlyResolution is true', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final yearlyResp = SourceComparisonResponse(
+      compareKind: 'cases',
+      sourceALabel: 'OpenDengue',
+      sourceBLabel: 'WHO GHO',
+      resolution: 'year',
+      comparedAtYearlyResolution: true,
+      excludedYears: const ['2010'],
+      variables: [
+        VariableComparison(
+          variable: 'Case counts',
+          overlapPeriods: 2,
+          pearsonR: 0.95,
+          pValue: 0.01,
+          formattedPValue: 'p=0.01',
+          meanDifference: 100.0,
+          meanAbsoluteDifference: 120.0,
+          relativeMeanAbsoluteDifferencePercent: 5.0,
+          verdict: 'very_similar',
+          verdictExplanation: 'Strong yearly agreement.',
+          tooFewPoints: true,
+          seriesA: [
+            SeriesPoint(period: '2011', value: 1000.0),
+            SeriesPoint(period: '2012', value: 1200.0),
+          ],
+          seriesB: [
+            SeriesPoint(period: '2011', value: 1100.0),
+            SeriesPoint(period: '2012', value: 1300.0),
+          ],
+        ),
+      ],
+      methodologyNote: 'Methodology note',
+    );
+
+    final mockApi = _MockApiClient(responseToReturn: yearlyResp);
+    final result = _fakeResult();
+
+    await tester.pumpWidget(wrap(SourceComparisonDialog(
+      result: result,
+      apiClient: mockApi,
+    )));
+    await tester.pumpAndSettle();
+
+    // Verify yearly resolution banner and excluded years text
+    expect(find.textContaining('Compared at yearly resolution'), findsOneWidget);
+    expect(find.textContaining('Excluded incomplete years: 2010'), findsOneWidget);
+    expect(find.textContaining('Few annual data points are available (2 years)'), findsOneWidget);
+  });
+
+  testWidgets('shows source B selector options for cases and toggles between them', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final mockApi = _MockApiClient();
+    final result = _fakeResult();
+
+    await tester.pumpWidget(wrap(SourceComparisonDialog(
+      result: result,
+      apiClient: mockApi,
+    )));
+    await tester.pumpAndSettle();
+
+    // Tap on "Case data sources"
+    await tester.tap(find.text('Disease/Case Sources'));
+    await tester.pumpAndSettle();
+
+    // Verify case source B options are visible
+    expect(find.text('WHO GHO Indicator'), findsOneWidget);
+    expect(find.text('URL'), findsOneWidget);
+    expect(find.text('Upload CSV file'), findsOneWidget);
+    expect(find.text('Search & pick WHO indicator'), findsOneWidget);
   });
 }

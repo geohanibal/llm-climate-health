@@ -236,8 +236,8 @@ class SourceComparisonRequest(BaseModel):
     population_indicator_code: str | None = None
     population_indicator_name: str | None = None
     compare_kind: Literal["climate", "cases"] = "climate"
-    alternative_climate_source: Literal["open-meteo-era5", "nasa-power", "tmd"] | None = "nasa-power"
-    alternative_case_data_source: Literal["builtin", "custom_url", "who_gho"] | None = None
+    alternative_climate_source: Literal["open-meteo-era5", "nasa-power", "tmd", "custom_upload"] | None = "nasa-power"
+    alternative_case_data_source: Literal["builtin", "custom_url", "who_gho", "custom_upload"] | None = None
     alternative_custom_source_url: str | None = None
     alternative_who_indicator_code: str | None = None
     alternative_who_indicator_name: str | None = None
@@ -273,4 +273,6 @@ class SourceComparisonResponse(BaseModel):
     methodology_note: str
     resolution_mismatch: bool = False
     resolution_mismatch_message: str | None = None
+    compared_at_yearly_resolution: bool = False
+    excluded_years: list[str] = Field(default_factory=list)
 

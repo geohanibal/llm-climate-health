@@ -185,3 +185,162 @@ def test_compute_variable_comparison_zero_baseline_has_no_relative_mad():
                                       "climate", "A", "B")
     assert res.relative_mean_absolute_difference_percent is None
     assert res.verdict == "very_similar"
+
+
+from unittest.mock import patch
+import pandas as pd
+from app.services.source_comparison import compare_sources
+
+
+@patch("app.services.etl.fetch_climate")
+@patch("app.services.etl.fetch_who_gho_case_data")
+def test_compare_sources_who_gho_complete_years_only(mock_who, mock_climate):
+    """WHO GHO comparison only includes complete years (all 12 months present in source A).
+    A partial year (e.g. 2010 starting in March) is excluded and reported in excluded_years."""
+    def fake_climate(*args, **kwargs):
+        # Return yearly climate
+        return pd.DataFrame({
+            "period": ["2010", "2011", "2012"],
+            "temperature_2m_mean": [28.0, 28.5, 29.0],
+            "precipitation_sum": [1500.0, 1600.0, 1550.0],
+        })
+    mock_climate.side_effect = fake_climate
+
+    # WHO returns annual counts for 2010, 2011, 2012
+    mock_who.return_value = pd.DataFrame({
+        "period_start": pd.to_datetime(["2010-01-01", "2011-01-01", "2012-01-01"]),
+        "value": [50000.0, 60000.0, 70000.0],
+    })
+
+    req = SourceComparisonRequest(
+        disease="dengue",
+        region="Thailand",
+        start_date="2010-03-01",
+        end_date="2012-12-31",
+        aggregation="native",
+        compare_kind="cases",
+        case_data_source="builtin",
+        alternative_case_data_source="who_gho",
+        alternative_who_indicator_code="DENGUE_ANNUAL",
+    )
+
+    res = compare_sources(req)
+    assert res.compared_at_yearly_resolution is True
+    assert res.resolution == "year"
+    # 2010 only has 10 months (March to Dec) -> excluded!
+    assert "2010" in res.excluded_years
+    assert len(res.variables) == 1
+    comp = res.variables[0]
+    # Only 2011 and 2012 are compared
+    assert comp.overlap_periods == 2
+    assert comp.too_few_points is True
+
+
+@patch("app.services.etl.fetch_climate")
+def test_compare_sources_case_upload_source_b(mock_climate):
+    """Comparison against an uploaded case CSV works and passes file bytes to Source B."""
+    def fake_climate(*args, **kwargs):
+        return pd.DataFrame({
+            "period": ["2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06"],
+            "temperature_2m_mean": [25.0, 26.0, 27.0, 28.0, 29.0, 30.0],
+            "precipitation_sum": [10.0, 15.0, 20.0, 25.0, 30.0, 35.0],
+        })
+    mock_climate.side_effect = fake_climate
+
+    csv_bytes = b"date,cases\n2020-01-01,100\n2020-02-01,120\n2020-03-01,150\n2020-04-01,180\n2020-05-01,210\n2020-06-01,250\n"
+
+    req = SourceComparisonRequest(
+        disease="dengue",
+        region="Thailand",
+        start_date="2020-01-01",
+        end_date="2020-06-30",
+        aggregation="native",
+        compare_kind="cases",
+        case_data_source="builtin",
+        alternative_case_data_source="custom_upload",
+    )
+
+    res = compare_sources(req, upload_file_b_bytes=csv_bytes)
+    assert res.compare_kind == "cases"
+    assert "Uploaded CSV" in res.source_b_label
+    assert len(res.variables) == 1
+    assert res.variables[0].overlap_periods == 6
+
+
+@patch("app.services.etl.fetch_climate")
+def test_compare_sources_climate_upload_source_b(mock_climate):
+    """Comparison against an uploaded climate CSV works and passes bytes to Source B."""
+    def fake_climate(*args, **kwargs):
+        return pd.DataFrame({
+            "period": ["2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06"],
+            "temperature_2m_mean": [25.0, 26.0, 27.0, 28.0, 29.0, 30.0],
+            "precipitation_sum": [10.0, 15.0, 20.0, 25.0, 30.0, 35.0],
+        })
+    mock_climate.side_effect = fake_climate
+
+    csv_bytes = b"date,temperature,precipitation\n2020-01-01,25.5,12.0\n2020-02-01,26.5,16.0\n2020-03-01,27.5,21.0\n2020-04-01,28.5,26.0\n2020-05-01,29.5,31.0\n2020-06-01,30.5,36.0\n"
+
+    req = SourceComparisonRequest(
+        disease="dengue",
+        region="Thailand",
+        start_date="2020-01-01",
+        end_date="2020-06-30",
+        aggregation="native",
+        compare_kind="climate",
+        climate_source="open-meteo-era5",
+        alternative_climate_source="custom_upload",
+    )
+
+    res = compare_sources(req, upload_file_b_bytes=csv_bytes)
+    assert res.compare_kind == "climate"
+    assert "Uploaded CSV" in res.source_b_label
+    assert len(res.variables) >= 1
+
+
+def test_to_complete_years_keeps_only_full_years():
+    """Monthly and daily inputs: only years with every period present are summed."""
+    from app.services.source_comparison import to_complete_years
+
+    monthly = [PeriodRecord(period=f"2011-{m:02d}", case_count=10.0) for m in range(1, 13)]
+    monthly += [PeriodRecord(period=f"2012-{m:02d}", case_count=10.0) for m in range(1, 12)]
+    yearly, excluded = to_complete_years(monthly, "month", 2011, 2012)
+    assert [(r.period, r.case_count) for r in yearly] == [("2011", 120.0)]
+    assert excluded == ["2012"]
+
+    daily = [PeriodRecord(period=f"2012-01-{d:02d}", case_count=1.0) for d in range(1, 32)]
+    yearly, excluded = to_complete_years(daily, "day", 2012, 2012)
+    assert yearly == [] and excluded == ["2012"]
+
+
+@patch("app.services.etl.fetch_climate")
+@patch("app.services.etl.fetch_who_gho_case_data")
+def test_compare_sources_who_as_source_a_applies_complete_years_to_b(mock_who, mock_climate):
+    """If the main request used WHO GHO (A) and B is a monthly upload, B's
+    partial years must also be excluded, not summed."""
+    mock_climate.side_effect = lambda *a, **k: pd.DataFrame({
+        "period": ["2011", "2012"],
+        "temperature_2m_mean": [28.0, 28.5],
+        "precipitation_sum": [1500.0, 1600.0],
+    })
+    mock_who.return_value = pd.DataFrame({
+        "period_start": pd.to_datetime(["2011-01-01", "2012-01-01"]),
+        "value": [1200.0, 1300.0],
+    })
+    rows = ["date,cases"] + [f"2011-{m:02d}-01,100" for m in range(1, 13)]
+    rows += [f"2012-{m:02d}-01,100" for m in range(1, 7)]  # 2012: only Jan–Jun
+    csv_bytes = ("\n".join(rows) + "\n").encode()
+
+    req = SourceComparisonRequest(
+        disease="dengue",
+        region="Thailand",
+        start_date="2011-01-01",
+        end_date="2012-12-31",
+        compare_kind="cases",
+        case_data_source="who_gho",
+        who_indicator_code="DENGUE_ANNUAL",
+        alternative_case_data_source="custom_upload",
+    )
+    res = compare_sources(req, upload_file_b_bytes=csv_bytes)
+    assert res.compared_at_yearly_resolution is True
+    assert res.excluded_years == ["2012"]
+    assert res.variables[0].overlap_periods == 1

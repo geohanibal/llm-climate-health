@@ -8,6 +8,7 @@ Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 """
 
 import io
+import json
 from datetime import date, timedelta
 from unittest.mock import patch
 
@@ -400,3 +401,82 @@ def test_compare_sources_rejects_uploaded_sources():
     resp = client.post("/api/compare-sources", json=payload)
     assert resp.status_code == 400
     assert "uploaded files" in resp.json()["detail"]
+
+
+
+@patch("app.services.etl.fetch_climate")
+def test_compare_sources_upload_endpoint_success(mock_climate):
+    def fake_climate(*args, **kwargs):
+        return pd.DataFrame({
+            "period": ["2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06"],
+            "temperature_2m_mean": [25.0, 26.0, 27.0, 28.0, 29.0, 30.0],
+            "precipitation_sum": [10.0, 15.0, 20.0, 25.0, 30.0, 35.0],
+        })
+    mock_climate.side_effect = fake_climate
+
+    req_json = json.dumps({
+        "region": "Thailand",
+        "disease": "dengue",
+        "start_date": "2020-01-01",
+        "end_date": "2020-06-30",
+        "aggregation": "native",
+        "compare_kind": "cases",
+        "case_data_source": "builtin",
+        "alternative_case_data_source": "custom_upload",
+    })
+
+    csv_data = b"date,cases\n2020-01-01,500\n2020-02-01,600\n2020-03-01,700\n2020-04-01,800\n2020-05-01,900\n2020-06-01,1000\n"
+
+    resp = client.post(
+        "/api/compare-sources/upload",
+        data={"request": req_json},
+        files={"file": ("my_cases.csv", csv_data, "text/csv")},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["compare_kind"] == "cases"
+    assert "Uploaded CSV" in data["source_b_label"]
+    assert len(data["variables"]) == 1
+    assert data["variables"][0]["overlap_periods"] == 6
+
+
+def test_compare_sources_upload_rejects_upload_as_source_a():
+    req_json = json.dumps({
+        "region": "Thailand",
+        "disease": "dengue",
+        "start_date": "2020-01-01",
+        "end_date": "2020-06-30",
+        "aggregation": "native",
+        "compare_kind": "cases",
+        "case_data_source": "custom_upload",
+        "alternative_case_data_source": "custom_upload",
+    })
+    csv_data = b"date,cases\n2020-01-01,500\n"
+    resp = client.post(
+        "/api/compare-sources/upload",
+        data={"request": req_json},
+        files={"file": ("my_cases.csv", csv_data, "text/csv")},
+    )
+    assert resp.status_code == 400
+    assert "baseline source A is an uploaded file" in resp.json()["detail"]
+
+
+def test_compare_sources_upload_rejects_oversized_file():
+    req_json = json.dumps({
+        "region": "Thailand",
+        "disease": "dengue",
+        "start_date": "2020-01-01",
+        "end_date": "2020-06-30",
+        "aggregation": "native",
+        "compare_kind": "cases",
+        "case_data_source": "builtin",
+        "alternative_case_data_source": "custom_upload",
+    })
+    # Over 10 MB
+    huge_data = b"x" * (10 * 1024 * 1024 + 10)
+    resp = client.post(
+        "/api/compare-sources/upload",
+        data={"request": req_json},
+        files={"file": ("large.csv", huge_data, "text/csv")},
+    )
+    assert resp.status_code == 413

@@ -445,6 +445,8 @@ void main() {
         'methodology_note': 'Rule of thumb, not a statistical test.',
         'resolution_mismatch': false,
         'resolution_mismatch_message': null,
+        'compared_at_yearly_resolution': true,
+        'excluded_years': ['2010'],
       };
 
       final resp = SourceComparisonResponse.fromJson(json);
@@ -452,6 +454,8 @@ void main() {
       expect(resp.sourceALabel, 'Open-Meteo ERA5');
       expect(resp.sourceBLabel, 'NASA POWER');
       expect(resp.resolution, 'month');
+      expect(resp.comparedAtYearlyResolution, true);
+      expect(resp.excludedYears, ['2010']);
       expect(resp.variables, hasLength(1));
 
       final v = resp.variables.first;

@@ -16,6 +16,7 @@ import 'explanation_card.dart';
 import 'kpi_summary_card.dart';
 import 'pipeline_steps_card.dart';
 import 'report_download_bar.dart';
+import '../models/platform_options.dart';
 import 'source_comparison_dialog.dart';
 import 'sources_card.dart';
 import 'statistical_summary_card.dart';
@@ -26,6 +27,7 @@ class ResultsView extends StatelessWidget {
   final VoidCallback? onSearchPopulationSources;
   final void Function(DateTime start, DateTime end)? onAdjustDateRange;
   final void Function(String source)? onChangeClimateSource;
+  final PlatformOptions? options;
 
   const ResultsView({
     super.key,
@@ -34,6 +36,7 @@ class ResultsView extends StatelessWidget {
     this.onSearchPopulationSources,
     this.onAdjustDateRange,
     this.onChangeClimateSource,
+    this.options,
   });
 
   @override
@@ -52,7 +55,7 @@ class ResultsView extends StatelessWidget {
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (ctx) => SourceComparisonDialog(result: result),
+                  builder: (ctx) => SourceComparisonDialog(result: result, options: options),
                 );
               },
               icon: const Icon(Icons.compare_arrows, size: 18),

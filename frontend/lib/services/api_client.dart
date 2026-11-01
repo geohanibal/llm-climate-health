@@ -253,6 +253,28 @@ class ApiClient {
     return SourceComparisonResponse.fromJson(_decodeJsonObject(response));
   }
 
+  /// Compares two sources with Source B provided as an uploaded CSV file (multipart).
+  Future<SourceComparisonResponse> compareSourcesWithUpload(
+    SourceComparisonRequest req,
+    Uint8List fileBytes,
+    String fileName,
+  ) async {
+    final uri = Uri.parse('/api/compare-sources/upload');
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['request'] = jsonEncode(req.toJson())
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName,
+        ),
+      );
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    _throwIfNotOk(response);
+    return SourceComparisonResponse.fromJson(_decodeJsonObject(response));
+  }
+
   String _formatDate(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-01';
 

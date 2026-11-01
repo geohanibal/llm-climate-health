@@ -165,6 +165,8 @@ class SourceComparisonResponse {
   final String methodologyNote;
   final bool resolutionMismatch;
   final String? resolutionMismatchMessage;
+  final bool comparedAtYearlyResolution;
+  final List<String> excludedYears;
 
   SourceComparisonResponse({
     required this.compareKind,
@@ -175,6 +177,8 @@ class SourceComparisonResponse {
     required this.methodologyNote,
     this.resolutionMismatch = false,
     this.resolutionMismatchMessage,
+    this.comparedAtYearlyResolution = false,
+    this.excludedYears = const [],
   });
 
   factory SourceComparisonResponse.fromJson(Map<String, dynamic> json) {
@@ -190,6 +194,8 @@ class SourceComparisonResponse {
       methodologyNote: json['methodology_note'] as String,
       resolutionMismatch: json['resolution_mismatch'] as bool? ?? false,
       resolutionMismatchMessage: json['resolution_mismatch_message'] as String?,
+      comparedAtYearlyResolution: json['compared_at_yearly_resolution'] as bool? ?? false,
+      excludedYears: (json['excluded_years'] as List<dynamic>?)?.cast<String>() ?? const [],
     );
   }
 }

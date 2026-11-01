@@ -68,8 +68,8 @@ pytest -m "not network"       # fast, fully offline — what CI would run
 pytest                        # everything, including one live Open-Meteo call
 ```
 
-Expected result: `pytest -m "not network"` reports **174 passed**; the full
-`pytest` run reports **175 passed** (the extra one is
+Expected result: `pytest -m "not network"` reports **183 passed**; the full
+`pytest` run reports **184 passed** (the extra one is
 `test_integrate_end_to_end_dengue_thailand`, which needs internet access to
 reach the real Open-Meteo API — it's the only test in the suite that does).
 
@@ -82,14 +82,14 @@ flutter test
 flutter analyze
 ```
 
-Expected result: `flutter test` reports **85 passed**, `flutter
+Expected result: `flutter test` reports **88 passed**, `flutter
 analyze` reports no errors in application code.
 
 ### What's covered
 
 - **Backend**: every endpoint (`/api/health`, `/api/options`,
   `/api/parse-request`, `/api/integrate`, `/api/integrate/upload`,
-  `/api/search-case-sources`, `/api/compare-sources`), every validation branch (unknown
+  `/api/search-case-sources`, `/api/compare-sources`, `/api/compare-sources/upload`), every validation branch (unknown
   disease/region, invalid date range, future end date, climate-source/region
   mismatch, missing custom-source fields), the full case-data pipeline (all
   four sources: builtin CSV, custom URL, custom upload, WHO GHO), climate
@@ -211,14 +211,20 @@ order — it touches every major feature.
 14. **Alternative source comparison (FR-27 / A19).** After running an integration
     (e.g. Thailand Dengue with Open-Meteo ERA5), click the `Compare sources`
     button next to the download bar:
-    - In the dialog, select an alternative climate source (e.g. NASA POWER MERRA-2).
+    - **Climate comparison:** Select an alternative climate source (Open-Meteo ERA5,
+      NASA POWER MERRA-2, TMD if configured for Thailand, or an uploaded CSV).
+    - **Disease cases comparison:** Switch to "Disease/Case Sources" and pick Source B:
+      - Search and pick a WHO GHO indicator via the search dialog (runs both sources
+        at yearly resolution on complete calendar years only; partial years are
+        excluded and listed in `excluded_years`, without disaggregation).
+      - Specify a custom CSV URL.
+      - Upload a custom epidemiological CSV file (via `POST /api/compare-sources/upload`).
     - Click `Compare`. The backend runs deterministic integration for both sources
       bypassing LLM generation.
     - Inspect the side-by-side metrics: Pearson correlation coefficient r,
-      mean difference, Mean Absolute Difference (MAD), and relative MAD%.
+      mean difference ($B - A$), Mean Absolute Difference (MAD), and relative MAD%.
     - Observe the verdict chip (e.g. "Very similar" or "Similar") and the
-      scientific seasonal cycle note explaining that high correlation is partly
-      due to the shared annual cycle.
+      domain notes explaining the shared seasonal cycle (climate) or surveillance definitions (cases).
     - Review the sparkline overlay showing both normalized series together.
 
 

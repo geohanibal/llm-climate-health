@@ -13,6 +13,7 @@ from datetime import date
 from pathlib import Path
 
 import requests
+from fastapi.concurrency import run_in_threadpool
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -130,6 +131,7 @@ def options():
         },
         "case_data_sources": CASE_DATA_SOURCES,
         "population_sources": POPULATION_SOURCES,
+        "tmd_configured": bool(TMD_API_UID and TMD_API_UKEY),
     }
 
 
@@ -675,6 +677,53 @@ def compare_data_sources(req: SourceComparisonRequest):
         )
     try:
         return compare_sources(req)
+    except ConfigurationError as exc:
+        raise HTTPException(503, str(exc)) from exc
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(502, str(exc)) from exc
+    except requests.exceptions.RequestException as exc:
+        raise HTTPException(502, f"Could not reach an upstream data source: {exc}") from exc
+
+
+@app.post("/api/compare-sources/upload", response_model=SourceComparisonResponse)
+async def compare_data_sources_upload(
+    request: str = Form(...),
+    file: UploadFile = File(...),
+):
+    """Compares Source A against an uploaded Source B CSV (cases or climate) (FR-27 / Task F2).
+    File is used only for this comparison in memory and not stored on disk.
+    If Source A was an upload, returns 400."""
+    try:
+        req = SourceComparisonRequest.model_validate_json(request)
+    except Exception as exc:
+        raise HTTPException(400, f"Invalid comparison request JSON: {exc}")
+
+    _validate_common(req)
+
+    # If source A was an upload, keep the clear 400
+    uploaded_a = [
+        name for name, value in (
+            ("climate", req.climate_source),
+            ("case", req.case_data_source),
+            ("population", req.population_source),
+        )
+        if value == "custom_upload"
+    ]
+    if uploaded_a:
+        raise HTTPException(
+            400,
+            "Source comparison is not available when baseline source A is an uploaded file "
+            f"({', '.join(uploaded_a)} data): uploads are not stored on the server.",
+        )
+
+    content = await file.read()
+    if len(content) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(413, "Uploaded CSV file exceeds the 10 MB limit.")
+
+    try:
+        # compare_sources is blocking (HTTP calls, pandas); run it in the
+        # thread pool so this async endpoint does not stall the event loop.
+        return await run_in_threadpool(compare_sources, req, upload_file_b_bytes=content)
     except ConfigurationError as exc:
         raise HTTPException(503, str(exc)) from exc
     except (RuntimeError, ValueError) as exc:

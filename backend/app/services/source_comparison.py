@@ -172,87 +172,179 @@ def compute_variable_comparison(
     )
 
 
-def compare_sources(req: SourceComparisonRequest) -> SourceComparisonResponse:
-    """Executes integrations directly for Source A and Source B (bypassing LLM explanation,
-    lag_periods=[]) and computes bivariate comparison metrics over their overlapping periods."""
-    # 1. Run integration for Source A
-    steps_a, records_a, res_a, audit_a, stats_a, cov_a = run_integration(
+def _run_side(
+    req: SourceComparisonRequest,
+    *,
+    aggregation: str,
+    climate_source: str,
+    case_data_source: str,
+    custom_source_url: str | None,
+    who_indicator_code: str | None,
+    who_indicator_name: str | None,
+    upload_content: bytes | None = None,
+    climate_upload_content: bytes | None = None,
+) -> tuple[list[PeriodRecord], str]:
+    """Runs one side of the comparison through the normal ETL pipeline
+    (no lags, no LLM call) and returns (records, resolution)."""
+    _steps, records, resolution, _audit, _stats, _coverage = run_integration(
         disease_key=req.disease,
         region=req.region,
         variables=req.variables,
         start=req.start_date,
         end=req.end_date,
-        aggregation=req.aggregation,
-        climate_source=req.climate_source,
-        case_data_source=req.case_data_source,
+        aggregation=aggregation,
+        climate_source=climate_source,
+        case_data_source=case_data_source,
         population_source=req.population_source,
-        custom_source_url=req.custom_source_url,
-        who_indicator_code=req.who_indicator_code,
-        who_indicator_name=req.who_indicator_name,
+        custom_source_url=custom_source_url,
+        upload_content=upload_content,
+        who_indicator_code=who_indicator_code,
+        who_indicator_name=who_indicator_name,
+        climate_upload_content=climate_upload_content,
         custom_population_url=req.custom_population_url,
         population_indicator_code=req.population_indicator_code,
         population_indicator_name=req.population_indicator_name,
         lag_periods=[],
     )
+    return list(records), resolution
 
-    # 2. Determine Source B parameters
-    if req.compare_kind == "climate":
-        clim_b = req.alternative_climate_source
-        if not clim_b or clim_b == req.climate_source:
-            clim_b = "nasa-power" if req.climate_source == "open-meteo-era5" else "open-meteo-era5"
 
-        source_a_label = CLIMATE_SOURCES.get(req.climate_source, {}).get("label", req.climate_source)
-        source_b_label = CLIMATE_SOURCES.get(clim_b, {}).get("label", clim_b)
+def _periods_per_year(year: int, resolution: str) -> int:
+    if resolution == "month":
+        return 12
+    if resolution == "day":
+        return 366 if (year % 4 == 0 and year % 100 != 0) or year % 400 == 0 else 365
+    return 1
 
-        steps_b, records_b, res_b, audit_b, stats_b, cov_b = run_integration(
-            disease_key=req.disease,
-            region=req.region,
-            variables=req.variables,
-            start=req.start_date,
-            end=req.end_date,
-            aggregation=req.aggregation,
-            climate_source=clim_b,
-            case_data_source=req.case_data_source,
-            population_source=req.population_source,
-            custom_source_url=req.custom_source_url,
-            who_indicator_code=req.who_indicator_code,
-            who_indicator_name=req.who_indicator_name,
-            custom_population_url=req.custom_population_url,
-            population_indicator_code=req.population_indicator_code,
-            population_indicator_name=req.population_indicator_name,
-            lag_periods=[],
-        )
-    else:
-        # Case comparison
+
+def to_complete_years(
+    records: Sequence[PeriodRecord],
+    resolution: str,
+    start_year: int,
+    end_year: int,
+) -> tuple[list[PeriodRecord], list[str]]:
+    """Sums monthly or daily case counts to calendar years, keeping only
+    COMPLETE years (every period of the year has a value inside the
+    requested range). A partial first/last year or a gap inside a year would
+    make the yearly sum artificially low compared with a yearly source such
+    as WHO GHO, so such years are excluded and returned instead of being
+    filled or scaled (RECOMMENDATIONS A20). Yearly input is returned as is.
+
+    Returns:
+        (yearly_records, excluded_years)
+    """
+    if resolution == "year":
+        return list(records), []
+    yearly: list[PeriodRecord] = []
+    excluded: list[str] = []
+    for year in range(start_year, end_year + 1):
+        prefix = f"{year}-"
+        values = [
+            float(r.case_count)
+            for r in records
+            if r.period.startswith(prefix)
+            and r.case_count is not None
+            and not pd.isna(r.case_count)
+        ]
+        if len(values) == _periods_per_year(year, resolution):
+            yearly.append(PeriodRecord(period=str(year), case_count=round(sum(values), 1)))
+        else:
+            excluded.append(str(year))
+    return yearly, excluded
+
+
+def compare_sources(
+    req: SourceComparisonRequest,
+    upload_file_b_bytes: bytes | None = None,
+) -> SourceComparisonResponse:
+    """Executes integrations directly for Source A and Source B (bypassing LLM explanation,
+    lag_periods=[]) and computes bivariate comparison metrics over their overlapping periods.
+    When WHO GHO (yearly) is involved, both sides are compared on complete calendar years."""
+    compared_at_yearly = False
+    excluded_years: set[str] = set()
+
+    if req.compare_kind == "cases":
         case_b = req.alternative_case_data_source or "custom_url"
         custom_url_b = req.alternative_custom_source_url or req.custom_source_url
         if case_b == "custom_url" and not custom_url_b:
             raise ValueError("custom_source_url is required when comparing against custom_url cases.")
+        if case_b == "custom_upload" and not upload_file_b_bytes:
+            raise ValueError("Uploaded file bytes are required when comparing against custom_upload cases.")
 
         source_a_label = CASE_DATA_SOURCES.get(req.case_data_source, {}).get("label", req.case_data_source)
-        source_b_label = (
-            f"Custom URL ({custom_url_b})"
-            if case_b == "custom_url"
-            else CASE_DATA_SOURCES.get(case_b, {}).get("label", case_b)
-        )
+        if case_b == "custom_upload":
+            source_b_label = "Uploaded CSV (Cases)"
+        elif case_b == "who_gho":
+            ind_name = req.alternative_who_indicator_name or req.who_indicator_name or req.alternative_who_indicator_code
+            source_b_label = f"WHO GHO ({ind_name})"
+        elif case_b == "custom_url":
+            source_b_label = f"Custom URL ({custom_url_b})"
+        else:
+            source_b_label = CASE_DATA_SOURCES.get(case_b, {}).get("label", case_b)
 
-        steps_b, records_b, res_b, audit_b, stats_b, cov_b = run_integration(
-            disease_key=req.disease,
-            region=req.region,
-            variables=req.variables,
-            start=req.start_date,
-            end=req.end_date,
-            aggregation=req.aggregation,
+        # WHO GHO is yearly only. Each side is then run at its native
+        # resolution and summed to complete calendar years — never the
+        # other way round (no disaggregation of yearly values to months).
+        compared_at_yearly = "who_gho" in (case_b, req.case_data_source)
+        aggregation = "native" if compared_at_yearly else req.aggregation
+
+        records_a, res_a = _run_side(
+            req,
+            aggregation=aggregation,
+            climate_source=req.climate_source,
+            case_data_source=req.case_data_source,
+            custom_source_url=req.custom_source_url,
+            who_indicator_code=req.who_indicator_code,
+            who_indicator_name=req.who_indicator_name,
+        )
+        records_b, res_b = _run_side(
+            req,
+            aggregation=aggregation,
             climate_source=req.climate_source,
             case_data_source=case_b,
-            population_source=req.population_source,
             custom_source_url=custom_url_b,
             who_indicator_code=req.alternative_who_indicator_code or req.who_indicator_code,
             who_indicator_name=req.alternative_who_indicator_name or req.who_indicator_name,
-            custom_population_url=req.custom_population_url,
-            population_indicator_code=req.population_indicator_code,
-            population_indicator_name=req.population_indicator_name,
-            lag_periods=[],
+            upload_content=upload_file_b_bytes if case_b == "custom_upload" else None,
+        )
+
+        if compared_at_yearly:
+            first, last = req.start_date.year, req.end_date.year
+            records_a, excluded_a = to_complete_years(records_a, res_a, first, last)
+            records_b, excluded_b = to_complete_years(records_b, res_b, first, last)
+            excluded_years.update(excluded_a, excluded_b)
+            res_a = res_b = "year"
+    else:
+        clim_b = req.alternative_climate_source
+        if not clim_b or clim_b == req.climate_source:
+            clim_b = "nasa-power" if req.climate_source == "open-meteo-era5" else "open-meteo-era5"
+        if clim_b == "custom_upload" and not upload_file_b_bytes:
+            raise ValueError("Uploaded file bytes are required when comparing against custom_upload climate.")
+
+        source_a_label = CLIMATE_SOURCES.get(req.climate_source, {}).get("label", req.climate_source)
+        if clim_b == "custom_upload":
+            source_b_label = "Uploaded CSV (Climate)"
+        else:
+            source_b_label = CLIMATE_SOURCES.get(clim_b, {}).get("label", clim_b)
+
+        records_a, res_a = _run_side(
+            req,
+            aggregation=req.aggregation,
+            climate_source=req.climate_source,
+            case_data_source=req.case_data_source,
+            custom_source_url=req.custom_source_url,
+            who_indicator_code=req.who_indicator_code,
+            who_indicator_name=req.who_indicator_name,
+        )
+        records_b, res_b = _run_side(
+            req,
+            aggregation=req.aggregation,
+            climate_source=clim_b,
+            case_data_source=req.case_data_source,
+            custom_source_url=req.custom_source_url,
+            who_indicator_code=req.who_indicator_code,
+            who_indicator_name=req.who_indicator_name,
+            climate_upload_content=upload_file_b_bytes if clim_b == "custom_upload" else None,
         )
 
     # 3. Check resolution consistency
@@ -270,6 +362,8 @@ def compare_sources(req: SourceComparisonRequest) -> SourceComparisonResponse:
                 f"Sources with different resolutions cannot be directly compared without "
                 f"artificial downscaling/upscaling."
             ),
+            compared_at_yearly_resolution=compared_at_yearly,
+            excluded_years=sorted(excluded_years),
         )
 
     # 4. Compare only requested base variables (never lag columns)
@@ -319,4 +413,6 @@ def compare_sources(req: SourceComparisonRequest) -> SourceComparisonResponse:
         variables=comparisons,
         methodology_note=METHODOLOGY_NOTE,
         resolution_mismatch=False,
+        compared_at_yearly_resolution=compared_at_yearly,
+        excluded_years=sorted(excluded_years),
     )
