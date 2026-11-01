@@ -8,9 +8,11 @@ import pytest
 
 from app.models import PeriodRecord
 from app.services.statistics import (
+    MIN_PAIRS_FOR_SIGNIFICANCE,
     compute_bivariate_stats,
     compute_lagged_correlations,
     compute_statistics,
+    is_significant,
 )
 
 
@@ -42,11 +44,11 @@ def test_bivariate_stats_handles_zero_variance():
 
 
 def test_lagged_correlations_identifies_lagged_signal():
-    # Construct a dataset where climate at t leads disease at t+1:
-    # rain: [100, 200, 300, 400, 500, 100, 200, 300]
-    # cases: [ 10, 100, 200, 300, 400, 500, 100, 200]
-    rain = [100, 200, 300, 400, 500, 100, 200, 300]
-    cases = [10, 100, 200, 300, 400, 500, 100, 200]
+    # Construct a dataset where climate at t leads disease at t+1 (cases are
+    # rain shifted by one period). 14 points -> 13 pairs at lag 1, enough
+    # for the significance rule (MIN_PAIRS_FOR_SIGNIFICANCE).
+    rain = [100, 200, 300, 400, 500, 100, 200, 300, 450, 150, 350, 250, 50, 400]
+    cases = [10] + rain[:-1]
     df = pd.DataFrame({"precipitation_sum_mm": rain, "case_count": cases})
 
     metrics = compute_lagged_correlations(
@@ -87,3 +89,26 @@ def test_compute_statistics_detects_peak_and_means():
     assert stat.mean_precipitation_mm == 92.5
     assert len(stat.correlations) > 0
     assert "Methodological Note" in stat.scientific_disclaimer
+
+
+def test_tiny_samples_are_never_labelled_significant():
+    """Regression (found 2026-11-01, Thailand 2010-01..06): with 3 pairs
+    Spearman rho = 1 gives p = 0.0, which used to mark lag 3 as
+    "significant" although Pearson p was 0.25."""
+    df = pd.DataFrame(
+        {"temperature_mean_c": [26.3, 29.4, 30.6, 32.3, 32.3, 30.8], "case_count": [1496, 1528, 2020, 1868, 3666, 6631]}
+    )
+    metrics = compute_lagged_correlations(df, "temperature_mean_c", "case_count", "temperature", max_lag=3)
+    lag3 = next(m for m in metrics if m.lag_periods == 3)
+    assert lag3.sample_size == 3
+    assert lag3.spearman_p == 0.0
+    assert lag3.significant is False
+    assert not any(m.significant for m in metrics)
+
+
+def test_significance_requires_both_tests_and_enough_pairs():
+    assert is_significant(0.01, 0.02, MIN_PAIRS_FOR_SIGNIFICANCE) is True
+    assert is_significant(0.01, 0.02, MIN_PAIRS_FOR_SIGNIFICANCE - 1) is False
+    assert is_significant(0.20, 0.01, 50) is False  # only Spearman supports it
+    assert is_significant(0.01, 0.20, 50) is False  # only Pearson supports it
+    assert is_significant(None, 0.01, 50) is False

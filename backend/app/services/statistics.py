@@ -67,6 +67,24 @@ def compute_bivariate_stats(x: pd.Series, y: pd.Series) -> tuple[float | None, f
     return pr, pp, s_rho, s_p, n
 
 
+# Below this many (climate, disease) pairs no association is labelled
+# "significant". With 3–5 points almost any monotonic pair gets Spearman
+# rho = ±1, for which scipy reports p = 0.0 — a meaningless "significant"
+# result (found when testing Thailand 2010-01…06: lag 3 had only 3 pairs).
+MIN_PAIRS_FOR_SIGNIFICANCE = 10
+ALPHA = 0.05
+
+
+def is_significant(pearson_p: float | None, spearman_p: float | None, n: int) -> bool:
+    """Conservative rule: enough pairs AND both the linear (Pearson) and the
+    rank-based (Spearman) test below alpha. Requiring both keeps the label
+    consistent with the Pearson p shown in the pipeline steps and avoids
+    calling an association significant that only one test supports."""
+    if n < MIN_PAIRS_FOR_SIGNIFICANCE or pearson_p is None or spearman_p is None:
+        return False
+    return pearson_p < ALPHA and spearman_p < ALPHA
+
+
 def compute_lagged_correlations(
     df: pd.DataFrame,
     climate_col: str,
@@ -87,11 +105,7 @@ def compute_lagged_correlations(
             clim_lagged = df[climate_col].shift(lag)
 
         pr, pp, s_rho, s_p, n = compute_bivariate_stats(clim_lagged, df[target_col])
-        sig = False
-        if pp is not None and pp < 0.05:
-            sig = True
-        elif s_p is not None and s_p < 0.05:
-            sig = True
+        sig = is_significant(pp, s_p, n)
 
         metrics.append(
             CorrelationMetric(
