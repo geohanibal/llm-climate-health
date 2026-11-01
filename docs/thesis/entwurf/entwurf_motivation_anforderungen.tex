@@ -21,7 +21,7 @@
 \title{Entwurf: Motivation und literaturbasierte Anforderungsanalyse\\[0.3em]
 \large LLM-gestützte Integration von Klima- und Gesundheitsdaten}
 \author{Sergi Koniashvili\\ Bachelorarbeit Informatik, Universität Bremen}
-\date{Stand: 1.~November 2026 -- Diskussionsgrundlage}
+\date{Stand: 1.~November 2026 (überarbeitet) -- Diskussionsgrundlage}
 
 \begin{document}
 \maketitle
@@ -127,6 +127,20 @@ eine strukturierte Integrationsanfrage. Das System wählt geeignete Quellen,
 führt die Daten zu einer analysebereiten Tabelle zusammen, berechnet abgeleitete
 Größen (Inzidenz, zeitverzögerte Variablen) und protokolliert jeden Schritt.
 
+Die Rolle des LLM ist dabei bewusst begrenzt. Es übersetzt eine
+natürlichsprachliche Anfrage in die Felder des Formulars, die vor dem Start
+geprüft und geändert werden können, erklärt das Ergebnis in verständlicher
+Sprache und unterstützt im Chat-Assistenten bei Fachfragen und Formularvorschlägen.
+Abruf, Bereinigung, Harmonisierung, Verknüpfung, Berechnungen und Export
+erfolgen dagegen ausschließlich in deterministischen Programmkomponenten;
+dieselbe Anfrage ergibt daher dieselbe Tabelle. Die Ausgaben des LLM müssen
+dennoch kontrolliert werden: In einem eigenen Test bezeichnete das Modell eine
+nicht signifikante Korrelation (Lag~3, $n = 9$) als stärksten Zusammenhang.
+Seitdem erhält es zu jeder Korrelation die Signifikanzkennzeichnung und die
+Anzahl der Wertepaare und darf nur signifikante Zusammenhänge als Befund
+nennen. Wie zuverlässig die LLM-Komponenten arbeiten, wird in der Evaluation
+geprüft \todo{Kriterien festlegen, z.\,B.\ Anteil korrekt ausgefüllter Formularfelder}.
+
 Das System ist ausdrücklich \emph{kein} Vorhersagemodell: Es bereitet
 Eingangsdaten für nachgelagerte datenbasierte Modelle vor. Ob es den manuellen
 Aufwand tatsächlich reduziert, wird in der Evaluation gemessen
@@ -206,7 +220,9 @@ Schritt / Beobachtung & Beleg & Anforderung & Status \\
 \midrule
 \endhead
 Inzidenz pro 100\,000 als Zielgröße & Suttirat S.~7; Lowe S.~e211 &
-  FR-17: Bevölkerungsdaten anbinden, jährliche Werte auf Monate interpolieren, Inzidenz berechnen & umgesetzt \\
+  FR-17: Bevölkerungsdaten anbinden und Inzidenz pro 100\,000 berechnen & umgesetzt \\
+Jährliche Bevölkerung, monatliche Fallzahlen & Suttirat S.~4--5 (Jahreswert jedem Monat zugeordnet); Lowe: Verfahren nicht beschrieben &
+  FR-17: jährliche Werte linear auf Monate interpolieren -- \emph{eigene Entwurfsentscheidung}, damit die Inzidenz an Jahresgrenzen nicht springt; die Abweichung von Suttirat wird in Kapitel~8 diskutiert & umgesetzt \\
 Zeitverzögerte Klimavariablen & Suttirat S.~7 (1--3); Lowe S.~e212 (0--6) &
   FR-23: Lag-Spalten 1--6 im Datensatz & umgesetzt \\
 Klimadaten vor Beginn der Fallreihe & Lowe S.~e211 &
@@ -271,6 +287,11 @@ sie werden in Kapitel~8 als Grenzen diskutiert:
   \item Reichen zwei Modellierungsstudien und ein Data Descriptor, oder sollen
         weitere Studien (z.\,B.\ Malaria) aufgenommen werden?
   \item Ist die Traceability-Matrix als Form der Anforderungsableitung geeignet?
+  \item Vorschlag für eine Forschungsfrage: \enquote{Inwieweit kann ein
+        LLM-gestütztes System die Integration heterogener Klima- und
+        Gesundheitsdaten automatisieren und dabei die Korrektheit,
+        Reproduzierbarkeit und Nachvollziehbarkeit der Datenaufbereitung
+        überprüfbar machen?} Passt diese Ausrichtung?
   \item Welcher Zitierstil wird erwartet (Autor-Jahr oder numerisch)?
   \item Gliederung: Passt die Position von \enquote{Verwandte Arbeiten} nach der
         Anforderungsanalyse?
