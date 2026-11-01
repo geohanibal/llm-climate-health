@@ -486,6 +486,9 @@ newer than 1.2; extract and build procedure undocumented. OpenDengue
 - ✗ "The system reproduces the Suttirat dataset exactly" → false (see §5).
 - ✗ "90 seconds instead of 2 weeks" → never measured; only use measured numbers.
 - ✗ Case study with WHO GHO malaria monthly lags → GHO is annual only.
+- ✗ "Compare OpenDengue with WHO GHO dengue data" → WHO GHO has NO dengue indicator (checked 2026-11-01: 0 of
+  3102 indicators mention dengue; malaria has many, e.g. MALARIA_CONF_CASES, MALARIA_EST_CASES). The yearly
+  WHO comparison of F2 is therefore relevant for malaria/cholera (WHO as A, monthly upload/URL as B), not dengue.
 - ✗ "Our 6-month Thailand correlation (Tmin lag 1, Tmax lag 3) confirms
   Suttirat et al." → n = 6, p > 0.05, seasonal confounding; never use as evidence.
 - ✗ "Suttirat et al. aggregated daily Tmin/Tmax to monthly means" → they used

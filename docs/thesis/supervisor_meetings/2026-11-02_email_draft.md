@@ -27,7 +27,7 @@ I used these steps to derive requirements. For each requirement I noted the pape
 - daily minimum and maximum temperature (Suttirat, Lowe),
 - export with metadata: sources, licences, processing steps and software version (Clarke),
 - detection of missing periods in the data, with a possible reason (Clarke),
-- a comparison of two data sources over the same period, for example ERA5 and NASA POWER, or OpenDengue and WHO on a yearly basis (Clarke).
+- a comparison of two data sources over the same period, for example ERA5 and NASA POWER for climate, or the built-in case data and the user's own file (Clarke).
 
 I decided not to fill missing data automatically from another source, because the sources use different case definitions (for example, OpenDengue counts all reported cases, while Suttirat et al. use only DHF). The system shows the gaps and lets the user compare sources instead.
 
@@ -69,7 +69,7 @@ Sergi Koniashvili
 - დღიური მინიმალური და მაქსიმალური ტემპერატურა (Suttirat, Lowe);
 - ექსპორტი metadata-თი: წყაროები, ლიცენზიები, დამუშავების ნაბიჯები და პროგრამის ვერსია (Clarke);
 - მონაცემებში გამოტოვებული პერიოდების აღმოჩენა შესაძლო მიზეზით (Clarke);
-- ორი წყაროს შედარება ერთსა და იმავე პერიოდში, მაგ. ERA5 და NASA POWER, ან OpenDengue და WHO წლიურ დონეზე (Clarke).
+- ორი წყაროს შედარება ერთსა და იმავე პერიოდში, მაგ. ERA5 და NASA POWER კლიმატისთვის, ან ჩაშენებული შემთხვევები და მომხმარებლის საკუთარი ფაილი (Clarke).
 
 გადავწყვიტე, რომ გამოტოვებული მონაცემები სხვა წყაროდან ავტომატურად არ შევავსო, რადგან წყაროები შემთხვევის სხვადასხვა განსაზღვრებას იყენებენ (მაგ. OpenDengue ყველა რეგისტრირებულ შემთხვევას ითვლის, Suttirat et al. კი მხოლოდ DHF-ს). სისტემა ხარვეზებს აჩვენებს და მომხმარებელს წყაროების შედარების საშუალებას აძლევს.
 
