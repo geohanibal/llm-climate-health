@@ -13,11 +13,11 @@
 
 ---
 
-**Subject:** Update before our meeting on Monday – motivation and requirements
+**Subject:** Update before our meeting today – motivation and requirements
 
 Hi Thomas, Peter and Lin,
 
-here is a short update before our meeting on Monday, so we can use the time for your feedback.
+sorry for sending this so close to our meeting. I know you may not have time to read it before we meet, and that is fine. I will explain everything in the meeting. I still wanted to write it down, so that you have a written summary in case I forget something. My spoken English is not perfect, so this may also help.
 
 Since your last feedback I have worked on the motivation. I read three papers in detail:
 
@@ -41,16 +41,16 @@ I decided not to fill missing data automatically from another source, because th
 
 I have also started writing. Attached is a first draft of the introduction and the requirements chapter in German, plus an English translation of the same text. The draft includes a table that links each step in the papers to a requirement. Some parts are still open and marked in red.
 
-On Monday I would mainly like to discuss these points:
+In the meeting I would mainly like to discuss these points:
 
 1. Is this the kind of motivation you had in mind?
 2. Are two modelling papers and one dataset paper enough, or should I add more studies?
-3. What should I do with the older requirements that do not come from the literature (for example the chat or the map)? Should I justify them as usability requirements or remove them?
+3. Some features I added myself to make the system easier to use, for example the chat or the map. They do not come from the literature. Should I justify them as usability requirements, or remove them from the thesis?
 4. For case study 1, I plan to build the same simplified dataset once by hand with Python and once with the system, and to compare time, steps and results. Is this a suitable evaluation?
 
 The current version is online: https://llm-climate-health.onrender.com/
 
-See you on Monday!
+See you later!
 
 Best,
 Sergi
@@ -59,11 +59,11 @@ Sergi
 
 ## ქართული თარგმანი (მხოლოდ შენთვის, არ გააგზავნო)
 
-**თემა:** განახლება ორშაბათის შეხვედრამდე – მოტივაცია და მოთხოვნები
+**თემა:** განახლება დღევანდელ შეხვედრამდე – მოტივაცია და მოთხოვნები
 
 გამარჯობა თომას, პიტერ და ლინ,
 
-ორშაბათის შეხვედრამდე მოკლე განახლებას გიგზავნით, რომ შეხვედრის დრო თქვენს შენიშვნებს დავუთმოთ.
+ბოდიშს ვიხდი, რომ შეხვედრამდე ასე ცოტა ხნით ადრე ვგზავნი. ვიცი, რომ შეხვედრამდე შეიძლება წაკითხვა ვერ მოასწროთ, და ეს ნორმალურია, შეხვედრაზე ყველაფერს აგიხსნით. მაინც მინდოდა დამეწერა, რომ წერილობითი შეჯამება გქონდეთ, თუ რამე გამომრჩება. ჩემი სალაპარაკო ინგლისური სრულყოფილი არ არის, ამიტომ ესეც შეიძლება დაგეხმაროთ.
 
 თქვენი ბოლო შენიშვნის შემდეგ მოტივაციაზე ვმუშაობდი. სამი სტატია დეტალურად წავიკითხე:
 
@@ -87,16 +87,16 @@ Suttirat et al. მთავარ case study-დ ავირჩიე, რა�
 
 წერაც დავიწყე. თან ვურთავ შესავლისა და მოთხოვნების თავის პირველ მონახაზს გერმანულად და იმავე ტექსტის ინგლისურ თარგმანს. მონახაზში არის ცხრილი, რომელიც სტატიების თითოეულ ნაბიჯს მოთხოვნას უკავშირებს. ზოგი ნაწილი ჯერ ღიაა და წითლად არის მონიშნული.
 
-ორშაბათს ძირითადად ამ საკითხების განხილვა მინდა:
+შეხვედრაზე ძირითადად ამ საკითხების განხილვა მინდა:
 
 1. ასეთ მოტივაციას გულისხმობდით?
 2. საკმარისია ორი მოდელირების სტატია და ერთი მონაცემთა სტატია, თუ მეტი კვლევა დავამატო?
-3. რა ვუყო ძველ მოთხოვნებს, რომლებიც ლიტერატურიდან არ მოდის (მაგ. ჩატი ან რუკა)? გამოყენებადობის მოთხოვნებად დავასაბუთო თუ ამოვიღო?
+3. ზოგი ფუნქცია, მაგ. ჩატი ან რუკა, თვითონ დავამატე, რომ სისტემით სარგებლობა გამარტივებულიყო. ისინი ლიტერატურიდან არ მოდის. გამოყენებადობის მოთხოვნებად დავასაბუთო თუ ნაშრომიდან ამოვიღო?
 4. Case study 1-ისთვის ვგეგმავ, რომ ერთი და იგივე გამარტივებული მონაცემთა ნაკრები ერთხელ ხელით ავაწყო Python-ით და ერთხელ სისტემით, და შევადარო დრო, ნაბიჯები და შედეგები. ეს შეფასების შესაფერისი მეთოდია?
 
 მიმდინარე ვერსია ონლაინ არის: https://llm-climate-health.onrender.com/
 
-ორშაბათამდე!
+მალე გნახავთ!
 
 საუკეთესო სურვილებით,
 სერგი
