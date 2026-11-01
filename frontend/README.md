@@ -45,7 +45,9 @@ lib/
                             card, results, chart, table, sources, ...)
   services/                api_client.dart (HTTP), PDF/CSV export, world-map
                             GeoJSON loading
-  models/                  plain data classes mirroring the backend's JSON
+  models/                  plain data classes mirroring the backend's JSON;
+                            export_metadata.dart builds the provenance block
+                            written with every CSV/JSON export (FR-25)
   core/                    responsive layout + formatting helpers
 test/                      model round-trip tests + a smoke test
 ```

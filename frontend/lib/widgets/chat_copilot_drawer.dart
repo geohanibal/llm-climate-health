@@ -407,7 +407,7 @@ class _ChatCopilotDrawerState extends State<ChatCopilotDrawer> {
     final fmtName = format == ExportFormat.csv ? "CSV" : "JSON";
     try {
       _exportService.export(
-        res.data,
+        res,
         format,
         fileNamePrefix: '${res.disease}_${res.region}'.toLowerCase(),
       );

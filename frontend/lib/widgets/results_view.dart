@@ -55,7 +55,7 @@ class ResultsView extends StatelessWidget {
         const SizedBox(height: 16),
         CaseChartCard(data: result.data, resolution: result.resolution),
         const SizedBox(height: 16),
-        DatasetTableCard(data: result.data),
+        DatasetTableCard(result: result),
         const SizedBox(height: 16),
         SourcesCard(sources: result.sources),
       ],

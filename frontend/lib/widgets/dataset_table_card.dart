@@ -7,20 +7,25 @@ library;
 import 'package:flutter/material.dart';
 
 import '../core/formatting.dart';
+import '../models/integration_result.dart';
 import '../models/period_record.dart';
 import '../services/dataset_export_service.dart';
 import 'section_card.dart';
 
 class DatasetTableCard extends StatelessWidget {
-  final List<PeriodRecord> data;
+  /// The whole result (not only the rows) is needed so the exported files
+  /// can carry provenance metadata: sources, licences, steps, version.
+  final IntegrationResult result;
   static const _exportService = DatasetExportService();
 
-  const DatasetTableCard({super.key, required this.data});
+  const DatasetTableCard({super.key, required this.result});
 
   @override
   Widget build(BuildContext context) {
+    final data = result.data;
     final hasMin = data.any((r) => r.temperatureMinC != null);
     final hasMax = data.any((r) => r.temperatureMaxC != null);
+    final lagColumns = PeriodRecord.lagColumnNames(data);
 
     return SectionCard(
       title: 'Integrated dataset',
@@ -29,12 +34,12 @@ class DatasetTableCard extends StatelessWidget {
         spacing: 8,
         children: [
           OutlinedButton.icon(
-            onPressed: () => _exportService.export(data, ExportFormat.csv),
+            onPressed: () => _exportService.export(result, ExportFormat.csv),
             icon: const Icon(Icons.download, size: 18),
             label: const Text('CSV'),
           ),
           OutlinedButton.icon(
-            onPressed: () => _exportService.export(data, ExportFormat.json),
+            onPressed: () => _exportService.export(result, ExportFormat.json),
             icon: const Icon(Icons.download, size: 18),
             label: const Text('JSON'),
           ),
@@ -52,6 +57,7 @@ class DatasetTableCard extends StatelessWidget {
             if (hasMin) const DataColumn(label: Text('Temp min (°C)')),
             if (hasMax) const DataColumn(label: Text('Temp max (°C)')),
             const DataColumn(label: Text('Precip sum (mm)')),
+            for (final column in lagColumns) DataColumn(label: Text(column)),
           ],
           rows: data
               .map(
@@ -64,6 +70,8 @@ class DatasetTableCard extends StatelessWidget {
                   if (hasMin) DataCell(Text(Formatting.temperature(r.temperatureMinC))),
                   if (hasMax) DataCell(Text(Formatting.temperature(r.temperatureMaxC))),
                   DataCell(Text(Formatting.precipitation(r.precipitationSumMm))),
+                  for (final column in lagColumns)
+                    DataCell(Text(_formatLag(column, r.lagValues[column]))),
                 ]),
               )
               .toList(),
@@ -71,4 +79,8 @@ class DatasetTableCard extends StatelessWidget {
       ),
     );
   }
+
+  /// Lag columns reuse the unit formatting of their base variable.
+  static String _formatLag(String column, double? value) =>
+      column.startsWith('precipitation') ? Formatting.precipitation(value) : Formatting.temperature(value);
 }

@@ -105,6 +105,32 @@ void main() {
 
       expect(result.explanationSource, 'fallback');
       expect(result.transformationAudit, isNull);
+      // Older cached responses have no provenance fields: safe defaults.
+      expect(result.licenses, isEmpty);
+      expect(result.systemVersion, 'unknown');
+    });
+
+    test('decodes licenses, system_version, request echo and lag columns (FR-23, FR-25)', () {
+      final result = IntegrationResult.fromJson({
+        'request_echo': {'disease': 'dengue', 'region': 'Thailand', 'lag_periods': [1]},
+        'resolution': 'month',
+        'steps': <String>[],
+        'explanation': 'text',
+        'data': [
+          {'period': '2020-01', 'temperature_mean_c': 26.0, 'temperature_lag1': 25.5, 'precipitation_lag1': null},
+        ],
+        'sources': ['Climate data: ERA5'],
+        'licenses': ['Climate data: CC BY 4.0'],
+        'system_version': 'git-abc1234',
+        'last_verified': '2026-11-01T00:00:00Z',
+      });
+
+      expect(result.licenses, ['Climate data: CC BY 4.0']);
+      expect(result.systemVersion, 'git-abc1234');
+      expect(result.requestEcho['lag_periods'], [1]);
+      final record = result.data.single;
+      expect(record.lagValues, {'temperature_lag1': 25.5, 'precipitation_lag1': null});
+      expect(record.toJson()['temperature_lag1'], 25.5);
     });
 
     test('decodes transformation_audit when present in response', () {

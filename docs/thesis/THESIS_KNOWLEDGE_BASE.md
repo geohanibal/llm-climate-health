@@ -21,8 +21,10 @@ and follow the rules in §0.
   supervisor feedback, §3). Code changes started 2026-10-31: A17 population
   interpolation DONE (by Claude, task D spec); 2026-11-01 task B DONE (Gemini,
   reviewed by Claude): FR-23 lag columns 1–6 + lag buffer (A1, A22); task C DONE
-  (FR-24 Tmin/Tmax, A2, backend + minimal frontend). Next:
-  A16 package (Sergi); frontend follow-up for lag columns (table, CSV/JSON export).
+  (FR-24 Tmin/Tmax, A2, backend + minimal frontend); A16 package DONE (FR-25
+  provenance export + A14 licences + A15a disclaimer + lag/Tmin/Tmax columns in
+  table/CSV/PDF). Next: Gemini E (A18 gap detection), F (A19 comparison); A13
+  (which OpenDengue release built the bundled file).
 - **Read + translated (Georgian study PDFs in `docs_ka/motivacia/papers/`):**
   P1 Suttirat 2026 (main case study), P3 OpenDengue 2024, P4 Lowe 2021
   (Brazil; confirms preprocessing steps are typical).
@@ -279,7 +281,12 @@ read in full text.
   metadata: access date, URL, navigation steps, search terms (p. 4). v1.1 had
   duplicate counts for the Americas, fixed in v1.2 (p. 8). New versions at
   least every 6 months (p. 12). **Licence: CC BY-SA — all adaptations must be
-  shared under the same terms** (p. 12). Table 1 (p. 2) compares Tycho, PAHO
+  shared under the same terms** (p. 12).
+  **UPDATE 2026-11-01 (Claude, checked online):** the CURRENT release V1.3
+  (figshare 10.6084/m9.figshare.24259573, version 4, 2025-05-27) and
+  opendengue.org state **CC BY 4.0**. The paper's CC BY-SA applies to the
+  earlier releases it describes. Which release built our bundled file is
+  still open (A13); data reach 2025-03, consistent with V1.3. Table 1 (p. 2) compares Tycho, PAHO
   PLISA, ECDC, GIDEON, ProMED (useful for Related Work, health-data side).
 - **Verified quotes:**
   - "Tracking the expansion of the burden of dengue is challenging due to the
@@ -529,8 +536,8 @@ check correctness by comparing both tables. Protocol:
 - [x] OpenDengue quotes with page numbers added (2026-10-31).
 - [ ] Check which OpenDengue extract (temporal/national/spatial) and version built `backend/app/data/dengue_monthly_by_iso3.csv`, and how epi weeks spanning two months were assigned (no build script in repo).
 - [ ] Thailand in the bundled dengue file starts 2009-01 (ends 2025-03): CS1 period must be 2009–2022 unless earlier OpenDengue data exists.
-- [ ] Show OpenDengue dataset version, Figshare DOI and CC BY-SA licence in system output / PDF.
-- [ ] Verify exact CC BY-SA version (3.0 or 4.0) on opendengue.org / Figshare, and licences of all other sources (ERA5/Copernicus, Open-Meteo, NASA POWER, World Bank, WHO GHO) on official pages — record URL + check date (RECOMMENDATIONS A14).
+- [x] DONE 2026-11-01 (A16, FR-25): licence + Figshare DOI shown in every export and PDF (`config.py` license fields). Release of the bundled file still open (A13).
+- [x] DONE 2026-11-01 (A14): OpenDengue V1.3 = CC BY 4.0 (figshare + opendengue.org); Open-Meteo API data CC BY 4.0 + ERA5 Copernicus licence; NASA POWER names no licence (asks for citation + notification); World Bank CC BY 4.0 (default); UN WPP 2024 CC BY 3.0 IGO; WHO GHO = WHO data terms (no CC; public-health use, no commercial promotion, modification needs authorisation); TMD not verified. URLs + date in `backend/app/config.py` comments. Original task: Verify exact CC BY-SA version (3.0 or 4.0) on opendengue.org / Figshare, and licences of all other sources (ERA5/Copernicus, Open-Meteo, NASA POWER, World Bank, WHO GHO) on official pages — record URL + check date (RECOMMENDATIONS A14).
 - [x] DONE 2026-11-01 (task B, `services/lags.py`): Lag columns (task B) must fetch climate data `max(lag)` periods BEFORE start_date, otherwise first rows are empty (Lowe 2021 p. e211; RECOMMENDATIONS A22).
 - [ ] Thesis: subsection on licensing (legal/ethical aspects), incl. ShareAlike consequence for system output (RECOMMENDATIONS B11).
 - [x] FIXED 2026-10-31 (A17): population now linearly interpolated (`population.py::_interpolate_annual_population`). Former issue: population was NOT linearly interpolated (step function per year, nearest-year fill; verified in export `climate_health_dataset (4).csv`). See RECOMMENDATIONS A17.
@@ -547,6 +554,7 @@ check correctness by comparing both tables. Protocol:
 | 2026-10-31 | P4 (Lowe 2021) fully read and translated: confirms typical steps (incidence, gridded climate -> area-weighted regional mean, Tmin/Tmax, lags 0–6, Pearson collinearity check); new requirements A22 (climate lag buffer before start date) and A23 (drought index, Future Work). |
 | 2026-10-31 | Requirements catalogue deliberately consolidated (Sergi's decision): FR-01…FR-22, NFR-01…NFR-07; trilingual UI, LLM rate limit and API-key protection are no longer listed as requirements (features still exist in code). New requirements start at FR-23. |
 | 2026-10-31 | Missing data: system will DETECT gaps and SUGGEST alternative sources (A18) and optionally COMPARE two sources (A19); automatic gap filling from another source deliberately NOT implemented (A20: different case definitions, resolutions, hidden source mixing) — Future Work only with user confirmation + per-row source column. Proposed new FR-23 lags, FR-24 Tmin/Tmax, FR-25 provenance, FR-26 gap detection, FR-27 comparison (to be confirmed by Sergi). |
+| 2026-11-01 | A16 (FR-25): provenance travels WITH the data. JSON export = `{"metadata", "data"}`; CSV stays a plain table + separate `<prefix>_metadata.json` (no `#` comment lines: Excel/pandas misread them). Metadata: disease, region, resolution, request echo, table period AND period actually covered by case counts, sources, licences, steps, retrieved_at, exported_at, system_version (APP_VERSION env or git commit), case-definition note (A15a). Backend adds `licenses` + `system_version` to the response. Lag columns now in table + CSV (not in PDF: too wide). Written by Claude with Sergi (plan: `docs_ka/motivacia/A16_gegma.md`). |
 | 2026-10-31 | Checked real export (Thailand 2005–2010 monthly): no provenance in CSV/JSON; population step-wise per year — earlier claim "population interpolated (etl.py:202)" was WRONG, corrected. |
 | 2026-10-31 | P3 (OpenDengue) fully read and translated; findings: extract / version / licence requirements, Thailand data only from 2009. |
 | 2026-10-31 | Gemini tasks prepared (`docs_ka/motivacia/gemini_tasks_02.md`): A literature, B lag columns, C Tmin/Tmax. Code tasks only after A is reviewed. |

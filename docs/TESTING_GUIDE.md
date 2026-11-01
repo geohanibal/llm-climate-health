@@ -105,7 +105,9 @@ analyze` reports no errors in application code.
   backend responses), the request form's region/source-compatibility logic
   and validation, the world-map region picker, the API client (including
   its multipart file-upload path and error handling), and the CSV/JSON/PDF
-  export logic.
+  export logic, including the provenance metadata (FR-25: JSON
+  `{metadata, data}`, CSV plus separate `_metadata.json`, licences, system
+  version, covered case period) and lag columns in the CSV.
 
 ## 4. Manual walkthrough
 
@@ -173,7 +175,12 @@ order — it touches every major feature.
 
 10. **Export.** After a successful run, use the download buttons to export
     the dataset as CSV, as JSON, and as a PDF report; check that each file
-    opens and contains the expected columns/sections.
+    opens and contains the expected columns/sections. The CSV download
+    must produce **two** files (`…csv` and `…_metadata.json`); the JSON file
+    must start with a `metadata` block that names region, sources,
+    licences, processing steps, `retrieved_at`, `exported_at` and
+    `system_version`. The PDF ends with "Licences / terms of use" and
+    "System version".
 
 11. **Error handling.** Try: an end date in the future (rejected with a
     clear message), a disease/region combination with no data (the

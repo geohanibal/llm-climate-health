@@ -27,6 +27,7 @@ from app.config import (
     DISEASES_WITH_DATA,
     POPULATION_SOURCES,
     REGIONS,
+    SYSTEM_VERSION,
     TMD_API_UID,
     TMD_API_UKEY,
 )
@@ -301,6 +302,22 @@ def _run_integration_or_502(*args, **kwargs):
         raise HTTPException(502, f"Could not reach an upstream data source: {exc}") from exc
 
 
+def _build_licenses(req: IntegrationRequest) -> list[str]:
+    """Licence / terms of use of every source in this dataset, in the same
+    order as `sources` (climate, case counts, population). Exported with the
+    data so a reuser knows under which conditions it may be shared (FR-25;
+    Clarke et al. 2024, p. 12)."""
+    if req.case_data_source == "builtin":
+        case_license = DISEASES[req.disease].license
+    else:
+        case_license = CASE_DATA_SOURCES[req.case_data_source]["license"]
+    return [
+        f"Climate data: {CLIMATE_SOURCES[req.climate_source]['license']}",
+        f"Case counts: {case_license}",
+        f"Demographics & Population: {POPULATION_SOURCES[req.population_source]['license']}",
+    ]
+
+
 def _build_response(
     req: IntegrationRequest,
     steps: list[str],
@@ -366,6 +383,8 @@ def _build_response(
         explanation_source=explanation_source,
         data=records,
         sources=sources,
+        licenses=_build_licenses(req),
+        system_version=SYSTEM_VERSION,
         cached=cached,
         last_verified=last_verified,
         transformation_audit=transformation_audit,

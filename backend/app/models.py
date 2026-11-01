@@ -101,6 +101,10 @@ class IntegrationResponse(BaseModel):
     explanation_source: Literal["llm", "fallback"]
     data: list[PeriodRecord]
     sources: list[str]
+    # Provenance for exports (FR-25): licence of each source (same order as
+    # `sources`) and the software version that produced the dataset.
+    licenses: list[str] = Field(default_factory=list)
+    system_version: str = "unknown"
     cached: bool = False
     last_verified: str
     transformation_audit: DataTransformationAudit | None = None

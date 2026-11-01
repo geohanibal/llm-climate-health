@@ -276,3 +276,43 @@ def test_integrate_upload_custom_population_file():
     # Incidence = (100 / 70000000) * 100000 = 0.143
     assert body["data"][0]["incidence_rate_per_100k"] == 0.143
 
+
+
+@patch("app.services.etl.fetch_climate")
+def test_integrate_response_carries_licences_and_system_version(mock_climate):
+    """FR-25: every response names the licence of each source (same order as
+    `sources`) and the software version, so an export can be traced back."""
+    mock_climate.return_value = pd.DataFrame(
+        {"period": ["2020-01", "2020-02"], "temperature_2m_mean": [25.0, 26.0], "precipitation_sum": [1.0, 2.0]}
+    )
+    resp = client.post(
+        "/api/integrate",
+        json=_valid_request(region="Thailand", start_date="2020-01-01", end_date="2020-02-28"),
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["licenses"]) == len(body["sources"]) == 3
+    assert body["licenses"][0].startswith("Climate data: Open-Meteo API data: CC BY 4.0")
+    assert "OpenDengue" in body["licenses"][1] and "CC BY 4.0" in body["licenses"][1]
+    assert "CC BY 4.0" in body["licenses"][2]
+    assert body["system_version"]
+
+
+@patch("app.services.etl.fetch_climate")
+def test_integrate_upload_marks_user_data_licence_as_uploader_responsibility(mock_climate):
+    mock_climate.return_value = pd.DataFrame(
+        {"period": ["2020-01", "2020-02"], "temperature_2m_mean": [25.0, 26.0], "precipitation_sum": [1.0, 2.0]}
+    )
+    resp = client.post(
+        "/api/integrate/upload",
+        data={
+            "disease": "dengue",
+            "region": "Thailand",
+            "variables": "temperature,precipitation",
+            "start_date": "2020-01-01",
+            "end_date": "2020-03-01",
+        },
+        files={"file": ("cases.csv", io.BytesIO(b"month,cases\n2020-01,5\n2020-02,7\n"), "text/csv")},
+    )
+    assert resp.status_code == 200
+    assert "uploader's responsibility" in resp.json()["licenses"][1]

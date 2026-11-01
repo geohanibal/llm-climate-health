@@ -49,6 +49,15 @@ In addition to core parameters (`disease`, `region`, `start_date`, `end_date`, `
 - `variables: list[str]` — supported climate variables: `"temperature"` (mean), `"precipitation"` (sum), `"temperature_min"` (daily minimum mean), `"temperature_max"` (daily maximum mean) (Suttirat et al. 2026).
 - `lag_periods: list[int]` — optional list of temporal lags (1..6) for climate features (e.g. `[1, 3]`). Uses a lag buffer (Lowe et al. 2021) to compute lagged predictors without dropping initial observation rows.
 
+## Provenance fields in the response (FR-25)
+
+Every `/api/integrate` and `/api/integrate/upload` response contains, next to
+`sources`, a `licenses` list (licence / terms of use of each source, same
+order as `sources`) and `system_version` (`APP_VERSION` environment variable,
+otherwise `git-<short commit>`, otherwise `unknown`). Licences are defined in
+`app/config.py`, each with the official page and check date in a comment.
+The frontend exports them with the data.
+
 ## Tests
 
 ```bash

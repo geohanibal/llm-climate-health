@@ -22,7 +22,10 @@ SCIENTIFIC_DISCLAIMER = (
     "a single representative point coordinate (reanalysis centroid). Intended for "
     "exploratory data analysis (EDA) and input data preparation; causal epidemiological "
     "inference requires subnational spatial disaggregation (Admin-1/Province) "
-    "and adjustment for unmeasured confounders."
+    "and adjustment for unmeasured confounders. Case definitions and reporting "
+    "practices differ between countries and change over time (OpenDengue "
+    "dengue_total counts all reported cases regardless of severity or laboratory "
+    "confirmation), so compare across regions or periods with care."
 )
 
 

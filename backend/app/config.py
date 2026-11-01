@@ -5,6 +5,7 @@ Author: Sergi Koniashvili (LLM-Climate-Health, bachelor thesis)
 
 import json
 import os
+import subprocess
 from pathlib import Path
 
 import pandas as pd
@@ -17,6 +18,31 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")
 
 TMD_API_UID = os.environ.get("TMD_API_UID", "")
 TMD_API_UKEY = os.environ.get("TMD_API_UKEY", "")
+
+
+def _detect_system_version() -> str:
+    """Version of this software that produced a dataset (FR-25, provenance).
+
+    Docker builds set APP_VERSION explicitly; in a local git checkout the short
+    commit hash is used instead. "unknown" is returned rather than a guess."""
+    env_version = os.environ.get("APP_VERSION", "").strip()
+    if env_version:
+        return env_version
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=Path(__file__).resolve().parent,
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=True,
+        ).stdout.strip()
+        return f"git-{commit}" if commit else "unknown"
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+
+
+SYSTEM_VERSION = _detect_system_version()
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
@@ -41,13 +67,36 @@ _ISO3_TO_NAME = {v["iso3"]: name for name, v in REGIONS.items()}
 
 
 class DiseaseMeta:
-    def __init__(self, key: str, label: str, native_resolution: str, data_file: str, value_col: str, citation: str):
+    def __init__(
+        self,
+        key: str,
+        label: str,
+        native_resolution: str,
+        data_file: str,
+        value_col: str,
+        citation: str,
+        license: str,
+    ):
         self.key = key
         self.label = label
         self.native_resolution = native_resolution  # "month" or "year"
         self.data_file = data_file
         self.value_col = value_col
         self.citation = citation
+        # Licence/terms of use of the bundled data, shown in every export
+        # (FR-25). Each value was checked on the provider's official page;
+        # the check date is in the comment next to the entry.
+        self.license = license
+
+
+# WHO data terms (checked 2026-11-01, who.int/about/policies/publishing/
+# data-policy/terms-and-conditions): no Creative Commons licence; use for
+# public-health purposes, credit WHO, no commercial promotion, changes beyond
+# minimal adaptation need WHO's written authorisation.
+_WHO_DATA_TERMS = (
+    "WHO data terms and conditions (public-health use, attribution to WHO; "
+    "no commercial promotion; modifications need WHO authorisation)"
+)
 
 
 DISEASES: dict[str, DiseaseMeta] = {
@@ -55,16 +104,26 @@ DISEASES: dict[str, DiseaseMeta] = {
         "dengue", "Dengue", "month", "dengue_monthly_by_iso3.csv", "dengue_total",
         "Clarke et al. (2024), Scientific Data — A global dataset of publicly "
         "available dengue case count data (OpenDengue, opendengue.org)",
+        # Figshare record 10.6084/m9.figshare.24259573 (V1.3, 2025-05-27) and
+        # opendengue.org: CC BY 4.0 (checked 2026-11-01). The 2024 paper
+        # (Clarke et al., p. 12) named CC BY-SA for earlier releases; which
+        # release the bundled file was built from is still open (A13).
+        license=(
+            "OpenDengue V1.3: CC BY 4.0 (figshare 10.6084/m9.figshare.24259573); "
+            "earlier releases CC BY-SA; release of the bundled extract not yet confirmed"
+        ),
     ),
     "malaria": DiseaseMeta(
         "malaria", "Malaria", "year", "malaria_annual_by_iso3.csv", "cases",
         "WHO Global Health Observatory, indicator MALARIA_EST_CASES — "
         "estimated number of malaria cases (modelled) (who.int/data/gho)",
+        license=_WHO_DATA_TERMS,
     ),
     "cholera": DiseaseMeta(
         "cholera", "Cholera", "year", "cholera_annual_by_iso3.csv", "cases",
         "WHO Global Health Observatory, indicator CHOLERA_0000000001 — "
         "number of reported cases of cholera (who.int/data/gho)",
+        license=_WHO_DATA_TERMS,
     ),
 }
 
@@ -120,19 +179,29 @@ CLIMATE_SOURCES = {
     "open-meteo-era5": {
         "label": "Open-Meteo Historical Archive (ECMWF ERA5 reanalysis)",
         "citation": "Hersbach et al. (2020), ERA5 reanalysis, via Open-Meteo (open-meteo.com)",
+        # open-meteo.com/en/licence (checked 2026-11-01): "API data are offered
+        # under Attribution 4.0 International (CC BY 4.0)"; reanalysis data
+        # come from the Copernicus Climate Change Service (C3S).
+        "license": "Open-Meteo API data: CC BY 4.0; ERA5: Copernicus licence (credit C3S/ECMWF)",
     },
     "nasa-power": {
         "label": "NASA POWER (Prediction of Worldwide Energy Resources)",
         "citation": "NASA Langley Research Center POWER Project (power.larc.nasa.gov)",
+        # power.larc.nasa.gov/docs/referencing (checked 2026-11-01): no licence
+        # named; POWER asks to cite its reference + data reference (with
+        # version and access date) and to be notified of redistribution.
+        "license": "No licence named by NASA POWER; cite POWER reference and data reference, notify on redistribution",
     },
     "tmd": {
         "label": "Thai Meteorological Department (TMD)",
         "citation": "Thai Meteorological Department, data.tmd.go.th — official "
         "national meteorological data for Thailand",
+        "license": "Terms of use not yet verified (data.tmd.go.th)",
     },
     "custom_upload": {
         "label": "Custom Weather CSV (User-uploaded meteorological data)",
         "citation": "User-supplied meteorological station or sensor observation dataset (CSV)",
+        "license": "User-provided data: licence is the uploader's responsibility",
     },
 }
 
@@ -150,14 +219,17 @@ CASE_DATA_SOURCES = {
     "who_gho": {
         "label": "WHO Global Health Observatory (search result)",
         "citation": "See selected indicator",
+        "license": _WHO_DATA_TERMS,
     },
     "custom_url": {
         "label": "Custom URL (user-provided CSV of scientific/official case data)",
         "citation": "User-provided source",
+        "license": "User-provided data: licence is the uploader's responsibility",
     },
     "custom_upload": {
         "label": "Uploaded file (user-provided CSV of scientific/official case data)",
         "citation": "User-provided source",
+        "license": "User-provided data: licence is the uploader's responsibility",
     },
 }
 
@@ -165,22 +237,30 @@ POPULATION_SOURCES = {
     "worldbank": {
         "label": "World Bank Open Data (SP.POP.TOTL - Total Population)",
         "citation": "World Bank Group (2024), World Development Indicators: Population, total (SP.POP.TOTL), data.worldbank.org",
+        # datacatalog.worldbank.org/public-licenses (checked 2026-11-01):
+        # CC BY 4.0 "is the default license for all Datasets produced by the World Bank".
+        "license": "CC BY 4.0 (World Bank default dataset licence)",
     },
     "un_wpp": {
         "label": "United Nations Population Division (UN WPP 2024)",
         "citation": "United Nations, Department of Economic and Social Affairs, Population Division (2024). World Population Prospects 2024 (population.un.org)",
+        # WPP 2024 Summary of Results / download pages (checked 2026-11-01).
+        "license": "CC BY 3.0 IGO",
     },
     "worldbank_indicator": {
         "label": "World Bank Demographic Indicator (search result)",
         "citation": "World Bank Open Data Indicator API",
+        "license": "CC BY 4.0 (World Bank default dataset licence)",
     },
     "custom_url": {
         "label": "Custom URL (user-provided demographic CSV)",
         "citation": "User-provided demographic source",
+        "license": "User-provided data: licence is the uploader's responsibility",
     },
     "custom_upload": {
         "label": "Uploaded file (user-provided demographic CSV)",
         "citation": "User-provided demographic dataset",
+        "license": "User-provided data: licence is the uploader's responsibility",
     },
 }
 

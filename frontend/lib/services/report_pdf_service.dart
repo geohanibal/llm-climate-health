@@ -88,6 +88,18 @@ class ReportPdfService {
           pw.SizedBox(height: 12),
           _sectionTitle('Sources'),
           ..._bulletList(result.sources),
+          // FR-25: under which conditions the data may be reused, and which
+          // software version produced them.
+          if (result.licenses.isNotEmpty) ...[
+            pw.SizedBox(height: 8),
+            _sectionTitle('Licences / terms of use'),
+            ..._bulletList(result.licenses),
+          ],
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'System version: ${_clean(result.systemVersion)}',
+            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+          ),
         ],
       ),
     );
@@ -147,14 +159,22 @@ class ReportPdfService {
     );
   }
 
+  /// Tmin/Tmax columns appear only when present (FR-24). Lag columns are left
+  /// out on purpose: they would make the page too wide and are available in
+  /// the CSV/JSON export.
   pw.Widget _datasetTable(IntegrationResult result) {
+    final hasMin = result.data.any((r) => r.temperatureMinC != null);
+    final hasMax = result.data.any((r) => r.temperatureMaxC != null);
+    String temp(double? v) => v != null ? v.toStringAsFixed(1) : '-';
     return pw.TableHelper.fromTextArray(
-      headers: const [
+      headers: [
         'Period',
         'Cases',
         'Population',
         'Incidence / 100k',
         'Temp mean (deg C)',
+        if (hasMin) 'Temp min (deg C)',
+        if (hasMax) 'Temp max (deg C)',
         'Precip sum (mm)',
       ],
       data: result.data
@@ -163,8 +183,10 @@ class ReportPdfService {
                 _clean(Formatting.caseCount(r.caseCount)),
                 _clean(Formatting.population(r.population)),
                 _clean(Formatting.incidenceRate(r.incidenceRatePer100k)),
-                r.temperatureMeanC != null ? '${r.temperatureMeanC!.toStringAsFixed(1)}' : '-',
-                r.precipitationSumMm != null ? '${r.precipitationSumMm!.toStringAsFixed(0)}' : '-',
+                temp(r.temperatureMeanC),
+                if (hasMin) temp(r.temperatureMinC),
+                if (hasMax) temp(r.temperatureMaxC),
+                r.precipitationSumMm != null ? r.precipitationSumMm!.toStringAsFixed(0) : '-',
               ])
           .toList(),
       headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: PdfColors.white),

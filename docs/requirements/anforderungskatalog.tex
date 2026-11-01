@@ -116,6 +116,7 @@ FR-21 & Das System muss einen druckreifen wissenschaftlichen PDF-Analysebericht 
 FR-22 & Das System muss eine interaktive Weltkarte zur intuitiven visuellen L\"anderauswahl bereitstellen. & Usability-Anforderung & Umgesetzt \\
 FR-23 & Das System muss optional zeitverz\"ogerte Klimavariablen (Lag 1--6) als eigene Spalten im integrierten Datensatz bereitstellen und per Lag-Puffer ohne Zeilenverlust berechnen. & Literatur: Suttirat et al.\ 2026, Lowe et al.\ 2021 & Umgesetzt \\
 FR-24 & Das System muss neben der Mitteltemperatur auch Tagesminimum- und -maximumtemperaturen (ERA5: \texttt{temperature\_2m\_min/max}, NASA POWER: \texttt{T2M\_MIN/MAX}) bereitstellen und bei zeitlicher Aggregation als Mittelwert der Tagesextrema aggregieren. & Literatur: Suttirat et al.\ 2026, Lowe et al.\ 2021 & Umgesetzt \\
+FR-25 & Exportierte Datens\"atze (CSV/JSON) m\"ussen Metadaten zur Herkunft enthalten: Krankheit, Region, Zeitraum und tats\"achlich durch Fallzahlen abgedeckter Zeitraum, Anfrageparameter, Quellen, Lizenz bzw.\ Nutzungsbedingungen jeder Quelle, Verarbeitungsschritte, Abruf- und Exportzeitpunkt sowie Systemversion (JSON: \texttt{metadata} + \texttt{data}; CSV: separate \texttt{\_metadata.json}). & Literatur: Clarke et al.\ 2024 (S.~4, 12) & Umgesetzt \\
 \bottomrule
 \end{longtable}
 
@@ -206,6 +207,7 @@ FR-21 & The system must generate downloadable, publication-ready scientific PDF 
 FR-22 & The system must feature an interactive world map for visual region and coordinate selection. & Usability requirement & Implemented \\
 FR-23 & The system must optionally provide time-lagged climate variables (lags 1--6) as dedicated columns in the integrated dataset, computed via a lag buffer without initial row loss. & Literature: Suttirat et al.\ 2026, Lowe et al.\ 2021 & Implemented \\
 FR-24 & The system must support daily minimum and maximum temperature variables alongside mean temperature (ERA5: \texttt{temperature\_2m\_min/max}, NASA POWER: \texttt{T2M\_MIN/MAX}), aggregating them over time periods as the mean of daily extrema. & Literature: Suttirat et al.\ 2026, Lowe et al.\ 2021 & Implemented \\
+FR-25 & Exported datasets (CSV/JSON) must carry provenance metadata: disease, region, period and the period actually covered by case counts, request parameters, sources, licence or terms of use of each source, processing steps, retrieval and export time, and system version (JSON: \texttt{metadata} + \texttt{data}; CSV: separate \texttt{\_metadata.json}). & Literature: Clarke et al.\ 2024 (pp.~4, 12) & Implemented \\
 \bottomrule
 \end{longtable}
 

@@ -134,6 +134,16 @@ class IntegrationResult {
   final String explanationSource;
   final List<PeriodRecord> data;
   final List<String> sources;
+
+  /// Licence / terms of use of each source, same order as [sources] (FR-25).
+  final List<String> licenses;
+
+  /// Backend software version that produced the data (FR-25).
+  final String systemVersion;
+
+  /// Request parameters as echoed by the backend; exported with the data so
+  /// the dataset can be re-created with the same settings.
+  final Map<String, dynamic> requestEcho;
   final bool cached;
   final String lastVerified;
   final DataTransformationAudit? transformationAudit;
@@ -148,6 +158,9 @@ class IntegrationResult {
     required this.explanationSource,
     required this.data,
     required this.sources,
+    this.licenses = const [],
+    this.systemVersion = 'unknown',
+    this.requestEcho = const {},
     required this.cached,
     required this.lastVerified,
     this.transformationAudit,
@@ -169,6 +182,10 @@ class IntegrationResult {
           .map((e) => PeriodRecord.fromJson(e as Map<String, dynamic>))
           .toList(),
       sources: (json['sources'] as List).cast<String>(),
+      // Defaults keep older cached responses (without these fields) readable.
+      licenses: (json['licenses'] as List?)?.cast<String>() ?? const [],
+      systemVersion: json['system_version'] as String? ?? 'unknown',
+      requestEcho: requestEcho,
       cached: json['cached'] as bool? ?? false,
       lastVerified: json['last_verified'] as String? ?? '',
       transformationAudit: auditJson != null ? DataTransformationAudit.fromJson(auditJson) : null,
