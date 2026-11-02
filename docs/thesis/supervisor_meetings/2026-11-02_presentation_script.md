@@ -56,9 +56,9 @@ Some steps from the papers I do not do. This is on purpose. I describe them as l
 
 ## სლაიდი 7: The LLM helps, the code decides
 
-You already know the LLM part. Here is only what is new. The LLM fills the form and explains the result. All data work is normal code. In a test, the LLM called a weak result the strongest. I fixed this, and I will check it in the evaluation.
+You already know the LLM part. Here is only what is new. The LLM fills the form and writes a short text about the results. All calculations are normal code. In a test, the LLM called a weak result the strongest. I fixed this, and I will check it in the evaluation.
 
-(LLM-ის ნაწილს უკვე იცნობთ. აქ მხოლოდ ახალს ვიტყვი. LLM ფორმას ავსებს და შედეგს ხსნის. მონაცემებთან მთელი მუშაობა ჩვეულებრივი კოდია. ტესტში LLM-მა სუსტი შედეგი ყველაზე ძლიერად დაასახელა. ეს გამოვასწორე და ევალუაციაში შევამოწმებ.)
+(LLM-ის ნაწილს უკვე იცნობთ. აქ მხოლოდ ახალს ვიტყვი. LLM ფორმას ავსებს და შედეგებზე მოკლე ტექსტს წერს. ყველა გამოთვლა ჩვეულებრივი კოდია. ტესტში LLM-მა სუსტი შედეგი ყველაზე ძლიერად დაასახელა. ეს გამოვასწორე და ევალუაციაში შევამოწმებ.)
 
 ---
 
