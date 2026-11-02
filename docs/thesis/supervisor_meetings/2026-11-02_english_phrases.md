@@ -25,7 +25,6 @@
 | future work | სამომავლო სამუშაო |
 | evaluation | შეფასება |
 | reference / citation | წყარო ლიტერატურის სიაში / ციტირება |
-| deadline | ბოლო ვადა |
 
 ---
 
@@ -141,25 +140,14 @@ decision, or should the system fill the gaps?*
 
 ## 5. ფორმალური საკითხები
 
-**5.1** *How many references do you expect, more or less? Which topics must I write about? For example other tools, or
-LLMs for data work?*
+**5.1** *Which topics must I write about in the related work? For example other tools, or LLMs for data work?*
 
-(დაახლოებით რამდენ წყაროს ელით? რომელ თემებზე უნდა დავწერო? მაგალითად სხვა ხელსაწყოებზე ან LLM-ებზე
-მონაცემებთან მუშაობისთვის?)
-
-**5.2** *Which citation style should I use: numbers, or author and year? Is there a template?*
-
-(ციტირების რომელი სტილი გამოვიყენო: ნომრები, თუ ავტორი და წელი? არის შაბლონი?)
-
-(მონახაზში ახლა „ავტორი და წელი“ არის.)
+(მონათესავე ნაშრომებში რომელ თემებზე უნდა დავწერო? მაგალითად სხვა ხელსაწყოებზე ან LLM-ებზე მონაცემებთან
+მუშაობისთვის?)
 
 **5.3** *Peter, my main case study is a paper where you are a co-author. Is this okay?*
 
 (პიტერ, ჩემი მთავარი case study სტატიაა, რომლის თანაავტორიც ხარ. ეს მისაღებია?)
-
-**5.4** *Are there rules for the structure and the number of pages? And when is the deadline?*
-
-(არის წესები სტრუქტურასა და გვერდების რაოდენობაზე? და როდის არის ბოლო ვადა?)
 
 **5.5** *I use AI tools, Claude and Gemini. I use them for code, for help with writing and translating, and for grammar.
 The decisions, the papers and the checking of the results are my own work. What are the rules at the university? And
