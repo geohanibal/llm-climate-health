@@ -56,9 +56,9 @@ Some steps from the papers I do not do. This is on purpose. I describe them as l
 
 ## სლაიდი 7: The LLM helps, the code decides
 
-This slide is about the role of the LLM. The LLM does only some jobs. It turns a request in normal language into the fields of the form. The user can check and change the fields before the start. The LLM also explains the result in simple words, and it helps in the chat. All the data work is normal program code, not the LLM. So the same request always gives the same table. But the LLM can make mistakes. In my own test, it said that one correlation was the strongest. But this correlation was not significant. It had only nine value pairs. I fixed this. Now the LLM gets the significance and the number of pairs for each correlation. And it is told to report only significant results. But this is an instruction, not a guarantee. So I will test it in the evaluation.
+You already know the LLM part. Here is only what is new. The LLM fills the form and explains the result. All data work is normal code. In a test, the LLM called a weak result the strongest. I fixed this, and I will check it in the evaluation.
 
-(ეს სლაიდი LLM-ის როლზეა. LLM მხოლოდ ზოგ საქმეს აკეთებს. ჩვეულებრივ ენაზე დაწერილ მოთხოვნას ფორმის ველებად გარდაქმნის. მომხმარებელს ველების შემოწმება და შეცვლა გაშვებამდე შეუძლია. LLM შედეგს მარტივი სიტყვებითაც ხსნის და ჩატში ეხმარება. მონაცემებთან მთელი მუშაობა ჩვეულებრივი პროგრამული კოდია და არა LLM. ამიტომ ერთი და იგივე მოთხოვნა ყოველთვის ერთსა და იმავე ცხრილს იძლევა. მაგრამ LLM-ს შეუძლია შეცდომა დაუშვას. ჩემს ტესტში მან თქვა, რომ ერთი კორელაცია ყველაზე ძლიერი იყო. მაგრამ ეს კორელაცია მნიშვნელოვანი არ იყო. მას მხოლოდ ცხრა წყვილი ჰქონდა. ეს გამოვასწორე. ახლა LLM ყოველ კორელაციასთან ერთად იღებს მნიშვნელოვნებას და წყვილების რაოდენობას. და ეუბნებიან, რომ მხოლოდ მნიშვნელოვანი შედეგები დაასახელოს. მაგრამ ეს ინსტრუქციაა და არა გარანტია. ამიტომ ამას ევალუაციაში შევამოწმებ.)
+(LLM-ის ნაწილს უკვე იცნობთ. აქ მხოლოდ ახალს ვიტყვი. LLM ფორმას ავსებს და შედეგს ხსნის. მონაცემებთან მთელი მუშაობა ჩვეულებრივი კოდია. ტესტში LLM-მა სუსტი შედეგი ყველაზე ძლიერად დაასახელა. ეს გამოვასწორე და ევალუაციაში შევამოწმებ.)
 
 ---
 
