@@ -94,9 +94,12 @@ test alone, or do I need a second person?*
 შემდეგ ჩემი სისტემით. მერე შევადარებ დროს, ნაბიჯების რაოდენობას და შედეგებს. ეს კარგი შეფასებაა? ტესტის
 მარტო ჩატარება შემიძლია, თუ მეორე ადამიანი მჭირდება?)
 
-**3.2** *Can I use the data of Suttirat et al. from Zenodo for the comparison?*
+**3.2** *Suttirat et al. shared their data online, on Zenodo. Can I compare my results with their data?*
 
-(შედარებისთვის შემიძლია Suttirat et al.-ის მონაცემები Zenodo-დან გამოვიყენო?)
+(Suttirat et al.-მა თავიანთი მონაცემები ონლაინ, Zenodo-ზე გააზიარეს. შემიძლია ჩემი შედეგები მათ მონაცემებს
+შევადარო?)
+
+(Zenodo = უფასო ონლაინ საცავი კვლევის მონაცემებისა და კოდისთვის.)
 
 **3.3** (Peter-ს) *Do you know how long the data preparation took in the Suttirat study? Can I write this in my thesis
 as "personal communication"?*
@@ -126,12 +129,13 @@ average of a region instead of one point, provinces, or weekly data.*
 
 (Tmin/Tmax და lag სვეტები უკვე გაკეთებულია, აღარ იკითხო.)
 
-**4.2** *I decided not to fill missing data from another source. The reason is: the sources count cases in different
-ways. So the system shows the gaps, and the user can compare two sources. Do you agree?*
+**4.2** *When data is missing, my system does not fill it from another source. The reason: the sources count cases
+in different ways. Instead, the system shows the gap, and the user can compare two sources. Do you agree with this
+decision, or should the system fill the gaps?*
 
-(გადავწყვიტე, რომ გამოტოვებული მონაცემები სხვა წყაროდან არ შევავსო. მიზეზი ასეთია: წყაროები შემთხვევებს
-სხვადასხვანაირად ითვლიან. ამიტომ სისტემა ხარვეზებს აჩვენებს და მომხმარებელს ორი წყაროს შედარება შეუძლია.
-ეთანხმებით?)
+(როცა მონაცემები აკლია, ჩემი სისტემა მათ სხვა წყაროდან არ ავსებს. მიზეზი: წყაროები შემთხვევებს
+სხვადასხვანაირად ითვლიან. ამის ნაცვლად სისტემა ხარვეზს აჩვენებს და მომხმარებელს ორი წყაროს შედარება შეუძლია.
+ეთანხმებით ამ გადაწყვეტილებას, თუ სისტემამ ხარვეზები უნდა შეავსოს?)
 
 ---
 
