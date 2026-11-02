@@ -9,7 +9,7 @@
 assistant (Gemini, Claude) helping to write the thesis MUST read this file first
 and follow the rules in §0.
 
-**Last updated:** 2026-10-31
+**Last updated:** 2026-11-02
 
 ---
 
@@ -41,7 +41,7 @@ and follow the rules in §0.
   comparison = A19) — results to be reviewed by Claude. Every code change must
   also update the documents listed in `docs/thesis/CHANGE_DOCUMENTATION_GUIDE.md`. Sergi's own code task: A16 provenance in export
   (`docs_ka/motivacia/A16_gegma.md`).
-- **Supervisor meetings:** questions + answers in `docs/thesis/supervisor_meetings/` (one file per meeting). Next meeting: **Mon 2026-11-02** (motivation, requirements, case studies). After the meeting, transfer decisions to §10.
+- **Supervisor meetings:** questions + answers in `docs/thesis/supervisor_meetings/` (one file per meeting). Meeting 2026-11-02 held: results + TODO list in `supervisor_meetings/2026-11-02_shedegebi_da_TODO.md` (decisions D1–D8, see §10). **Next meeting: 2026-11-18** (Thomas, in person). Biggest new task: subnational (regional) data for endemic countries (D1).
 - **Working style:** user (Sergi) wants explanations in Georgian, to be taught
   (not just handed results), and every important finding recorded here.
 
@@ -534,10 +534,14 @@ check correctness by comparing both tables. Protocol:
 - [ ] Sergi: read P1 Methods (p. 4–8) + Table 1 in the original.
 - [ ] Ask Haddawy: how long did data preparation for P1 take? (→ "persönliche
       Mitteilung" as evidence)
-- [ ] Ask Haddawy: may the Zenodo data be used for CS1 comparison?
-- [ ] Ask supervisors: which of FR-new-1…4 to implement vs. list as limitation?
-- [ ] Ask supervisors: citation style.
-- [ ] Find ≥2 more modelling papers (chain step 3) and CS2 paper.
+- [ ] Ask Haddawy: may the Zenodo data be used for CS1 comparison? (not answered 2026-11-02)
+- [x] Ask supervisors: which of FR-new-1…4 to implement vs. list as limitation? (2026-11-02: subnational data required, D1)
+- [x] Citation style: NOT a supervisor question any more; look it up in the official regulations (2026-11-02).
+- [ ] Find 2–3 more modelling papers (supervisors 2026-11-02, D4) and CS2 paper.
+- [ ] Find a real published source for the programming/data-science skills gap in public health (supervisors 2026-11-02, D3: source needed); never invent.
+- [ ] Subnational data for endemic countries (D1): plan sources (OpenDengue Admin1, boundaries, regional climate, regional population) + licences, then Thailand provinces MVP (new FR-28).
+- [ ] Check Uni Bremen Prüfungsamt page: rules for AI tool use + declaration; formal thesis requirements (D8).
+- [ ] Decide position of Related Work chapter (D7, open).
 - [ ] Verify Related Work systems from official documentation.
 - [x] OpenDengue quotes with page numbers added (2026-10-31).
 - [ ] Check which OpenDengue extract (temporal/national/spatial) and version built `backend/app/data/dengue_monthly_by_iso3.csv`, and how epi weeks spanning two months were assigned (no build script in repo).
@@ -570,6 +574,7 @@ check correctness by comparing both tables. Protocol:
 | 2026-10-31 | P3 (OpenDengue) fully read and translated; findings: extract / version / licence requirements, Thailand data only from 2009. |
 | 2026-10-31 | Gemini tasks prepared (`docs_ka/motivacia/gemini_tasks_02.md`): A literature, B lag columns, C Tmin/Tmax. Code tasks only after A is reviewed. |
 | 2026-11-01 | Task B (FR-23): lags are computed on the climate series fetched `max(lag_periods)` periods before start_date (buffer measured in target-resolution periods, decade = 10 years per lag), then cut back to the requested period; case/population rows never include the buffer. The series is reindexed to a complete period grid before shifting, so a missing period yields NaN instead of a silently wrong value (found in Claude review). Lag columns are dynamic fields of `PeriodRecord` (`extra="allow"`); report: `docs_ka/motivacia/B_report.md`. |
+| 2026-11-02 | Supervisor meeting (Thomas, Peter, Lin; online; Sergi's notes). D1: one representative point per country is NOT sufficient: for countries where the disease is endemic, data must be retrieved per subnational region (needed for modelling); non-endemic countries may be excluded -> subnational data becomes a requirement (planned FR-28), no longer a limitation in "Abgrenzung". D2: Peter allows using Suttirat et al. 2026 as main example. D3: source for the skills-gap claim is needed (Sergi's note "YES" to "do I need one?"; interpretation to confirm). D4: adding 2–3 more papers would be better. D5: chat and map: mention them in the thesis (usability requirements, keep). D6: CS1 plan (same dataset by hand and with the system) approved. D7: position of Related Work still open, Sergi to research. D8: AI tool rules: check Uni Bremen Prüfungsamt page. Not answered/recorded: gap-filling decision, research question, Zenodo data. Next meeting 2026-11-18 (Thomas in person). TODO: `supervisor_meetings/2026-11-02_shedegebi_da_TODO.md`. |
 | 2026-11-01 | Task C (FR-24): Tmin/Tmax aggregated as MEAN of daily minima/maxima — justified by P4 Lowe 2021 p. e211 ("monthly mean daily minimum temperature"); P1 Suttirat used already-monthly TerraClimate Tmin/Tmax, so do NOT write "following Suttirat's aggregation". Gemini's C_report claimed a 6-month Thailand correlation "matches Suttirat" — rejected (n = 6, p > 0.05, seasonal confounding); the example only shows that columns are produced correctly. Report: `docs_ka/motivacia/C_report.md`. |
 
 ## 11. Related files
