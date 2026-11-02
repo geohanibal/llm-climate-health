@@ -542,6 +542,8 @@ check correctness by comparing both tables. Protocol:
 - [ ] Subnational data for endemic countries (D1): plan sources (OpenDengue Admin1, boundaries, regional climate, regional population) + licences, then Thailand provinces MVP (new FR-28).
 - [ ] Check Uni Bremen Prüfungsamt page: rules for AI tool use + declaration; formal thesis requirements (D8).
 - [ ] Decide position of Related Work chapter (D7, open).
+- [ ] Myat Su Yin (meeting chat 2026-11-02): Thailand admin boundary shapefiles on HDX: https://data.humdata.org/dataset/cod-ab-tha — check admin levels, format, licence, update date on the official page before use.
+- [ ] Myat Su Yin (meeting chat 2026-11-02): two well-known systems for Related Work: DHIS2 (https://dhis2.org/) and DART, Viet Nam (https://www.dartdengue.org/) — describe only from official documentation / publications, with URL + check date.
 - [ ] Verify Related Work systems from official documentation.
 - [x] OpenDengue quotes with page numbers added (2026-10-31).
 - [ ] Check which OpenDengue extract (temporal/national/spatial) and version built `backend/app/data/dengue_monthly_by_iso3.csv`, and how epi weeks spanning two months were assigned (no build script in repo).
