@@ -64,9 +64,9 @@ You already know the LLM part. Here is only what is new. The LLM fills the form 
 
 ## სლაიდი 8: Proposal for a research question
 
-I also want to suggest a research question. Here it is. The main idea is simple. The system does the data preparation automatically. But every step can be checked. Does this direction fit for you?
+I also want to suggest a research question. I will read it: To what extent can an LLM-supported system automate the integration of heterogeneous climate and health data while making the correctness, reproducibility and traceability of the data preparation verifiable? The main idea is simple. The system does the data preparation automatically. But every step can be checked. Does this direction fit for you?
 
-(კვლევითი კითხვის შეთავაზებაც მინდა. აი, ისიც. მთავარი იდეა მარტივია. სისტემა მონაცემების მომზადებას ავტომატურად აკეთებს. მაგრამ ყოველი ნაბიჯის შემოწმება შეიძლება. ეს მიმართულება თქვენთვის მისაღებია?)
+(კვლევითი კითხვის შეთავაზებაც მინდა. წაგიკითხავთ: რამდენად შეუძლია LLM-ზე დაფუძნებულ სისტემას კლიმატისა და ჯანდაცვის სხვადასხვაგვარი მონაცემების გაერთიანების ავტომატიზაცია ისე, რომ მომზადების სისწორე, განმეორებადობა და მიკვლევადობა შემოწმებადი იყოს? მთავარი იდეა მარტივია. სისტემა მონაცემების მომზადებას ავტომატურად აკეთებს. მაგრამ ყოველი ნაბიჯის შემოწმება შეიძლება. ეს მიმართულება თქვენთვის მისაღებია?)
 
 ---
 
