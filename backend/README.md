@@ -84,6 +84,13 @@ Key features:
 - **Bivariate metrics & verdicts:** Computes bivariate metrics for each base variable (Pearson $r$, formatted $p$-value, mean difference $B - A$, MAD, relative MAD%), returns deterministic heuristic verdicts (`very_similar`, `similar`, `clearly_different`, `too_few_points`), and surfaces domain notes on the shared seasonal cycle (climate) and case definition differences (cases; Clarke et al. 2024).
 - **Non-destructive & fast:** Calls `run_integration` directly with `lag_periods=[]`, bypassing LLM generation for speed and preserving zero Gemini quota usage. The primary integrated dataset and cache remain completely unmodified.
 
+## Regional (Admin1) Case Data — Thailand Provinces (FR-28 Part 1 / Task H)
+
+To support province-level climate-health modelling for endemic countries (Suttirat et al. 2026, p. 5; Lowe et al. 2021, p. e211), the backend includes a reproducible offline build pipeline and loader for monthly Thailand Admin1 dengue case counts:
+
+- **Offline build script (`scripts/build_dengue_admin1.py`):** Downloads (or reads from `--spatial-zip` / `--hdx-xlsx`) the pinned OpenDengue V1.3 Spatial extract (`Spatial_extract_V1_3.zip`, CC BY 4.0) and HDX COD-AB Thailand boundaries (`tha_admin_boundaries.xlsx`, Royal Thai Survey Department / UN OCHA, CC BY-IGO), maps the 78 distinct OpenDengue `adm_1_name` strings to the 77 official HDX Admin1 English province names and P-codes (`TH10`–`TH96`) via `app/data/admin1_name_map_THA.csv`, checks for duplicate `(admin1_pcode, month)` pairs (never summing silently), and writes `app/data/dengue_monthly_admin1_THA.csv` (27,024 rows, 1993-01 to 2022-12).
+- **Loader (`app/services/case_data.py::load_dengue_admin1`):** `load_dengue_admin1(iso3, start, end, merge_changed_units=True)` returns `admin1_pcode, admin1_name, month, cases` within `[start, end]`. When `merge_changed_units=True` (default), Bueng Kan (`TH38`, split from Nong Khai in 2011) is explicitly merged into Nong Khai (`TH43`) via `CHANGED_UNITS = {"THA": {"TH38": "TH43"}}` following Suttirat et al. (2026, p. 5), yielding a constant set of 76 spatial units across 2003–2022 (18,240 province-months). Missing months remain absent (rule A20). Licences and citations are registered in `app/config.py::REGIONAL_CASE_DATA_SOURCES`.
+
 ## Tests
 
 ```bash
@@ -117,6 +124,8 @@ app/
     llm.py             Gemini: parse_request, explain_pipeline
     chat.py            Copilot dialogue handling
     cache.py           in-process TTL cache
-  data/                bundled case-count CSVs + region registry
+  data/                bundled case-count CSVs (national + Thailand Admin1) + name map + region registry
+scripts/
+  build_dengue_admin1.py  offline reproducible builder for dengue_monthly_admin1_THA.csv (FR-28)
 tests/                 pytest suite, mirrors services/ + main.py
 ```

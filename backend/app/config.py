@@ -237,6 +237,35 @@ CASE_DATA_SOURCES = {
     },
 }
 
+# Regional (Admin1 / subnational) bundled dengue datasets and boundary registries
+# (FR-28, Task H). Each entry documents the primary epidemiological and
+# administrative-boundary sources, official URLs, and verified licences.
+REGIONAL_CASE_DATA_SOURCES: dict[str, dict[str, str]] = {
+    "THA": {
+        "data_file": "dengue_monthly_admin1_THA.csv",
+        "name_map_file": "admin1_name_map_THA.csv",
+        "case_source_label": "OpenDengue V1.3 Spatial extract (Admin1 monthly, Thailand)",
+        "case_citation": (
+            "Clarke et al. (2024), Scientific Data 11, 296 — A global dataset of publicly "
+            "available dengue case count data (OpenDengue V1.3 Spatial extract, opendengue.org)"
+        ),
+        # Verified 2026-11-19 on github.com/OpenDengue/master-repo (V1.3 Spatial_extract_V1_3.zip)
+        # and figshare 10.6084/m9.figshare.24259573.
+        "case_license": "OpenDengue V1.3: CC BY 4.0 (figshare 10.6084/m9.figshare.24259573)",
+        "boundary_source_label": "HDX COD-AB Thailand (Admin1 provinces and P-codes)",
+        "boundary_citation": (
+            "Royal Thai Survey Department (RTSD), published by UN OCHA Regional Office for "
+            "Asia and the Pacific (ROAP) on Humanitarian Data Exchange — Thailand Subnational "
+            "Administrative Boundaries (data.humdata.org/dataset/cod-ab-tha)"
+        ),
+        # Verified 2026-11-19 via HDX API https://data.humdata.org/api/3/action/package_show?id=cod-ab-tha
+        "boundary_license": (
+            "CC BY-IGO (Creative Commons Attribution for Intergovernmental Organisations; "
+            "source: Royal Thai Survey Department / OCHA)"
+        ),
+    },
+}
+
 POPULATION_SOURCES = {
     "worldbank": {
         "label": "World Bank Open Data (SP.POP.TOTL - Total Population)",

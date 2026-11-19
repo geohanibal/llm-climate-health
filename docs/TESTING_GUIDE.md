@@ -68,8 +68,8 @@ pytest -m "not network"       # fast, fully offline — what CI would run
 pytest                        # everything, including one live Open-Meteo call
 ```
 
-Expected result: `pytest -m "not network"` reports **183 passed**; the full
-`pytest` run reports **184 passed** (the extra one is
+Expected result: `pytest -m "not network"` reports **189 passed** (or `pytest -q` offline: **192 passed, 1 deselected**); the full
+`pytest` run reports **193 passed** (the extra one is
 `test_integrate_end_to_end_dengue_thailand`, which needs internet access to
 reach the real Open-Meteo API — it's the only test in the suite that does).
 
@@ -92,7 +92,10 @@ analyze` reports no errors in application code.
   `/api/search-case-sources`, `/api/compare-sources`, `/api/compare-sources/upload`), every validation branch (unknown
   disease/region, invalid date range, future end date, climate-source/region
   mismatch, missing custom-source fields), the full case-data pipeline (all
-  four sources: builtin CSV, custom URL, custom upload, WHO GHO), climate
+  four sources: builtin CSV, custom URL, custom upload, WHO GHO, plus the
+  subnational Thailand Admin1 monthly dengue loader `load_dengue_admin1` with
+  HDX COD-AB P-codes `TH10`–`TH96` and optional Bueng Kan `TH38` → Nong Khai
+  `TH43` boundary harmonisation per Suttirat et al. 2026, p. 5, FR-28 Part 1), climate
   data aggregation (Open-Meteo, NASA POWER, TMD, including missing-data
   edge cases), population alignment (linear interpolation of annual values
   to monthly/daily: no January jump, July = annual value, constant outside

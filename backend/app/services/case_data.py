@@ -228,3 +228,88 @@ def get_case_data_from_url(url: str, start: date, end: date) -> pd.DataFrame:
 def get_case_data_from_upload(content: bytes, start: date, end: date) -> pd.DataFrame:
     df = _normalize_custom_frame(_safe_read_csv(io.BytesIO(content)))
     return _filter_range(df, start, end)
+
+
+# Administrative unit harmonisation table (FR-28, Task H).
+# In Thailand (THA), Bueng Kan province (TH38) was administratively separated
+# from Nong Khai province (TH43) in 2011. Following Suttirat et al. (2026,
+# PLOS Negl Trop Dis 20(7): e0014590, p. 5: "cases from Buengkarn province
+# incorporated into Nong Khai province after it was administratively separated
+# from Nong Khai in 2011 for consistency"), Bueng Kan case counts are merged
+# into Nong Khai when merge_changed_units=True so the spatial unit set remains
+# constant over time.
+CHANGED_UNITS: dict[str, dict[str, str]] = {
+    "THA": {"TH38": "TH43"},
+}
+
+_CHANGED_UNIT_TARGET_NAMES: dict[str, dict[str, str]] = {
+    "THA": {"TH43": "Nong Khai"},
+}
+
+
+@lru_cache(maxsize=16)
+def _read_admin1_csv(path_str: str, mtime_ns: int) -> pd.DataFrame:
+    df = pd.read_csv(path_str)
+    df["month"] = pd.to_datetime(df["month"], format="%Y-%m")
+    df["cases"] = pd.to_numeric(df["dengue_total"], errors="raise").astype(int)
+    return df
+
+
+def load_dengue_admin1(
+    iso3: str,
+    start: date,
+    end: date,
+    merge_changed_units: bool = True,
+) -> pd.DataFrame:
+    """Loads monthly subnational (Admin1) dengue case counts for `iso3` within `[start, end]`.
+
+    Returns a DataFrame with columns:
+        `admin1_pcode`, `admin1_name`, `month` (period start timestamp), `cases`.
+
+    When `merge_changed_units=True` (default), provinces listed in
+    `CHANGED_UNITS[iso3]` (for Thailand: Bueng Kan `TH38` -> Nong Khai `TH43`,
+    following Suttirat et al. 2026, p. 5) are merged into their parent unit by
+    summing `cases` for each month where data exist. Months with no rows in the
+    source remain absent (gaps are never filled, rule A20).
+    """
+    iso3_code = str(iso3 or "").strip().upper()
+    # Only plain ISO 3166-1 alpha-3 codes may reach the file system path below.
+    if len(iso3_code) != 3 or not iso3_code.isalpha():
+        raise ValueError(f"no regional dengue data for {iso3!r}")
+
+    path = DATA_DIR / f"dengue_monthly_admin1_{iso3_code}.csv"
+    if not path.exists():
+        raise ValueError(f"no regional dengue data for {iso3}")
+
+    raw = _read_admin1_csv(str(path), path.stat().st_mtime_ns)
+    mask = (raw["month"] >= pd.Timestamp(start)) & (raw["month"] <= pd.Timestamp(end))
+    df = raw.loc[mask, ["admin1_pcode", "admin1_name", "month", "cases"]].copy()
+
+    if df.empty:
+        return pd.DataFrame(columns=["admin1_pcode", "admin1_name", "month", "cases"])
+
+    if merge_changed_units and iso3_code in CHANGED_UNITS:
+        unit_map = CHANGED_UNITS[iso3_code]
+        target_names = dict(_CHANGED_UNIT_TARGET_NAMES.get(iso3_code, {}))
+        for pcode, name in (
+            raw[["admin1_pcode", "admin1_name"]].drop_duplicates().itertuples(index=False)
+        ):
+            if pcode in unit_map.values():
+                target_names[pcode] = name
+
+        needs_remap = df["admin1_pcode"].isin(unit_map)
+        if needs_remap.any():
+            df.loc[needs_remap, "admin1_pcode"] = df.loc[needs_remap, "admin1_pcode"].map(unit_map)
+            df.loc[needs_remap, "admin1_name"] = df.loc[needs_remap, "admin1_pcode"].map(target_names)
+
+        df = (
+            df.groupby(["admin1_pcode", "admin1_name", "month"], as_index=False, sort=False)["cases"]
+            .sum()
+        )
+
+    return (
+        df[["admin1_pcode", "admin1_name", "month", "cases"]]
+        .sort_values(["admin1_pcode", "month"])
+        .reset_index(drop=True)
+    )
+
