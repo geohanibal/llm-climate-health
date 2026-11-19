@@ -22,9 +22,9 @@ First, regional data. I checked if it is possible. OpenDengue has monthly dengue
 
 ## სლაიდი 3: Regional climate and population: my plan
 
-For the climate, I see three options. Option A: several points in each province and the mean. This works with my current code. Option B: the ERA5 grid with an area-weighted mean, like Lowe et al. This is better, but more work. Option C: one point per province, which is too simple. I want to start with A and do B later. For population, WorldPop has open data from 2015. Before 2015 is still open.
+For the climate, I see three options, and I tested them today. Option A: several points in each province. But my test shows it is too expensive: ten points for twenty years cost more than one thousand API calls, so all of Thailand would need about seven days. Option B: one download of the ERA5 monthly grid from Copernicus, and a weighted mean per province, like Lowe and Colón-González. This is the best. Option C: one point per province. This fits in one day. So I want to start with C, and then build B. For population, WorldPop has open data from 2015. Before 2015 is still open.
 
-(კლიმატისთვის სამ ვარიანტს ვხედავ. ვარიანტი A: თითო პროვინციაში რამდენიმე წერტილი და მათი საშუალო. ეს ჩემს არსებულ კოდთან მუშაობს. ვარიანტი B: ERA5-ის ბადე ფართობით შეწონილი საშუალოთი, როგორც Lowe et al.-თან. ეს უკეთესია, მაგრამ მეტ შრომას მოითხოვს. ვარიანტი C: თითო პროვინციაზე ერთი წერტილი, რაც ზედმეტად მარტივია. მინდა A-თი დავიწყო, B კი მოგვიანებით გავაკეთო. მოსახლეობისთვის WorldPop-ს 2015-დან ღია მონაცემები აქვს. 2015-მდე ჯერ ღიაა.)
+(კლიმატისთვის სამ ვარიანტს ვხედავ და დღეს გავტესტე. ვარიანტი A: თითო პროვინციაში რამდენიმე წერტილი. მაგრამ ტესტმა აჩვენა, რომ ზედმეტად ძვირია: ათი წერტილი ოცი წლისთვის ათასზე მეტი API-მოთხოვნა ღირს, ასე რომ, მთელ ტაილანდს დაახლოებით შვიდი დღე დასჭირდებოდა. ვარიანტი B: Copernicus-იდან ERA5-ის თვიური ბადის ერთი ჩამოტვირთვა და პროვინციაზე შეწონილი საშუალო, როგორც Lowe-სა და Colón-González-თან. ეს საუკეთესოა. ვარიანტი C: თითო პროვინციაზე ერთი წერტილი. ეს ერთ დღეში ეტევა. ამიტომ მინდა C-თი დავიწყო და მერე B ავაწყო. მოსახლეობისთვის WorldPop-ს 2015-დან ღია მონაცემები აქვს. 2015-მდე ჯერ ღიაა.)
 
 ---
 
