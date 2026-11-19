@@ -50,6 +50,7 @@
 
 ## 2. კითხვები Thomas-თან
 
+0a. **რეგისტრაცია და ფორმატი:** სრული სია `docs/thesis/registracia_da_formati.md`-ში, ნაწილი 3 (სათაური DE/EN, ენა, ვინ არის 1./2. ხელმძღვანელი, როდის დავრეგისტრირდე, მოცულობა, ციტირების სტილი, შაბლონი, კოდი PDF-ის გარდა, Peter-ის ხელმოწერა).
 0. **შემფასებლები:** *Who will be the first and the second examiner? One examiner must be a professor of computer science, so I think Peter is first and you are second. Is this right?* (Peter: Bremen-ის Honorarprofessor, კატეგორია a; Thomas: კატეგორია c.) და: *When should I register the thesis?*
 
 1. **რეგიონული კლიმატი:** პირველ ვერსიაში პროვინციაში რამდენიმე წერტილის საშუალო (ვარიანტი A), ფართობით შეწონილი
