@@ -70,9 +70,9 @@ For the form I need two things. First, the examiners. The rule says one examiner
 
 ## სლაიდი 9: Thesis format: what I found, what I ask
 
-About the format. I will write the thesis in English. The examination rules allow German or English. I did not find rules for the length, the citation style or a template. Do you have a template or a page number in mind? Also, only the PDF goes to the examiners, not the code. Is it okay if I put a link to GitHub or Zenodo in the thesis?
+About the format. I will write the thesis in German. The examination rules allow German or English. I did not find rules for the length, the citation style or a template. Do you have a template or a page number in mind? Also, only the PDF goes to the examiners, not the code. Is it okay if I put a link to GitHub or Zenodo in the thesis?
 
-(ფორმატის შესახებ. ნაშრომს ინგლისურად დავწერ. საგამოცდო წესები გერმანულსაც და ინგლისურსაც უშვებს. მოცულობის, ციტირების სტილისა და შაბლონის წესები ვერ ვიპოვე. გაქვთ შაბლონი ან გვერდების რაოდენობა მხედველობაში? ასევე, შემფასებლებთან მხოლოდ PDF მიდის და არა კოდი. მისაღებია, თუ ნაშრომში GitHub-ის ან Zenodo-ს ბმულს ჩავსვამ?)
+(ფორმატის შესახებ. ნაშრომს გერმანულად დავწერ. საგამოცდო წესები გერმანულსაც და ინგლისურსაც უშვებს. მოცულობის, ციტირების სტილისა და შაბლონის წესები ვერ ვიპოვე. გაქვთ შაბლონი ან გვერდების რაოდენობა მხედველობაში? ასევე, შემფასებლებთან მხოლოდ PDF მიდის და არა კოდი. მისაღებია, თუ ნაშრომში GitHub-ის ან Zenodo-ს ბმულს ჩავსვამ?)
 
 ---
 

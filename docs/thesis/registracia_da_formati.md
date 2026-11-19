@@ -43,7 +43,7 @@
 | Erstversuch / Zweitversuch | Erstversuch |
 | Abschluss | Bachelor |
 | Studiengang | Informatik |
-| Sprache der Arbeit | deutsch (⚠️ დაადასტურე Thomas-თან) |
+| Sprache der Arbeit | **deutsch** (Sergi-ს გადაწყვეტილება, 2026-11-19) |
 | Titel der Arbeit (deutsch) | ⚠️ ერთად ჩამოვაყალიბოთ, იხ. 1.5 |
 | Englischer Titel der Arbeit | ⚠️ იხ. 1.5 |
 | Gruppenarbeit | Nein |
