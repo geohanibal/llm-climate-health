@@ -21,15 +21,15 @@
 \title{Draft: Motivation and Literature-Based Requirements Analysis\\[0.3em]
 \large LLM-Driven Integration of Climate and Health Data}
 \author{Sergi Koniashvili\\ Bachelor's Thesis in Informatics, University of Bremen}
-\date{As of: 1 November 2026 (revised) -- Discussion Basis}
+\date{As of: 19 November 2026 -- after the meeting of 2 November 2026}
 
 \begin{document}
 \maketitle
 
 \noindent\textit{Note:} This draft presents the planned structure as well as preliminary
 versions of Chapter~1 and Chapter~3. Sections marked in red are not yet fully
-substantiated or remain open. The provisional citation style is Author-Year (see
-question in Section~\ref{sec:questions}).
+substantiated or remain open. The provisional citation style is Author-Year (the
+examination regulations are still being checked).
 
 \section*{Planned Thesis Outline}
 \begin{enumerate}[nosep]
@@ -230,6 +230,8 @@ Assess comparability between sources & Clarke p.~2 &
   FR-27: Compare two sources over the overlapping period & Implemented \\
 Exploratory correlation assessment & Lags: Suttirat p.~7; Lowe p.~e212 &
   FR-19: Cross-correlations for lags 0--3 (Pearson, Spearman) & Implemented \\
+Data per subnational region; merging changed units (Bueng Kan $\rightarrow$ Nong Khai) & Suttirat p.~5; Lowe p.~e211; meeting 2 Nov 2026 &
+  FR-28: case, climate and population data per subnational region (province) for countries where the disease is common & Planned \\
 \bottomrule
 \end{longtable}
 
@@ -263,17 +265,19 @@ literature analysis. Some of these requirements can be justified retrospectively
 \enquote{without programming skills} (natural-language request FR-01,
 understandable explanations FR-09, chat assistant FR-13, world map FR-22, PDF
 report FR-21) and from the supervisors' specifications (e.g.\ FR-03 to FR-08).
-\question{Should these requirements be justified as usability requirements with the goal \enquote{without programming}, or removed from the thesis?}
+The chat assistant and the world map were added by the author to make the system
+easier to use; they are justified as usability requirements (agreed in the meeting
+of 2 November 2026).
 
 \subsection{Scope}
 
-The following steps from the example publications are deliberately not
-implemented; they are discussed as limitations in Chapter~8:
+Subnational units were first planned as a limitation. After the meeting of
+2 November 2026 they are implemented as a requirement for countries where the
+disease is common (FR-28); countries without relevant spread may be excluded
+\todo{source for classifying a country as endemic}. The following steps from the
+example publications are deliberately not implemented; they are discussed as
+limitations in Chapter~8:
 \begin{itemize}[nosep]
-  \item subnational units and spatial aggregation of raster data
-        (Suttirat p.~5; Lowe p.~e211) -- the system uses one representative
-        point per country;
-  \item harmonisation of changing administrative units (Suttirat p.~5);
   \item bioclimatic indicators and remote-sensing data (Suttirat p.~5);
   \item automatic filling of gaps from another source: case counts from different
         sources are based on different case definitions -- OpenDengue counts all
@@ -284,21 +288,18 @@ implemented; they are discussed as limitations in Chapter~8:
 \end{itemize}
 
 % ---------------------------------------------------------------------------
-\section*{Open Questions for the Supervisor Meeting}\label{sec:questions}
+\section*{Open Questions}\label{sec:questions}
 \begin{enumerate}[nosep]
-  \item Does the line of argument of the motivation (models $\rightarrow$
-        extensive, typical data preparation $\rightarrow$ programming skills
-        needed $\rightarrow$ system) match your expectations?
-  \item Are two modelling studies and one data descriptor sufficient, or should
-        further studies (e.g.\ malaria) be included?
-  \item Is the traceability matrix a suitable form for deriving the requirements?
   \item Proposed research question: \enquote{To what extent can an LLM-supported
         system automate the integration of heterogeneous climate and health data
         while making the correctness, reproducibility and traceability of the data
         preparation verifiable?} Does this direction fit?
-  \item Which citation style is preferred (Author-Year vs.\ numeric)?
-  \item Structure: Does the position of \enquote{Related Work} after the
-        requirements analysis fit?
+  \item Gaps are not filled automatically from another source but shown and
+        compared (FR-26, FR-27). Is this decision sound?
+  \item Regional climate data (FR-28): first the mean of several points per
+        province, area-weighted raster averaging (as in Lowe et al., p.~e211) later?
+  \item Structure: \enquote{Related Work} after the requirements analysis, because
+        the requirements serve as criteria to compare existing tools?
 \end{enumerate}
 
 \section*{References (Draft)}

@@ -21,15 +21,15 @@
 \title{Entwurf: Motivation und literaturbasierte Anforderungsanalyse\\[0.3em]
 \large LLM-gestützte Integration von Klima- und Gesundheitsdaten}
 \author{Sergi Koniashvili\\ Bachelorarbeit Informatik, Universität Bremen}
-\date{Stand: 1.~November 2026 (überarbeitet) -- Diskussionsgrundlage}
+\date{Stand: 19.~November 2026 -- nach der Besprechung vom 2.~November 2026}
 
 \begin{document}
 \maketitle
 
 \noindent\textit{Hinweis:} Dieser Entwurf zeigt den geplanten Aufbau sowie erste
 Fassungen von Kapitel~1 und Kapitel~3. Rot markierte Stellen sind noch nicht
-belegt bzw.\ offen. Zitierstil vorläufig Autor-Jahr (siehe Frage in
-Abschnitt~\ref{sec:fragen}).
+belegt bzw.\ offen. Zitierstil vorläufig Autor-Jahr (Vorgaben der
+Prüfungsordnung werden noch geprüft).
 
 \section*{Geplante Gliederung der Arbeit}
 \begin{enumerate}[nosep]
@@ -239,6 +239,8 @@ Vergleichbarkeit zwischen Quellen beurteilen & Clarke S.~2 &
   FR-27: zwei Quellen im Überlappungszeitraum vergleichen & umgesetzt \\
 Zusammenhänge explorativ prüfen & Lags: Suttirat S.~7; Lowe S.~e212 &
   FR-19: Kreuzkorrelationen Lag 0--3 (Pearson, Spearman) & umgesetzt \\
+Daten je subnationaler Region; Zusammenführung geänderter Einheiten (Bueng Kan $\rightarrow$ Nong Khai) & Suttirat S.~5; Lowe S.~e211; Besprechung 2.11.2026 &
+  FR-28: Fall-, Klima- und Bevölkerungsdaten je subnationaler Region (Provinz) für Länder, in denen die Krankheit verbreitet ist & geplant \\
 \bottomrule
 \end{longtable}
 
@@ -273,18 +275,19 @@ FR-19, FR-20, siehe oben). Weitere Anforderungen ergeben sich aus dem Ziel
 \enquote{ohne Programmierkenntnisse} (natürlichsprachliche Anfrage FR-01,
 verständliche Erklärungen FR-09, Chat-Assistent FR-13, Weltkarte FR-22,
 PDF-Bericht FR-21) und aus Vorgaben der Betreuer (u.\,a.\ FR-03 bis FR-08).
-\frage{Sollen diese Anforderungen als Usability-Anforderungen mit dem Ziel
-\enquote{ohne Programmierung} begründet oder aus der Arbeit gestrichen werden?}
+Chat-Assistent und Weltkarte wurden vom Verfasser ergänzt, um die Bedienung zu
+erleichtern; sie werden als Usability-Anforderungen begründet (abgestimmt in der
+Besprechung vom 2.~November 2026).
 
 \subsection{Abgrenzung}
 
-Folgende Schritte aus den Beispielpublikationen werden bewusst nicht umgesetzt;
-sie werden in Kapitel~8 als Grenzen diskutiert:
+Subnationale Einheiten waren zunächst als Grenze vorgesehen. Nach der
+Besprechung vom 2.~November 2026 werden sie für Länder, in denen die Krankheit
+verbreitet ist, als Anforderung umgesetzt (FR-28); Länder ohne nennenswerte
+Verbreitung können ausgeschlossen werden \todo{Quelle für die Einstufung als
+Endemieland}. Folgende Schritte aus den Beispielpublikationen werden bewusst nicht
+umgesetzt; sie werden in Kapitel~8 als Grenzen diskutiert:
 \begin{itemize}[nosep]
-  \item subnationale Einheiten und räumliche Aggregation von Rasterdaten
-        (Suttirat S.~5; Lowe S.~e211) -- das System nutzt einen repräsentativen
-        Punkt pro Land;
-  \item Harmonisierung sich ändernder Verwaltungseinheiten (Suttirat S.~5);
   \item bioklimatische Indikatoren und Fernerkundungsdaten (Suttirat S.~5);
   \item automatisches Auffüllen von Lücken aus einer anderen Quelle: Fallzahlen
         verschiedener Quellen beruhen auf unterschiedlichen Falldefinitionen --
@@ -295,22 +298,19 @@ sie werden in Kapitel~8 als Grenzen diskutiert:
 \end{itemize}
 
 % ---------------------------------------------------------------------------
-\section*{Offene Fragen für die Besprechung}\label{sec:fragen}
+\section*{Offene Fragen}\label{sec:fragen}
 \begin{enumerate}[nosep]
-  \item Entspricht die Argumentationskette der Motivation (Modelle $\rightarrow$
-        aufwendige, typische Datenvorbereitung $\rightarrow$ Programmierkenntnisse
-        nötig $\rightarrow$ System) Ihrer Vorstellung?
-  \item Reichen zwei Modellierungsstudien und ein Data Descriptor, oder sollen
-        weitere Studien (z.\,B.\ Malaria) aufgenommen werden?
-  \item Ist die Traceability-Matrix als Form der Anforderungsableitung geeignet?
   \item Vorschlag für eine Forschungsfrage: \enquote{Inwieweit kann ein
         LLM-gestütztes System die Integration heterogener Klima- und
         Gesundheitsdaten automatisieren und dabei die Korrektheit,
         Reproduzierbarkeit und Nachvollziehbarkeit der Datenaufbereitung
         überprüfbar machen?} Passt diese Ausrichtung?
-  \item Welcher Zitierstil wird erwartet (Autor-Jahr oder numerisch)?
-  \item Gliederung: Passt die Position von \enquote{Verwandte Arbeiten} nach der
-        Anforderungsanalyse?
+  \item Lücken werden nicht automatisch aus einer anderen Quelle gefüllt, sondern
+        angezeigt und verglichen (FR-26, FR-27). Ist diese Entscheidung tragfähig?
+  \item Regionale Klimadaten (FR-28): zunächst Mittel mehrerer Punkte je Provinz,
+        flächengewichtete Rastermittelung (wie Lowe et al., S.~e211) später?
+  \item Gliederung: \enquote{Verwandte Arbeiten} nach der Anforderungsanalyse, da
+        die Anforderungen als Vergleichskriterien für bestehende Werkzeuge dienen?
 \end{enumerate}
 
 \section*{Literatur (Entwurf)}
