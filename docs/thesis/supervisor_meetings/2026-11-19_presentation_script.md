@@ -52,7 +52,15 @@ Now the registration. I think I am ready. The system works, the requirements com
 
 ---
 
-## სლაიდი 7: Registration form: examiners and title
+## სლაიდი 7: Plan until submission (proposal)
+
+This is my plan until the submission. If I register in early December, I have sixteen weeks, until the end of March. In December I finish the regional data and measure the time for case study 1. In January I do case studies 2 and 3 and the related work, and I write chapters 2 to 4. In February I write the implementation and the evaluation, so I have a full first draft. In March I revise everything and submit. The colloquium would be around May. I think we need about four meetings until the submission, at the important milestones, and one more before the colloquium. Small questions I can ask you by email in between. Does this plan look realistic to you?
+
+(ეს ჩემი გეგმაა ჩაბარებამდე. თუ დეკემბრის დასაწყისში დავრეგისტრირდები, თექვსმეტი კვირა მაქვს, მარტის ბოლომდე. დეკემბერში რეგიონულ მონაცემებს დავასრულებ და case study 1-ის დროს გავზომავ. იანვარში case study 2-სა და 3-ს და მონათესავე ნაშრომებს გავაკეთებ და მე-2–4 თავებს დავწერ. თებერვალში იმპლემენტაციასა და შეფასებას დავწერ, ასე რომ, სრული პირველი მონახაზი მექნება. მარტში ყველაფერს გადავამუშავებ და ჩავაბარებ. კოლოკვიუმი დაახლოებით მაისში იქნება. მგონი, ჩაბარებამდე დაახლოებით ოთხი შეხვედრა დაგვჭირდება, მნიშვნელოვან ეტაპებზე, და კიდევ ერთი კოლოკვიუმამდე. პატარა კითხვებს შუალედში მეილით მოგწერთ. ეს გეგმა რეალისტურად გეჩვენებათ?)
+
+---
+
+## სლაიდი 8: Registration form: examiners and title
 
 For the form I need two things. First, the examiners. The rule says one examiner must be from category a or b. On the list, Peter is in category a and you are in category c. Who should be the first and who the second examiner? Second, the title. I have three proposals. Which one do you like, or should I change it?
 
@@ -60,7 +68,7 @@ For the form I need two things. First, the examiners. The rule says one examiner
 
 ---
 
-## სლაიდი 8: Thesis format: what I found, what I ask
+## სლაიდი 9: Thesis format: what I found, what I ask
 
 About the format. I will write the thesis in English. The examination rules allow German or English. I did not find rules for the length, the citation style or a template. Do you have a template or a page number in mind? Also, only the PDF goes to the examiners, not the code. Is it okay if I put a link to GitHub or Zenodo in the thesis?
 
@@ -68,7 +76,7 @@ About the format. I will write the thesis in English. The examination rules allo
 
 ---
 
-## სლაიდი 9: Questions for you
+## სლაიდი 10: Questions for you
 
 Here are all my questions together. If we do not have time for all of them, the first four are the most important for the registration.
 
@@ -76,7 +84,7 @@ Here are all my questions together. If we do not have time for all of them, the 
 
 ---
 
-## სლაიდი 10: Thank you
+## სლაიდი 11: Thank you
 
 Thank you very much. My next steps are: register the thesis, finish the province table, and read the new papers. I will write down what we decided and send it by email to you, Peter and Lin.
 
