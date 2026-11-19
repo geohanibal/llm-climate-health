@@ -1,0 +1,265 @@
+% Colón-González et al. (2021): ვრცელი ქართული შეჯამება (სასწავლო მასალა, მხოლოდ სერგისთვის)
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tcolorbox}
+
+\setmainfont{Sylfaen}
+\setmonofont{Consolas}
+
+ewfontfamily\symfont{Segoe UI Symbol}
+
+ewcommand{\ok}{{\symfont ✓}}
+ewcommand{
+o}{{\symfont ✗}}
+ewcommand{\warn}{{\symfont ⚠}}
+
+\newcommand{\q}[1]{,,#1``}
+\newtcolorbox{mnishvn}{colback=orange!8,colframe=orange!70!black,title=რატომ არის ეს შენთვის მნიშვნელოვანი,fonttitle=\bfseries}
+\newtcolorbox{citata}{colback=blue!4,colframe=blue!40!black,boxrule=0.4pt}
+\newtcolorbox{ganmarteba}{colback=green!5,colframe=green!40!black,title=ტერმინის ახსნა,fonttitle=\bfseries}
+
+\title{Colón-González et al.\ (2021)\\[0.3em]
+\large ვრცელი შეჯამება: რაზეა სტატია და რა არის მნიშვნელოვანი შენი ნაშრომისთვის}
+\author{სასწავლო მასალა სერგისთვის}
+\date{2026-11-19}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{სტატია:} Colón-González, F.\,J., Soares Bastos, L., Hofmann, B., \ldots, Brady, O.\,J., Lowe, R.\ (2021).
+\emph{Probabilistic seasonal dengue forecasting in Vietnam: A modelling study using superensembles.}
+PLOS Medicine 18(3): e1003542. \url{https://doi.org/10.1371/journal.pmed.1003542}. ლიცენზია: CC BY 4.0.
+
+\noindent\textbf{ფაილი:} \texttt{colon\_gonzalez\_2021\_plosmed.pdf} (30 გვერდი; PDF-ის გვერდი = ჟურნალის გვერდი).
+
+\tableofcontents
+
+\section{სტატია ერთ აბზაცში}
+
+ავტორებმა ვიეტნამისთვის \textbf{დენგეს პროგნოზის სისტემა} ააგეს, სახელად D-MOSS. სისტემა ყოველთვიურად
+პროგნოზირებს, რამდენი შემთხვევა იქნება ქვეყნის 63 პროვინციიდან თითოეულში, \textbf{1-დან 6 თვემდე წინ}.
+პროგნოზისთვის იყენებენ ძველ შემთხვევებს, სატელიტურ კლიმატის მონაცემებს და სეზონურ ამინდის პროგნოზებს.
+ერთი მოდელის ნაცვლად რამდენიმე მოდელს აერთიანებენ (\q{superensemble}) და აჩვენებენ, რომ ეს ერთეულ მოდელებზე
+უკეთესად მუშაობს. სისტემა ვიეტნამის ჯანდაცვის სამინისტროსთან და WHO-სთან ერთად შეიქმნა.
+
+\begin{mnishvn}
+შენი ნაშრომი \textbf{მოდელზე არ არის}, ის მოდელისთვის \textbf{მონაცემების მომზადებაზეა}. ამიტომ ამ სტატიიდან
+მოდელის მათემატიკა არ გჭირდება. გჭირდება მხოლოდ ის, \textbf{როგორ მოამზადეს მონაცემები} მოდელამდე.
+ეს მესამე მოდელირების სტატიაა (Suttirat-ისა და Lowe-ს შემდეგ), რომელიც ხელმძღვანელებმა მოითხოვეს:
+ის აჩვენებს, რომ იგივე ნაბიჯები სხვა ქვეყანაშიც (ვიეტნამი) და სხვა ავტორებთანაც მეორდება.
+\end{mnishvn}
+
+\noindent\textbf{საინტერესო დეტალი:} ბოლო ავტორია \textbf{Rachel Lowe}, ბრაზილიის სტატიის (Lowe et al.\ 2021)
+პირველი ავტორი. ეს ერთი კვლევითი ჯგუფია (London School of Hygiene \& Tropical Medicine).
+
+\section{რა წაიკითხო}
+
+მთლიანი სტატია 30 გვერდია, შენ მხოლოდ \textbf{დაახლოებით 6 გვერდი} გჭირდება:
+
+\begin{center}
+\begin{tabular}{@{}p{0.08\linewidth}p{0.42\linewidth}p{0.4\linewidth}@{}}
+\toprule
+გვ. & სექცია & რატომ \\
+\midrule
+1 & Data Availability Statement & ღიაა თუ არა მონაცემები \\
+4--5 & Introduction, ბოლო აბზაცები & ორი ციტატა მოტივაციისთვის \\
+6 & Dengue surveillance data & შემთხვევების წყარო \\
+7 & Historical demographic \ldots; Historical Earth observation data & მოსახლეობა, კლიმატი, აგრეგაცია \\
+8 & ზედა ნაწილი (საზღვრების ცვლილება) & \textbf{ყველაზე მნიშვნელოვანი} \\
+9 & Model specification, ბოლო აბზაცი & lag-ები, ინსტრუმენტები \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{გამოტოვე:} ფორმულები (გვ.\ 8--11), Model selection, Superensemble, CRPS, Results (გვ.\ 12-დან).
+
+\section{ნაწილ-ნაწილ: რას ამბობს სტატია}
+
+\subsection{შემთხვევები (გვ.\ 6)}
+\begin{citata}
+\q{Monthly dengue cases were obtained from the Vietnamese Ministry of Health. Data were retrieved for the period
+August 2002 to December 2019 at the province level (n = 63). Data comprised suspected and confirmed dengue cases,
+although there was no indication as to how many cases fell within each category.}
+\end{citata}
+\noindent\textbf{მარტივად:} თვიური შემთხვევები 63 პროვინციისთვის, 2002--2019, საეჭვო და დადასტურებული ერთად.
+გვ.\ 7-ზე ავტორები დასძენენ, რომ ამ პერიოდში შემთხვევის განსაზღვრება \textbf{არ შეცვლილა}.
+
+\begin{mnishvn}
+ეს ზუსტად ის საკითხია, რაც ტაილანდში ვნახეთ: OpenDengue-ში 2003 წლამდე „Total“ წერია, 2003-დან კი
+„Suspected and confirmed“. ავტორები ცალკე ამოწმებენ, რომ განსაზღვრება დროში ერთნაირია, ანუ
+\textbf{შედარებადობა} მონაცემების მომზადების ნაწილია. ეს ასაბუთებს შენს გადაწყვეტილებას (A20), რომ
+სხვადასხვა განსაზღვრების წყაროები არ შეურიო.
+\end{mnishvn}
+
+\subsection{მოსახლეობა (გვ.\ 7)}
+\begin{citata}
+\q{Total population per province and per year were retrieved from the \ldots\ Gridded Population of the World
+project version 4.11 \ldots\ 5 yearly for the period 2000 to 2020. Intervening years were generated using linear
+interpolation.}
+\end{citata}
+\noindent\textbf{მარტივად:} მოსახლეობა მხოლოდ ყოველ 5 წელზე იყო ცნობილი, შუალედური წლები კი \textbf{წრფივად
+შეავსეს}.
+
+\begin{mnishvn}
+ეს \textbf{შენი FR-17}-ია: შენი სისტემაც წლიურ მოსახლეობას წრფივად ინტერპოლირებს. მონახაზში წერია, რომ ეს
+\q{eigene Entwurfsentscheidung}-ია, რადგან Suttirat სხვანაირად აკეთებდა. ახლა მას \textbf{მეცნიერული მხარდაჭერა}
+აქვს: Colón-González-იც წრფივ ინტერპოლაციას იყენებს. ეს შეგიძლია ტექსტში დაამატო.
+\end{mnishvn}
+
+\subsection{კლიმატი: ბევრი წყარო (გვ.\ 7)}
+ავტორები ერთ კვლევაში \textbf{ექვსზე მეტ} სხვადასხვა წყაროს იყენებენ, სხვადასხვა რეზოლუციით:
+\begin{itemize}[nosep]
+  \item ტემპერატურა (მინ., მაქს., საშუალო): MODIS-ის სატელიტი, 1 კმ;
+  \item ნალექი: TRMM 2014 წლის აპრილამდე, \textbf{მერე GPM} (10 კმ);
+  \item ტენიანობა: MODIS;
+  \item ქარი: ERA5 2002--2011, \textbf{მერე NOAA CFS};
+  \item El Niño-ს ინდექსი: NOAA.
+\end{itemize}
+
+\begin{mnishvn}
+ორი რამ მნიშვნელოვანია:
+\begin{enumerate}[nosep]
+  \item \textbf{მოტივაციისთვის:} ერთი კვლევა, ექვსი წყარო, სხვადასხვა რეზოლუცია. ეს აჩვენებს, რამდენი შრომა
+        სჭირდება მონაცემების შეკრებას. ზუსტად ამას ამარტივებს შენი სისტემა.
+  \item \textbf{წყაროს შეცვლა დროში:} ნალექისა და ქარისთვის სერიის შუაში წყარო შეიცვალა. თუ ორი წყარო
+        განსხვავებულად ზომავს, სერიაში „ნახტომი“ შეიძლება გაჩნდეს. ეს ზუსტად ის რისკია, რისთვისაც შენს სისტემაში
+        \textbf{ორი წყაროს შედარება (FR-27)} არსებობს: ჯერ შეამოწმე, ემთხვევა თუ არა წყაროები, მერე გადააბი.
+\end{enumerate}
+\end{mnishvn}
+
+\subsection{სივრცითი აგრეგაცია: რასტრიდან პროვინციამდე (გვ.\ 7--8)}
+\begin{citata}
+\q{Climate data were aggregated at the province level using population weighted averages for each month.}
+\end{citata}
+
+\begin{ganmarteba}
+\textbf{მოსახლეობით შეწონილი საშუალო.} კლიმატის რუკა კვადრატებად (უჯრებად) არის დაყოფილი. პროვინციის
+საშუალოს გამოსათვლელად ყველა უჯრა ერთნაირად კი არ ითვლება, არამედ იმის მიხედვით, \textbf{რამდენი ადამიანი
+ცხოვრობს} თითოეულ უჯრაში. მაგალითი: პროვინციაში ორი უჯრაა, ქალაქი (30\,°C, 90\,000 ადამიანი) და მთა
+(20\,°C, 10\,000 ადამიანი). უბრალო საშუალოა 25\,°C, მოსახლეობით შეწონილი კი
+$(30\cdot 0{,}9 + 20\cdot 0{,}1) = 29\,$°C. ეს უფრო ზუსტად აღწერს, რა ტემპერატურაზე ცხოვრობს ადამიანების
+უმეტესობა, ანუ სად ხდება დაავადების გადაცემა.
+\end{ganmarteba}
+
+\noindent წონებისთვის WorldPop-ის მონაცემები გამოიყენეს (100 მ). ეს მხოლოდ 2009, 2010, 2015 და 2020 წლებისთვის
+იყო, ამიტომ შუალედური წლები ისევ \textbf{წრფივად ინტერპოლირეს}. ინსტრუმენტი: Python-ის მოდული
+\texttt{rasterstats}.
+
+\begin{mnishvn}
+ახლა ორი ვარიანტი გაქვს ლიტერატურაში:
+\begin{itemize}[nosep]
+  \item \textbf{Lowe et al.\ (2021):} ფართობით შეწონილი საშუალო (\texttt{exactextractr}, R);
+  \item \textbf{Colón-González et al.\ (2021):} მოსახლეობით შეწონილი საშუალო (\texttt{rasterstats}, Python).
+\end{itemize}
+ეს ზუსტად შენი \textbf{ვარიანტი B}-ია (ERA5-ის ბადე + შეწონილი საშუალო). დღევანდელმა ტესტმა აჩვენა, რომ
+Open-Meteo-ს წერტილებით (ვარიანტი A) ეს ზედმეტად ძვირია, ამიტომ B მთავარი მიზანია. სისტემამ შეიძლება
+მომხმარებელს \textbf{არჩევანი} მისცეს: ფართობით თუ მოსახლეობით. ეს ახალი მოთხოვნის კანდიდატია.
+\end{mnishvn}
+
+\subsection{საზღვრების ცვლილება (გვ.\ 8): ყველაზე მნიშვნელოვანი}
+\begin{citata}
+\q{There were multiple changes in the administrative boundaries of the provinces over the study period. The last
+change took place in 2008. Consequently, we froze the administrative boundaries of the country at their 2008 level.
+Dengue data were allocated to each of the 2008 level administrative boundaries using district-level records.}
+\end{citata}
+\noindent\textbf{მარტივად:} ვიეტნამში კვლევის პერიოდში პროვინციების საზღვრები რამდენჯერმე შეიცვალა. ავტორებმა
+\textbf{ერთი წლის საზღვრები აირჩიეს} (2008) და ყველა წლის შემთხვევები ამ საზღვრებზე გადაანაწილეს, რაიონების
+ჩანაწერების მიხედვით (ეს ჯანდაცვის სამინისტრომ გააკეთა).
+
+\begin{mnishvn}
+ეს \textbf{შენი FR-28-ის ბირთვია}. ახლა ერთი და იგივე პრობლემა სამ ადგილას გაქვს:
+\begin{enumerate}[nosep]
+  \item \textbf{Suttirat (ტაილანდი):} ახალი პროვინცია (Bueng Kan, 2011) ძველს \textbf{შეუერთეს}. შენი სისტემა უკვე
+        აკეთებს ამას (დავალება H, 18\,240 პროვინცია-თვე).
+  \item \textbf{Colón-González (ვიეტნამი):} საზღვრები ერთ წელზე \textbf{„გაყინეს“} (2008).
+  \item \textbf{HDX (ვიეტნამი, 2025):} 63 პროვინცია 34-ად გაერთიანდა, ამიტომ დღევანდელი რუკა ძველ მონაცემებს
+        არ ემთხვევა.
+\end{enumerate}
+\textbf{დასკვნა თეზისისთვის:} „დროში ცვალებადი ადმინისტრაციული ერთეულების ჰარმონიზაცია“ ერთი სტატიის
+თავისებურება კი არა, \textbf{ტიპური ნაბიჯია}. ეს Traceability-Matrix-ში FR-28-ის მეორე წყაროდ ჩაიწერება.
+ორი სტრატეგია არსებობს (შეერთება ან ერთ წელზე გაყინვა), და სისტემამ ორივე შეიძლება შესთავაზოს.
+\end{mnishvn}
+
+\subsection{lag-ები (გვ.\ 4, 9)}
+\begin{citata}
+\q{Most of the effects of climate on dengue incidence are delayed by 1 to 2 months \ldots} (გვ.\ 4)
+\end{citata}
+\noindent გვ.\ 9-ზე: ტემპერატურისთვის, ნალექისთვის, ტენიანობისა და DTR-ისთვის (დღე-ღამის ტემპერატურის სხვაობა)
+\textbf{3-თვიანი მოძრავი საშუალო} გამოიყენეს, lag 0--2 თვე. El Niño-სთვის lag 0--3. ქარისთვის lag არ გამოიყენეს.
+ასევე \textbf{წინა თვის შემთხვევები} მოდელის შესავალია.
+
+\begin{mnishvn}
+შენს სისტემას lag-სვეტები აქვს (FR-23), მაგრამ \textbf{მოძრავი საშუალო} (მაგ.\ lag 0--2-ის საშუალო) და
+\textbf{lag-იანი შემთხვევები} (წინა თვის შემთხვევები) არა. ორივე ადვილი დასამატებელია და კარგი კანდიდატია
+შემდეგი ნაბიჯისთვის, ან Future Work-ისთვის.
+\end{mnishvn}
+
+\subsection{ინსტრუმენტები და მონაცემების ხელმისაწვდომობა (გვ.\ 1, 7, 9)}
+\begin{itemize}[nosep]
+  \item Python 3.6 (\texttt{rasterstats}) და R 3.6.1 + INLA. ესე იგი \textbf{ორი პროგრამირების ენა} ერთ კვლევაში;
+  \item კოდი GitHub-ზეა (\url{https://github.com/FelipeJColon/paper_dengue_superensemble});
+  \item დენგეს მონაცემები \textbf{ღია არ არის}: მხოლოდ მოთხოვნით, ვიეტნამის სამინისტროს კონკრეტული პირისგან.
+\end{itemize}
+
+\begin{mnishvn}
+\q{მონაცემები მოთხოვნით} ნიშნავს, რომ სხვა მკვლევარს იგივე კვლევის გამეორება უჭირს. შენი სისტემა
+\textbf{ღია წყაროებს} (OpenDengue და სხვ.) იყენებს და ყოველ ნაბიჯს აღრიცხავს. ეს \textbf{განმეორებადობის}
+(reproducibility) არგუმენტია, რომელიც შენს კვლევით კითხვაშიც არის.
+\end{mnishvn}
+
+\section{ორი ციტატა მოტივაციისთვის}
+\begin{citata}
+\q{Some of these challenges include the lack of multi-decadal health data sets with which to train and validate
+seasonal climate-driven early warning systems, \textbf{the common mismatch of scales between climate data outputs and
+data used for decision-making}, and a general lack of consensus as to how to communicate uncertainties to users.}
+(გვ.\ 4)
+\end{citata}
+\noindent \textbf{რას ნიშნავს:} კლიმატის მონაცემები ბადეზეა, ჯანდაცვის მონაცემები კი პროვინციებზე. მათ
+„მასშტაბები“ არ ემთხვევა. ზუსტად ამას აერთიანებს შენი სისტემა.
+
+\begin{citata}
+\q{\ldots difficulties related to the integration of these systems into existing public health procedures and
+\textbf{occasional lack of technical expertise}.} (გვ.\ 5)
+\end{citata}
+\noindent \textbf{რას ნიშნავს:} ზოგჯერ ტექნიკური ცოდნა აკლიათ. ეს Boylan-ისა და Rajamani-ს გვერდით უნარების
+ნაკლებობის \textbf{მესამე, ფრთხილი} წყაროა. ფრთხილი იმიტომ, რომ ავტორები \q{occasional}-ს წერენ, ანუ „ზოგჯერ“.
+ტექსტში არ გაამძაფრო.
+
+\section{შენი ცხრილისთვის (Schritte / Traceability-Matrix)}
+
+\begin{longtable}{@{}p{0.27\linewidth}p{0.33\linewidth}p{0.06\linewidth}p{0.26\linewidth}@{}}
+\toprule
+ნაბიჯი & Colón-González 2021 & გვ. & შენი სისტემა \\
+\midrule
+\endhead
+თვიური შემთხვევები & ჯანდაცვის სამინისტრო, 63 პროვინცია, 2002--2019 & 6 & \ok{} (FR-28, ტაილანდი) \\
+შემთხვევის განსაზღვრება დროში & არ შეცვლილა (შემოწმებულია) & 6--7 & \ok{} FR-26/27, A20 \\
+საზღვრების ჰარმონიზაცია & საზღვრები 2008-ზე გაყინული & 8 & \ok{} ტაილანდი, \warn{} ზოგადად \\
+კლიმატის რამდენიმე წყარო & TRMM$\rightarrow$GPM, ERA5$\rightarrow$CFS & 7 & \warn{} შედარება \ok{}, გადაბმა 
+o{} \\
+რასტრი $\rightarrow$ პროვინცია & მოსახლეობით შეწონილი (\texttt{rasterstats}) & 7 & 
+o{} (FR-28, ვარიანტი B) \\
+მოსახლეობის შუალედური წლები & წრფივი ინტერპოლაცია & 7 & \ok{} FR-17 \\
+lag-ები & 3-თვიანი საშუალო lag 0--2, ENSO 0--3 & 9 & \ok{} სვეტები, 
+o{} მოძრავი საშუალო \\
+ინსტრუმენტები & Python + R/INLA & 7, 9 & -- \\
+\bottomrule
+\end{longtable}
+
+\section{შენი დავალება}
+\begin{enumerate}[nosep]
+  \item წაიკითხე ზემოთ ჩამოთვლილი 6 გვერდი და ციტატები PDF-ში გადაამოწმე (Ctrl+F).
+  \item შეავსე კითხვის ფურცელი (\texttt{kitxvis\_furceli\_colon\_gonzalez\_2021.md}) \textbf{შენი სიტყვებით}.
+  \item ბოლოს უპასუხე: რას ამატებს ეს სტატია ჩემს ნაშრომს? (მინიშნება: საზღვრები, მოსახლეობით შეწონვა,
+        წყაროს ცვლილება, FR-17-ის მხარდაჭერა.)
+  \item მომწერე: \q{შეამოწმე Colón-González}.
+\end{enumerate}
+
+\end{document}
