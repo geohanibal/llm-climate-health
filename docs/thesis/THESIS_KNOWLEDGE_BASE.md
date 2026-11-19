@@ -93,11 +93,15 @@ until then write "reduziert den manuellen Aufwand", not "spart Wochen".
 
 ## 2. People
 
-| Role | Name |
-|---|---|
-| Author | Sergi Koniashvili (Informatics, University of Bremen) |
-| Supervisor | Prof. Dr. Peter Haddawy (Bremen Spatial Cognition Center, Uni Bremen; also Mahidol University, Thailand) |
-| Supervisor | Dr. Thomas Barkowsky |
+| Role | Name | Positions (from e-mail signatures, Oct 2026) |
+|---|---|---|
+| Author | Sergi Koniashvili | Informatics, University of Bremen |
+| Supervisor | Prof. Dr. Peter Haddawy ("Peter") | Global Talent Professor of Computer Science and Director, Mahidol-Bremen Medical Informatics Research Unit (MIRU), Faculty of ICT, Mahidol University, Thailand; **Honorarprofessor of Medical Informatics, Faculty of Informatics, Universität Bremen** -> FB3 examiner category a (honorary professors count; listed by name under a) |
+| Supervisor | Dr. Thomas Barkowsky ("Thomas") | Senior Researcher, Bremen Spatial Cognition Center (BSCC), University of Bremen; Studiendekan / Dean of Academic Affairs; Adjunct Professor, Faculty of ICT, Mahidol University -> FB3 examiner category c; main contact in Bremen (in-person meetings) |
+| Advisor (role not formally stated) | Myat Su Yin Maung, signs her e-mails **"Lin"** | **"Lin" and "Myat Su Yin" are the SAME person.** Co-author of P1 Suttirat et al. 2026 ("Su Yin, M.", data curation). Works on Bangkok time; affiliation not stated in the e-mails (probably Mahidol, unverified). Gave the HDX COD-AB, DHIS2 and DART tips (meeting chat 2026-11-02). Best contact for Thailand data / CS1. |
+
+Meetings with all three are online; Bremen and Bangkok time differ (Bangkok = Bremen + 6 h in winter).
+Thomas's October 2026 feedback (e-mail of 9 Oct 2026 to Peter and Lin) is quoted in §3.
 
 Note: Peter Haddawy is a co-author of the main case-study paper (§4, P1).
 His listed author contribution there is "Writing – review & editing" only;

@@ -10,13 +10,13 @@
 1. **რეგიონული მონაცემები (D1): შემოწმებულია, რომ შესაძლებელია.**
    - OpenDengue V1.3: ტაილანდის **პროვინციების თვიური** შემთხვევები, **1993–2022**; 2011-დან 77 პროვინცია.
      თვიური ან კვირის რეგიონული მონაცემები აქვს ჯამში **30 ქვეყანას**.
-   - საზღვრები: HDX COD-AB Thailand (Myat-ის რჩევა): **77 პროვინცია**, Shapefile/GeoJSON, ლიცენზია **CC BY-IGO**.
+   - საზღვრები: HDX COD-AB Thailand (Lin-ის, ანუ Myat Su Yin-ის რჩევა): **77 პროვინცია**, Shapefile/GeoJSON, ლიცენზია **CC BY-IGO**.
    - **ახალი მიგნება:** 2011-ში ახალი პროვინცია **Bueng Kan** გაჩნდა. ესე იგი Suttirat-ის ნაბიჯი, „Bueng Kan
      → Nong Khai“ (გვ. 5), ჩვენთვისაც საჭირო ხდება.
    - ღიაა: რეგიონული კლიმატი (ვარიანტები A/B/C), რეგიონული მოსახლეობა, ენდემური ქვეყნების წყარო.
 2. **მონახაზი განახლებულია (DE/EN/KA):** ახალი მოთხოვნა **FR-28**, ჩატი და რუკა usability-მოთხოვნებად, Abgrenzung
    შეცვლილია, ღია კითხვები განახლებულია.
-3. **მსგავსი სისტემები (Myat-ის რჩევა), ოფიციალური გვერდებიდან:**
+3. **მსგავსი სისტემები (Lin-ის, ანუ Myat Su Yin-ის რჩევა), ოფიციალური გვერდებიდან:**
 
 | | DHIS2 Climate & Health | DART | ჩვენი სისტემა |
 |---|---|---|---|
@@ -50,6 +50,8 @@
 
 ## 2. კითხვები Thomas-თან
 
+0. **შემფასებლები:** *Who will be the first and the second examiner? One examiner must be a professor of computer science, so I think Peter is first and you are second. Is this right?* (Peter: Bremen-ის Honorarprofessor, კატეგორია a; Thomas: კატეგორია c.) და: *When should I register the thesis?*
+
 1. **რეგიონული კლიმატი:** პირველ ვერსიაში პროვინციაში რამდენიმე წერტილის საშუალო (ვარიანტი A), ფართობით შეწონილი
    რასტრი კი (B, როგორც Lowe-თან) მოგვიანებით. მისაღებია?
 2. **ენდემური ქვეყნები:** პრაქტიკული წესი: რეგიონული ვერსია იქ, სადაც OpenDengue-ს რეგიონული მონაცემები არსებობს.
@@ -67,7 +69,7 @@
 *Thank you for meeting me. Since our last meeting I worked on three things.*
 
 *First, regional data. I checked if it is possible. OpenDengue has monthly dengue data for every province in Thailand,
-from 1993 to 2022. Myat showed me the province borders on HDX: 77 provinces, with an open licence. I also found that a
+from 1993 to 2022. Lin showed me the province borders on HDX: 77 provinces, with an open licence. I also found that a
 new province, Bueng Kan, started in 2011. So I need the same step as Suttirat: merge Bueng Kan with Nong Khai.*
 
 *Second, I updated the draft. There is a new requirement for regional data, and I explain the chat and the map as
@@ -81,7 +83,7 @@ My system is different: it prepares open data for researchers who build models.*
 *Now I have some questions.*
 
 (მადლობა, რომ შემხვდით. ბოლო შეხვედრის შემდეგ სამ რამეზე ვიმუშავე. პირველი, რეგიონული მონაცემები. შევამოწმე,
-შესაძლებელია თუ არა. OpenDengue-ს ტაილანდის ყველა პროვინციისთვის თვიური მონაცემები აქვს, 1993-დან 2022-მდე. Myat-მა
+შესაძლებელია თუ არა. OpenDengue-ს ტაილანდის ყველა პროვინციისთვის თვიური მონაცემები აქვს, 1993-დან 2022-მდე. Lin-მა
 პროვინციების საზღვრები მაჩვენა HDX-ზე: 77 პროვინცია, ღია ლიცენზიით. ასევე აღმოვაჩინე, რომ 2011-ში ახალი პროვინცია,
 Bueng Kan, გაჩნდა. ამიტომ Suttirat-ის მსგავსი ნაბიჯი მჭირდება: Bueng Kan-ის Nong Khai-სთან გაერთიანება. მეორე,
 მონახაზი განვაახლე. არის ახალი მოთხოვნა რეგიონული მონაცემებისთვის, ჩატსა და რუკას კი მარტივად გამოსაყენებელ
