@@ -14,9 +14,9 @@ Thank you for meeting me. I want to show what I did since our meeting on 2 Novem
 
 ## სლაიდი 2: Regional data is possible for Thailand
 
-First, regional data. I checked if it is possible. OpenDengue has monthly dengue data for every province in Thailand, from 1993 to 2022. Thirty countries have monthly or weekly regional data. Lin showed me the province borders on HDX: 77 provinces, with an open licence. I also found that a new province, Bueng Kan, started in 2011. So I need the same step as Suttirat: merge Bueng Kan with Nong Khai. The province table is in progress now.
+First, regional data. I checked if it is possible. OpenDengue has monthly dengue data for every province in Thailand, from 1993 to 2022. Thirty countries have monthly or weekly regional data. Lin showed me the province borders on HDX: 77 provinces, with an open licence. I also found that a new province, Bueng Kan, started in 2011. So I need the same step as Suttirat: merge Bueng Kan with Nong Khai. The province table is now ready. After merging Bueng Kan into Nong Khai, my table has exactly 18,240 province-months, the same number as in the Suttirat paper.
 
-(პირველი, რეგიონული მონაცემები. შევამოწმე, შესაძლებელია თუ არა. OpenDengue-ს ტაილანდის ყველა პროვინციისთვის თვიური მონაცემები აქვს, 1993-დან 2022-მდე. ოცდაათ ქვეყანას აქვს თვიური ან კვირის რეგიონული მონაცემები. Lin-მა პროვინციების საზღვრები HDX-ზე მაჩვენა: 77 პროვინცია, ღია ლიცენზიით. ასევე აღმოვაჩინე, რომ 2011-ში ახალი პროვინცია, Bueng Kan, გაჩნდა. ამიტომ Suttirat-ის მსგავსი ნაბიჯი მჭირდება: Bueng Kan-ის Nong Khai-სთან გაერთიანება. პროვინციების ცხრილი ახლა მზადდება.)
+(პირველი, რეგიონული მონაცემები. შევამოწმე, შესაძლებელია თუ არა. OpenDengue-ს ტაილანდის ყველა პროვინციისთვის თვიური მონაცემები აქვს, 1993-დან 2022-მდე. ოცდაათ ქვეყანას აქვს თვიური ან კვირის რეგიონული მონაცემები. Lin-მა პროვინციების საზღვრები HDX-ზე მაჩვენა: 77 პროვინცია, ღია ლიცენზიით. ასევე აღმოვაჩინე, რომ 2011-ში ახალი პროვინცია, Bueng Kan, გაჩნდა. ამიტომ Suttirat-ის მსგავსი ნაბიჯი მჭირდება: Bueng Kan-ის Nong Khai-სთან გაერთიანება. პროვინციების ცხრილი უკვე მზადაა. Bueng Kan-ის Nong Khai-სთან გაერთიანების შემდეგ ჩემს ცხრილში ზუსტად 18 240 პროვინცია-თვეა, იგივე რიცხვი, რაც Suttirat-ის სტატიაშია.)
 
 ---
 
