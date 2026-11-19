@@ -7,8 +7,8 @@ library;
 import 'package:flutter/material.dart';
 
 enum AppLanguage {
-  ka('ka', 'ქართული', '🇬🇪'),
   en('en', 'English', '🇬🇧'),
+  ka('ka', 'ქართული', '🇬🇪'),
   de('de', 'Deutsch', '🇩🇪');
 
   final String code;
@@ -18,10 +18,10 @@ enum AppLanguage {
   const AppLanguage(this.code, this.label, this.flag);
 
   static AppLanguage fromCode(String? code) {
-    if (code == null) return AppLanguage.ka;
+    if (code == null) return AppLanguage.en;
     return AppLanguage.values.firstWhere(
       (lang) => lang.code == code.toLowerCase(),
-      orElse: () => AppLanguage.ka,
+      orElse: () => AppLanguage.en,
     );
   }
 }
@@ -61,7 +61,7 @@ enum LiteratureCorpus {
 }
 
 class AppLocaleController extends ValueNotifier<AppLanguage> {
-  AppLocaleController([super.value = AppLanguage.ka]);
+  AppLocaleController([super.value = AppLanguage.en]);
 
   void setLanguage(AppLanguage language) {
     if (value != language) {
@@ -88,7 +88,8 @@ class LiteratureController extends ValueNotifier<LiteratureCorpus> {
 }
 
 /// Global reactive locale controller for the platform.
-final appLocale = AppLocaleController(AppLanguage.ka);
+/// English is the default language shown to users on first load.
+final appLocale = AppLocaleController(AppLanguage.en);
 
 /// Global reactive active literature controller for the platform.
 final activeLiterature = LiteratureController(LiteratureCorpus.all);
