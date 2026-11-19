@@ -1,0 +1,19 @@
+opendengue_name,hdx_admin1_name,admin1_pcode,note
+ATTAPU,Attapeu,LA17,"Romanisation variant for Attapeu (RNE_iso_code=LA-AT, FAO_GAUL_code=1753)"
+BOKEO,Bokeo,LA05,Exact match (case-insensitive)
+BOLIKHAMXAI,Bolikhamxai,LA11,Exact match (case-insensitive)
+CHAMPASAK,Champasack,LA16,"Romanisation variant for Champasack (RNE_iso_code=LA-CH, FAO_GAUL_code=1756)"
+HOUAPHAN,Houaphan,LA07,Exact match (case-insensitive)
+KHAMMOUAN,Khammouan,LA12,Exact match (case-insensitive)
+LOUANG-NAMTHA,Louangnamtha,LA03,Normalized match (space/hyphen difference)
+LOUANGPHABANG,Louangphabang,LA06,Exact match (case-insensitive)
+OUDOMXAI,Oudomxai,LA04,Exact match (case-insensitive)
+PHONGSALI,Phongsaly,LA02,"Romanisation variant for Phongsaly (RNE_iso_code=LA-PH, FAO_GAUL_code=1762); missing 2008 and 2009-08 in OpenDengue (143 rows)"
+SALAVAN,Salavan,LA14,Exact match (case-insensitive)
+SAVANNAKHET,Savannakhet,LA13,Exact match (case-insensitive)
+VIENTIANE CAPITAL,,,UNRESOLVED: same FAO_GAUL_code=1768 / RNE_iso_code=LA-VI and same 156 months as VIENTIANE CAPITAL [PREFECTURE] but different counts; unclear whether this series is Vientiane Capital (LA01) or Vientiane Province (LA10); excluded
+VIENTIANE CAPITAL [PREFECTURE],,,UNRESOLVED: shares identical FAO_GAUL_code=1768 and RNE_iso_code=LA-VI with VIENTIANE CAPITAL across all 156 months (1998-2010); HDX LA10 (Vientiane Province) has no distinct code in OpenDengue; excluded from CSV to avoid guessing or duplicate collision
+XAIGNABOULI,Xaignabouly,LA08,"Romanisation variant for Xaignabouly (RNE_iso_code=LA-XA, FAO_GAUL_code=1765)"
+XAISOMBOUN,Xaisomboon,LA18,"Romanisation variant for Xaisomboon (FAO_GAUL_code=74346, RNE_iso_code=LA-VI); present 1998-2005 only (96 rows; Xaisomboun Special Zone dissolved Jan 2006, re-established Dec 2013)"
+XEKONG,Sekong,LA15,"Romanisation variant for Sekong (RNE_iso_code=LA-XE, FAO_GAUL_code=1766); missing 4 months in 2007 in OpenDengue (152 rows)"
+XIANGKHOUANG,Xiengkhouang,LA09,"Romanisation variant for Xiengkhouang (RNE_iso_code=LA-XI, FAO_GAUL_code=74347)"

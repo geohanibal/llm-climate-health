@@ -1,0 +1,10 @@
+opendengue_name,hdx_admin1_name,admin1_pcode,note
+CENTRAL,Central,LK2,Exact match (case-insensitive)
+EASTERN,Eastern,LK5,Exact match (case-insensitive); year 2000 absent in OpenDengue (96 rows across 1996-1999 and 2001-2004)
+NORTH CENTRAL,North Central,LK7,Exact match (case-insensitive)
+NORTH WESTERN,North Western,LK6,Exact match (case-insensitive)
+NORTHERN,Northern,LK4,Exact match (case-insensitive)
+SABARAGAMUWA,Sabaragamuwa,LK9,Exact match (case-insensitive)
+SOUTHERN,Southern,LK3,Exact match (case-insensitive)
+UVA,Uva,LK8,Exact match (case-insensitive)
+WESTERN,Western,LK1,Exact match (case-insensitive)

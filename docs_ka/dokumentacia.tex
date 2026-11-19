@@ -320,32 +320,31 @@ frontend პირდაპირ აჩვენებს, რომელი �
 ეპიდემიოლოგიური მოდელირების კვლევები (Suttirat et al.\ 2026, გვ.~5; Lowe et al.\ 2021, გვ.~e211)
 ენდემური ქვეყნებისთვის ეყრდნობა არა მთლიანი ქვეყნის ერთ აგრეგირებულ მაჩვენებელს, არამედ სუბნაციონალურ
 (პროვინციულ/მიკრორეგიონულ, Admin1/Admin2) მონაცემთა სერიებს. ხელმძღვანელების მოთხოვნის (D1, 2026-11-02)
-შესაბამისად, პლატფორმას დაემატა ტაილანდის პროვინციული (Admin1) დენგეს ყოველთვიური შემთხვევების
-რეპროდუცირებადი მონაცემთა შრე (Task~H):
+შესაბამისად, პლატფორმას დაემატა პროვინციული (Admin1) დენგეს ყოველთვიური შემთხვევების
+რეპროდუცირებადი მონაცემთა შრე ოთხი ქვეყნისთვის (Tasks~H \& I: \texttt{THA}, \texttt{LAO}, \texttt{LKA}, \texttt{SLV}):
 \begin{itemize}[leftmargin=1.4em]
   \item \textbf{ოფლაინ ამწყობი სკრიპტი (\texttt{backend/scripts/build\_dengue\_admin1.py}):}
+    იღებს ISO3 კოდების სიას (ნაგულისხმევად ყველა კონფიგურირებულ ქვეყანას: \texttt{THA, LAO, LKA, SLV}),
     ჩამოტვირთავს (ან ლოკალური ფაილიდან კითხულობს) OpenDengue V1.3-ის სივრცით ამონაწერს
-    (\texttt{Spatial\_extract\_V1\_3.zip}, ლიცენზია CC BY 4.0) და ფილტრავს ტაილანდის Admin1 თვიურ
-    ჩანაწერებს (1993--2022, სულ $27\,024$ სტრიქონი).
-  \item \textbf{ოფიციალური P-კოდების მიბმა (\texttt{backend/app/data/admin1\_name\_map\_THA.csv}):}
-    OpenDengue-ს 78 განსხვავებული პროვინციული დასახელება (\texttt{adm\_1\_name}) უკავშირდება
-    HDX COD-AB Thailand-ის (\texttt{tha\_admin\_boundaries.xlsx}, Royal Thai Survey Department / UN OCHA,
-    ლიცენზია CC BY-IGO) 77 ოფიციალურ პროვინციასა და P-კოდს (\texttt{TH10}--\texttt{TH96}).
-    70 დასახელება ემთხვევა ავტომატურად (რეგისტრის, ინტერვალებისა და დეფისების იგნორირებით), ხოლო
-    8 ტრანსლიტერაციული ვარიანტი (მათ შორის \texttt{PRACHIN BURI} 1993--2002 წლებში და
-    \texttt{PHACHINBURI} 2003--2022 წლებში, ორივე \texttt{TH25}-ისთვის თანაკვეთის გარეშე, აგრეთვე
-    \texttt{BUNGKAN} $\rightarrow$ \texttt{TH38}) გაწერილია ხელით გადამოწმებად ცხრილში. სკრიპტი ამოწმებს
-    დუბლიკატებს (\texttt{admin1\_pcode} + \texttt{month}) და არასდროს აჯამებს მათ ფარულად ($0$ დუბლიკატი).
-  \item \textbf{შემთხვევის განსაზღვრება დროში:} 1993--2002 წლებში (72 პროვინცია, $8\,640$ სტრიქონი)
-    \texttt{case\_definition} არის \texttt{Total}, ხოლო 2003--2022 წლებში (76 პროვინცია 2003--2010-ში,
-    77 პროვინცია 2011--2022-ში, სულ $18\,384$ სტრიქონი) ერთგვაროვნად \texttt{Suspected and confirmed}.
+    (\texttt{Spatial\_extract\_V1\_3.zip}, ლიცენზია CC BY 4.0) და თითოეული ქვეყნის HDX COD-AB
+    ცხრილს (\texttt{cod-ab-<iso3>}, ლიცენზია CC BY-IGO), ფილტრავს Admin1 თვიურ ჩანაწერებს და
+    ერთიანი კოდის გზით ქმნის \texttt{dengue\_monthly\_admin1\_<ISO3>.csv} და
+    \texttt{admin1\_name\_map\_<ISO3>.csv} ფაილებს.
+  \item \textbf{ოფიციალური P-კოდების მიბმა და ოთხი ქვეყნის დაფარვა:}
+    \begin{itemize}
+      \item \textbf{ტაილანდი (\texttt{THA}):} 1993--2022, $27\,024$ სტრიქონი, 78 დასახელება მიბმულია HDX-ის 77 პროვინციაზე (\texttt{TH10}--\texttt{TH96}, Royal Thai Survey Department). \texttt{PRACHIN BURI} (1993--2002) და \texttt{PHACHINBURI} (2003--2022) ორივე \texttt{TH25}-ს ეკუთვნის თანაკვეთის გარეშე ($0$ დუბლიკატი).
+      \item \textbf{ლაოსი (\texttt{LAO}):} 1998--2010, $2\,419$ მიბმული სტრიქონი (16 პროვინცია, National Geographic Department). Xaisomboon (\texttt{LA18}) წარმოდგენილია მხოლოდ 1998--2005 წლებში (96 სტრიქონი; მიზეზი წყაროთი არ არის შემოწმებული). \texttt{VIENTIANE CAPITAL} და \texttt{VIENTIANE CAPITAL [PREFECTURE]} ერთსა და იმავე 156 თვეს ფარავს იდენტური \texttt{FAO\_GAUL\_code=1768} და \texttt{RNE\_iso\_code=LA-VI}-ით, მაგრამ სხვადასხვა რიცხვებით; ვერ ვადგენთ, რომელი შეესაბამება დედაქალაქს (LA01) და რომელი Vientiane-ის პროვინციას (LA10), ამიტომ ორივე გამორიცხულია.
+      \item \textbf{შრი-ლანკა (\texttt{LKA}):} 1996--2004, $960$ სტრიქონი, 9 პროვინცია (\texttt{LK1}--\texttt{LK9}, Survey Department of Sri Lanka; 9-ვე ზუსტი ავტომატური დამთხვევაა; Eastern \texttt{LK5}-ს 2000 წელს მონაცემი არ აქვს).
+      \item \textbf{სალვადორი (\texttt{SLV}):} 2000--2009, $1\,587$ სტრიქონი, 14 დეპარტამენტი (\texttt{SV01}--\texttt{SV14}, წყარო \texttt{www.gadm.org}; 8 ზუსტი და 6 ესპანური დიაკრიტიკული დამთხვევა HDX-ის \texttt{adm1\_ref\_name}-ით; San Salvador \texttt{SV10} იწყება 2003-01-დან).
+    \end{itemize}
   \item \textbf{ჩამტვირთავი და ადმინისტრაციული საზღვრების ჰარმონიზაცია (\texttt{load\_dengue\_admin1}):}
-    ფუნქცია \texttt{load\_dengue\_admin1(iso3, start, end, merge\_changed\_units=True)} აბრუნებს სვეტებს
-    \texttt{admin1\_pcode, admin1\_name, month, cases}. როცა \texttt{merge\_changed\_units=True},
-    კოდში ექსპლიციტურად გაწერილი ცხრილის (\texttt{CHANGED\_UNITS = \{"THA": \{"TH38": "TH43"\}\}})
-    მიხედვით, 2011 წელს გამოყოფილი Bueng Kan-ის (\texttt{TH38}) შემთხვევები ემატება Nong Khai-ს
-    (\texttt{TH43}), ზუსტად Suttirat et al.\ (2026, გვ.~5) მეთოდოლოგიის შესაბამისად (2003--2022 წლებში
-    მუდმივი 76 ერთეული $\times 240$ თვე $= 18\,240$ პროვინცია-თვე). გამოტოვებული თვეები არ ივსება (A20).
+    ფუნქცია \texttt{load\_dengue\_admin1(iso3, start, end, merge\_changed\_units=True)} მუშაობს ოთხივე
+    ქვეყნისთვის და აბრუნებს სვეტებს \texttt{admin1\_pcode, admin1\_name, month, cases}. როცა
+    \texttt{merge\_changed\_units=True}, კოდში ექსპლიციტურად გაწერილი ცხრილის
+    (\texttt{CHANGED\_UNITS = \{"THA": \{"TH38": "TH43"\}\}}) მიხედვით, ტაილანდში 2011 წელს გამოყოფილი
+    Bueng Kan-ის (\texttt{TH38}) შემთხვევები ემატება Nong Khai-ს (\texttt{TH43}) Suttirat et al.\ (2026, გვ.~5)
+    მეთოდოლოგიით. სხვა ქვეყნებისთვის (მაგ.\ ლაოსის Xaisomboon, რომელიც 2006 წელს ორ პროვინციას შორის გაიყო)
+    \texttt{CHANGED\_UNITS}-ში ჩანაწერი არ ემატება გამოქვეყნებული წყაროს გარეშე და გამოტოვებული თვეები არ ივსება (A20).
 \end{itemize}
 
 %=====================================================================
@@ -645,7 +644,7 @@ CSV ფაილები) სვეტების სახელები დ
     მიზეზის განმარტება და ალტერნატიული წყაროების ავტომატური შეთავაზება (FR-26);
   \item ორი მონაცემთა წყაროს ემპირიული შედარება თანხვედრ პერიოდში (r, MAD, საშუალო სხვაობა)
     სეზონური ციკლისა და ეპიდზედამხედველობის შენიშვნებითა და Sparkline-ვიზუალიზაციით (FR-27);
-  \item ტაილანდის 77 პროვინციის (Admin1) დენგეს ყოველთვიური შემთხვევების ჩაშენებული ნაკრები (1993--2022, OpenDengue V1.3 Spatial extract + HDX COD-AB P-კოდები), რეპროდუცირებადი ამწყობი სკრიპტი და ჩამტვირთავი ფუნქცია Bueng Kan $\rightarrow$ Nong Khai საზღვრების ჰარმონიზაციით (FR-28, ნაწილი 1 / Task~H);
+  \item ოთხი ქვეყნის (\texttt{THA}, \texttt{LAO}, \texttt{LKA}, \texttt{SLV}) პროვინციული (Admin1) დენგეს ყოველთვიური შემთხვევების ჩაშენებული ნაკრებები (OpenDengue V1.3 Spatial extract + HDX COD-AB P-კოდები), მრავალქვეყნიანი რეპროდუცირებადი ამწყობი სკრიპტი და ჩამტვირთავი ფუნქცია Bueng Kan $\rightarrow$ Nong Khai საზღვრების ჰარმონიზაციით (FR-28, ნაწილი 1 / Tasks~H \& I);
   \item სამი ალტერნატიული სამეცნიერო/ოფიციალური კლიმატის წყარო
     (Open-Meteo, NASA POWER, TMD -- ბოლო მხოლოდ ტაილანდისთვის);
   \item დაავადების მონაცემთა წყაროების ცოცხალი ძებნა WHO GHO-სა და

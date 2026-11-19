@@ -68,8 +68,8 @@ pytest -m "not network"       # fast, fully offline — what CI would run
 pytest                        # everything, including one live Open-Meteo call
 ```
 
-Expected result: `pytest -m "not network"` reports **189 passed** (or `pytest -q` offline: **192 passed, 1 deselected**); the full
-`pytest` run reports **193 passed** (the extra one is
+Expected result: `pytest -m "not network"` reports **205 passed, 1 deselected**; the full
+`pytest` run reports **206 passed** (the extra one is
 `test_integrate_end_to_end_dengue_thailand`, which needs internet access to
 reach the real Open-Meteo API — it's the only test in the suite that does).
 
@@ -93,9 +93,10 @@ analyze` reports no errors in application code.
   disease/region, invalid date range, future end date, climate-source/region
   mismatch, missing custom-source fields), the full case-data pipeline (all
   four sources: builtin CSV, custom URL, custom upload, WHO GHO, plus the
-  subnational Thailand Admin1 monthly dengue loader `load_dengue_admin1` with
-  HDX COD-AB P-codes `TH10`–`TH96` and optional Bueng Kan `TH38` → Nong Khai
-  `TH43` boundary harmonisation per Suttirat et al. 2026, p. 5, FR-28 Part 1), climate
+  subnational Admin1 monthly dengue loader `load_dengue_admin1` for `THA`,
+  `LAO`, `LKA`, and `SLV` with HDX COD-AB P-codes and optional Bueng Kan
+  `TH38` → Nong Khai `TH43` boundary harmonisation per Suttirat et al. 2026,
+  p. 5, FR-28 Part 1), climate
   data aggregation (Open-Meteo, NASA POWER, TMD, including missing-data
   edge cases), population alignment (linear interpolation of annual values
   to monthly/daily: no January jump, July = annual value, constant outside
@@ -124,8 +125,8 @@ order — it touches every major feature.
    `{"status": "ok"}`.
 
 2. **AI-assisted request parsing.** In the "Describe what you need" free-text
-   box at the top, type something like *"dengue in Thailand from 2015 to
-   2023, yearly"* and submit. If a `GEMINI_API_KEY` is configured, the form
+   box at the top, type something like _"dengue in Thailand from 2015 to
+   2023, yearly"_ and submit. If a `GEMINI_API_KEY` is configured, the form
    below prefills with disease=Dengue, region=Thailand, and the given dates,
    with a short note on any assumptions made. Without a key configured, this
    instead shows a clear message that AI-assisted parsing isn't available —
@@ -230,14 +231,13 @@ order — it touches every major feature.
       domain notes explaining the shared seasonal cycle (climate) or surveillance definitions (cases).
     - Review the sparkline overlay showing both normalized series together.
 
-
 ## 5. Configuration reference
 
-| Variable | Required? | Effect if unset |
-|---|---|---|
-| `GEMINI_API_KEY` | No | AI-assisted parsing (§4.2) shows an unavailable message; explanations fall back to a static description (`explanation_source: "fallback"` in the API response). |
-| `GEMINI_MODEL` | No | Defaults to `gemini-flash-lite-latest`. |
-| `TMD_API_UID` / `TMD_API_UKEY` | No | The TMD climate source (§4.7) fails with a clear error; Open-Meteo and NASA POWER are unaffected. |
+| Variable                       | Required? | Effect if unset                                                                                                                                                 |
+| ------------------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GEMINI_API_KEY`               | No        | AI-assisted parsing (§4.2) shows an unavailable message; explanations fall back to a static description (`explanation_source: "fallback"` in the API response). |
+| `GEMINI_MODEL`                 | No        | Defaults to `gemini-flash-lite-latest`.                                                                                                                         |
+| `TMD_API_UID` / `TMD_API_UKEY` | No        | The TMD climate source (§4.7) fails with a clear error; Open-Meteo and NASA POWER are unaffected.                                                               |
 
 Set these in `backend/.env` (copy `backend/.env.example`) for local runs, or
 in the hosting provider's environment-variable settings for the deployed

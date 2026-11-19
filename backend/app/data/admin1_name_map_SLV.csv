@@ -1,0 +1,15 @@
+opendengue_name,hdx_admin1_name,admin1_pcode,note
+AHUACHAPAN,Ahuachapán,SV01,"Spanish diacritic difference (matches HDX adm1_ref_name=Ahuachapan; RNE_iso_code=SV-AH, FAO_GAUL_code=1184)"
+CABANAS,Cabañas,SV02,"Spanish diacritic difference (matches HDX adm1_ref_name=Cabanas; RNE_iso_code=SV-CA, FAO_GAUL_code=1185)"
+CHALATENANGO,Chalatenango,SV03,Exact match (case-insensitive)
+CUSCATLAN,Cuscatlán,SV04,"Spanish diacritic difference (matches HDX adm1_ref_name=Cuscatlan; RNE_iso_code=SV-CU, FAO_GAUL_code=1187)"
+LA LIBERTAD,La Libertad,SV05,Exact match (case-insensitive)
+LA PAZ,La Paz,SV06,Exact match (case-insensitive)
+LA UNION,La Unión,SV07,"Spanish diacritic difference (matches HDX adm1_ref_name=La Union; RNE_iso_code=SV-UN, FAO_GAUL_code=1190)"
+MORAZAN,Morazán,SV08,"Spanish diacritic difference (matches HDX adm1_ref_name=Morazan; RNE_iso_code=SV-MO, FAO_GAUL_code=1191)"
+SAN MIGUEL,San Miguel,SV09,Exact match (case-insensitive)
+SAN SALVADOR,San Salvador,SV10,Exact match (case-insensitive); present in OpenDengue Admin1 from 2003-01 to 2009-08 (80 rows; 2000-2002 absent)
+SAN VICENTE,San Vicente,SV11,Exact match (case-insensitive)
+SANTA ANA,Santa Ana,SV12,Exact match (case-insensitive); present 2000-01 to 2009-07 (115 rows; 2009-08 absent)
+SONSONATE,Sonsonate,SV13,Exact match (case-insensitive)
+USULUTAN,Usulután,SV14,"Spanish diacritic difference (matches HDX adm1_ref_name=Usulutan; RNE_iso_code=SV-US, FAO_GAUL_code=1197)"

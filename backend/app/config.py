@@ -238,20 +238,25 @@ CASE_DATA_SOURCES = {
 }
 
 # Regional (Admin1 / subnational) bundled dengue datasets and boundary registries
-# (FR-28, Task H). Each entry documents the primary epidemiological and
-# administrative-boundary sources, official URLs, and verified licences.
+# (FR-28, Tasks H & I). Each entry documents the primary epidemiological and
+# administrative-boundary sources, official URLs, and verified licences
+# (`license_title` and `dataset_source` exactly as returned by HDX package_show API).
+_OPENDENGUE_V13_SPATIAL_CITATION = (
+    "Clarke et al. (2024), Scientific Data 11, 296 — A global dataset of publicly "
+    "available dengue case count data (OpenDengue V1.3 Spatial extract, opendengue.org)"
+)
+_OPENDENGUE_V13_LICENSE = "OpenDengue V1.3: CC BY 4.0 (figshare 10.6084/m9.figshare.24259573)"
+
 REGIONAL_CASE_DATA_SOURCES: dict[str, dict[str, str]] = {
     "THA": {
         "data_file": "dengue_monthly_admin1_THA.csv",
         "name_map_file": "admin1_name_map_THA.csv",
         "case_source_label": "OpenDengue V1.3 Spatial extract (Admin1 monthly, Thailand)",
-        "case_citation": (
-            "Clarke et al. (2024), Scientific Data 11, 296 — A global dataset of publicly "
-            "available dengue case count data (OpenDengue V1.3 Spatial extract, opendengue.org)"
-        ),
-        # Verified 2026-11-19 on github.com/OpenDengue/master-repo (V1.3 Spatial_extract_V1_3.zip)
-        # and figshare 10.6084/m9.figshare.24259573.
-        "case_license": "OpenDengue V1.3: CC BY 4.0 (figshare 10.6084/m9.figshare.24259573)",
+        "case_citation": _OPENDENGUE_V13_SPATIAL_CITATION,
+        "case_license": _OPENDENGUE_V13_LICENSE,
+        "hdx_package_id": "cod-ab-tha",
+        "hdx_dataset_source": "Royal Thai Survey Department",
+        "hdx_license_title": "Creative Commons Attribution for Intergovernmental Organisations (CC BY-IGO)",
         "boundary_source_label": "HDX COD-AB Thailand (Admin1 provinces and P-codes)",
         "boundary_citation": (
             "Royal Thai Survey Department (RTSD), published by UN OCHA Regional Office for "
@@ -260,8 +265,71 @@ REGIONAL_CASE_DATA_SOURCES: dict[str, dict[str, str]] = {
         ),
         # Verified 2026-11-19 via HDX API https://data.humdata.org/api/3/action/package_show?id=cod-ab-tha
         "boundary_license": (
-            "CC BY-IGO (Creative Commons Attribution for Intergovernmental Organisations; "
-            "source: Royal Thai Survey Department / OCHA)"
+            "Creative Commons Attribution for Intergovernmental Organisations (CC BY-IGO) "
+            "(dataset_source: Royal Thai Survey Department)"
+        ),
+    },
+    "LAO": {
+        "data_file": "dengue_monthly_admin1_LAO.csv",
+        "name_map_file": "admin1_name_map_LAO.csv",
+        "case_source_label": "OpenDengue V1.3 Spatial extract (Admin1 monthly, Lao PDR)",
+        "case_citation": _OPENDENGUE_V13_SPATIAL_CITATION,
+        "case_license": _OPENDENGUE_V13_LICENSE,
+        "hdx_package_id": "cod-ab-lao",
+        "hdx_dataset_source": "National Geographic Department (NGD)",
+        "hdx_license_title": "Creative Commons Attribution for Intergovernmental Organisations (CC BY-IGO)",
+        "boundary_source_label": "HDX COD-AB Lao PDR (Admin1 provinces and P-codes)",
+        "boundary_citation": (
+            "National Geographic Department (NGD), published by OCHA Field Information Services "
+            "Section (FISS) on Humanitarian Data Exchange — Lao PDR Subnational Administrative "
+            "Boundaries (data.humdata.org/dataset/cod-ab-lao)"
+        ),
+        # Verified 2026-11-19 via HDX API https://data.humdata.org/api/3/action/package_show?id=cod-ab-lao
+        "boundary_license": (
+            "Creative Commons Attribution for Intergovernmental Organisations (CC BY-IGO) "
+            "(dataset_source: National Geographic Department (NGD))"
+        ),
+    },
+    "LKA": {
+        "data_file": "dengue_monthly_admin1_LKA.csv",
+        "name_map_file": "admin1_name_map_LKA.csv",
+        "case_source_label": "OpenDengue V1.3 Spatial extract (Admin1 monthly, Sri Lanka)",
+        "case_citation": _OPENDENGUE_V13_SPATIAL_CITATION,
+        "case_license": _OPENDENGUE_V13_LICENSE,
+        "hdx_package_id": "cod-ab-lka",
+        "hdx_dataset_source": "Survey Department of Sri Lanka (http://www.survey.gov.lk)",
+        "hdx_license_title": "Creative Commons Attribution for Intergovernmental Organisations (CC BY-IGO)",
+        "boundary_source_label": "HDX COD-AB Sri Lanka (Admin1 provinces and P-codes)",
+        "boundary_citation": (
+            "Survey Department of Sri Lanka (http://www.survey.gov.lk), published by OCHA Field "
+            "Information Services Section (FISS) on Humanitarian Data Exchange — Sri Lanka "
+            "Subnational Administrative Boundaries (data.humdata.org/dataset/cod-ab-lka)"
+        ),
+        # Verified 2026-11-19 via HDX API https://data.humdata.org/api/3/action/package_show?id=cod-ab-lka
+        "boundary_license": (
+            "Creative Commons Attribution for Intergovernmental Organisations (CC BY-IGO) "
+            "(dataset_source: Survey Department of Sri Lanka (http://www.survey.gov.lk))"
+        ),
+    },
+    "SLV": {
+        "data_file": "dengue_monthly_admin1_SLV.csv",
+        "name_map_file": "admin1_name_map_SLV.csv",
+        "case_source_label": "OpenDengue V1.3 Spatial extract (Admin1 monthly, El Salvador)",
+        "case_citation": _OPENDENGUE_V13_SPATIAL_CITATION,
+        "case_license": _OPENDENGUE_V13_LICENSE,
+        "hdx_package_id": "cod-ab-slv",
+        "hdx_dataset_source": "www.gadm.org",
+        "hdx_license_title": "Creative Commons Attribution for Intergovernmental Organisations (CC BY-IGO)",
+        "boundary_source_label": "HDX COD-AB El Salvador (Admin1 departments and P-codes)",
+        "boundary_citation": (
+            "www.gadm.org, published by OCHA Field Information Services Section (FISS) on "
+            "Humanitarian Data Exchange — El Salvador Subnational Administrative Boundaries "
+            "(data.humdata.org/dataset/cod-ab-slv)"
+        ),
+        # Verified 2026-11-19 via HDX API https://data.humdata.org/api/3/action/package_show?id=cod-ab-slv
+        "boundary_license": (
+            "Creative Commons Attribution for Intergovernmental Organisations (CC BY-IGO) "
+            "(dataset_source: www.gadm.org)"
         ),
     },
 }

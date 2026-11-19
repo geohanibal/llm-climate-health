@@ -1,0 +1,961 @@
+iso3,admin1_pcode,admin1_name,month,dengue_total,case_definition
+LKA,LK1,Western,1996-01,23,Total
+LKA,LK1,Western,1996-02,22,Total
+LKA,LK1,Western,1996-03,18,Total
+LKA,LK1,Western,1996-04,28,Total
+LKA,LK1,Western,1996-05,19,Total
+LKA,LK1,Western,1996-06,29,Total
+LKA,LK1,Western,1996-07,142,Total
+LKA,LK1,Western,1996-08,190,Total
+LKA,LK1,Western,1996-09,70,Total
+LKA,LK1,Western,1996-10,68,Total
+LKA,LK1,Western,1996-11,74,Total
+LKA,LK1,Western,1996-12,53,Total
+LKA,LK1,Western,1997-01,55,Total
+LKA,LK1,Western,1997-02,12,Total
+LKA,LK1,Western,1997-03,18,Total
+LKA,LK1,Western,1997-04,11,Total
+LKA,LK1,Western,1997-05,24,Total
+LKA,LK1,Western,1997-06,53,Total
+LKA,LK1,Western,1997-07,66,Total
+LKA,LK1,Western,1997-08,57,Total
+LKA,LK1,Western,1997-09,57,Total
+LKA,LK1,Western,1997-10,53,Total
+LKA,LK1,Western,1997-11,148,Total
+LKA,LK1,Western,1997-12,97,Total
+LKA,LK1,Western,1998-01,113,Total
+LKA,LK1,Western,1998-02,58,Total
+LKA,LK1,Western,1998-03,41,Total
+LKA,LK1,Western,1998-04,77,Total
+LKA,LK1,Western,1998-05,47,Total
+LKA,LK1,Western,1998-06,64,Total
+LKA,LK1,Western,1998-07,59,Total
+LKA,LK1,Western,1998-08,120,Total
+LKA,LK1,Western,1998-09,113,Total
+LKA,LK1,Western,1998-10,110,Total
+LKA,LK1,Western,1998-11,79,Total
+LKA,LK1,Western,1998-12,109,Total
+LKA,LK1,Western,1999-01,84,Total
+LKA,LK1,Western,1999-02,78,Total
+LKA,LK1,Western,1999-03,74,Total
+LKA,LK1,Western,1999-04,51,Total
+LKA,LK1,Western,1999-05,13,Total
+LKA,LK1,Western,1999-06,126,Total
+LKA,LK1,Western,1999-07,140,Total
+LKA,LK1,Western,1999-08,272,Total
+LKA,LK1,Western,1999-09,125,Total
+LKA,LK1,Western,1999-10,158,Total
+LKA,LK1,Western,1999-11,184,Total
+LKA,LK1,Western,1999-12,155,Total
+LKA,LK1,Western,2000-01,221,Total
+LKA,LK1,Western,2000-02,121,Total
+LKA,LK1,Western,2000-03,182,Total
+LKA,LK1,Western,2000-04,212,Total
+LKA,LK1,Western,2000-05,184,Total
+LKA,LK1,Western,2000-06,241,Total
+LKA,LK1,Western,2000-07,294,Total
+LKA,LK1,Western,2000-08,221,Total
+LKA,LK1,Western,2000-09,106,Total
+LKA,LK1,Western,2000-10,185,Total
+LKA,LK1,Western,2000-11,218,Total
+LKA,LK1,Western,2000-12,85,Total
+LKA,LK1,Western,2001-01,260,Total
+LKA,LK1,Western,2001-02,176,Total
+LKA,LK1,Western,2001-03,174,Total
+LKA,LK1,Western,2001-04,144,Total
+LKA,LK1,Western,2001-05,186,Total
+LKA,LK1,Western,2001-06,653,Total
+LKA,LK1,Western,2001-07,364,Total
+LKA,LK1,Western,2001-08,110,Total
+LKA,LK1,Western,2001-09,36,Total
+LKA,LK1,Western,2001-10,41,Total
+LKA,LK1,Western,2001-11,90,Total
+LKA,LK1,Western,2001-12,151,Total
+LKA,LK1,Western,2002-01,170,Total
+LKA,LK1,Western,2002-02,122,Total
+LKA,LK1,Western,2002-03,90,Total
+LKA,LK1,Western,2002-04,80,Total
+LKA,LK1,Western,2002-05,106,Total
+LKA,LK1,Western,2002-06,336,Total
+LKA,LK1,Western,2002-07,179,Total
+LKA,LK1,Western,2002-08,47,Total
+LKA,LK1,Western,2002-09,15,Total
+LKA,LK1,Western,2002-10,19,Total
+LKA,LK1,Western,2002-11,45,Total
+LKA,LK1,Western,2002-12,46,Total
+LKA,LK1,Western,2003-01,80,Total
+LKA,LK1,Western,2003-02,59,Total
+LKA,LK1,Western,2003-03,43,Total
+LKA,LK1,Western,2003-04,35,Total
+LKA,LK1,Western,2003-05,29,Total
+LKA,LK1,Western,2003-06,30,Total
+LKA,LK1,Western,2003-07,41,Total
+LKA,LK1,Western,2003-08,42,Total
+LKA,LK1,Western,2003-09,42,Total
+LKA,LK1,Western,2003-10,59,Total
+LKA,LK1,Western,2003-11,72,Total
+LKA,LK1,Western,2003-12,63,Total
+LKA,LK1,Western,2004-01,83,Total
+LKA,LK1,Western,2004-02,59,Total
+LKA,LK1,Western,2004-03,35,Total
+LKA,LK1,Western,2004-04,91,Total
+LKA,LK1,Western,2004-05,225,Total
+LKA,LK1,Western,2004-06,316,Total
+LKA,LK1,Western,2004-07,281,Total
+LKA,LK1,Western,2004-08,102,Total
+LKA,LK1,Western,2004-09,41,Total
+LKA,LK1,Western,2004-10,12,Total
+LKA,LK1,Western,2004-11,0,Total
+LKA,LK1,Western,2004-12,11,Total
+LKA,LK2,Central,1996-01,1,Total
+LKA,LK2,Central,1996-02,0,Total
+LKA,LK2,Central,1996-03,1,Total
+LKA,LK2,Central,1996-04,2,Total
+LKA,LK2,Central,1996-05,3,Total
+LKA,LK2,Central,1996-06,5,Total
+LKA,LK2,Central,1996-07,2,Total
+LKA,LK2,Central,1996-08,25,Total
+LKA,LK2,Central,1996-09,11,Total
+LKA,LK2,Central,1996-10,5,Total
+LKA,LK2,Central,1996-11,18,Total
+LKA,LK2,Central,1996-12,16,Total
+LKA,LK2,Central,1997-01,28,Total
+LKA,LK2,Central,1997-02,4,Total
+LKA,LK2,Central,1997-03,5,Total
+LKA,LK2,Central,1997-04,5,Total
+LKA,LK2,Central,1997-05,9,Total
+LKA,LK2,Central,1997-06,7,Total
+LKA,LK2,Central,1997-07,15,Total
+LKA,LK2,Central,1997-08,15,Total
+LKA,LK2,Central,1997-09,8,Total
+LKA,LK2,Central,1997-10,9,Total
+LKA,LK2,Central,1997-11,10,Total
+LKA,LK2,Central,1997-12,8,Total
+LKA,LK2,Central,1998-01,8,Total
+LKA,LK2,Central,1998-02,6,Total
+LKA,LK2,Central,1998-03,9,Total
+LKA,LK2,Central,1998-04,8,Total
+LKA,LK2,Central,1998-05,4,Total
+LKA,LK2,Central,1998-06,6,Total
+LKA,LK2,Central,1998-07,12,Total
+LKA,LK2,Central,1998-08,11,Total
+LKA,LK2,Central,1998-09,5,Total
+LKA,LK2,Central,1998-10,4,Total
+LKA,LK2,Central,1998-11,6,Total
+LKA,LK2,Central,1998-12,10,Total
+LKA,LK2,Central,1999-01,2,Total
+LKA,LK2,Central,1999-02,1,Total
+LKA,LK2,Central,1999-03,4,Total
+LKA,LK2,Central,1999-04,3,Total
+LKA,LK2,Central,1999-05,0,Total
+LKA,LK2,Central,1999-06,4,Total
+LKA,LK2,Central,1999-07,5,Total
+LKA,LK2,Central,1999-08,3,Total
+LKA,LK2,Central,1999-09,9,Total
+LKA,LK2,Central,1999-10,1,Total
+LKA,LK2,Central,1999-11,7,Total
+LKA,LK2,Central,1999-12,8,Total
+LKA,LK2,Central,2000-01,6,Total
+LKA,LK2,Central,2000-02,7,Total
+LKA,LK2,Central,2000-03,1,Total
+LKA,LK2,Central,2000-04,6,Total
+LKA,LK2,Central,2000-05,8,Total
+LKA,LK2,Central,2000-06,11,Total
+LKA,LK2,Central,2000-07,11,Total
+LKA,LK2,Central,2000-08,8,Total
+LKA,LK2,Central,2000-09,8,Total
+LKA,LK2,Central,2000-10,11,Total
+LKA,LK2,Central,2000-11,51,Total
+LKA,LK2,Central,2000-12,21,Total
+LKA,LK2,Central,2001-01,42,Total
+LKA,LK2,Central,2001-02,13,Total
+LKA,LK2,Central,2001-03,12,Total
+LKA,LK2,Central,2001-04,10,Total
+LKA,LK2,Central,2001-05,11,Total
+LKA,LK2,Central,2001-06,34,Total
+LKA,LK2,Central,2001-07,49,Total
+LKA,LK2,Central,2001-08,25,Total
+LKA,LK2,Central,2001-09,17,Total
+LKA,LK2,Central,2001-10,29,Total
+LKA,LK2,Central,2001-11,36,Total
+LKA,LK2,Central,2001-12,33,Total
+LKA,LK2,Central,2002-01,18,Total
+LKA,LK2,Central,2002-02,17,Total
+LKA,LK2,Central,2002-03,12,Total
+LKA,LK2,Central,2002-04,12,Total
+LKA,LK2,Central,2002-05,33,Total
+LKA,LK2,Central,2002-06,54,Total
+LKA,LK2,Central,2002-07,47,Total
+LKA,LK2,Central,2002-08,17,Total
+LKA,LK2,Central,2002-09,8,Total
+LKA,LK2,Central,2002-10,5,Total
+LKA,LK2,Central,2002-11,14,Total
+LKA,LK2,Central,2002-12,14,Total
+LKA,LK2,Central,2003-01,11,Total
+LKA,LK2,Central,2003-02,2,Total
+LKA,LK2,Central,2003-03,8,Total
+LKA,LK2,Central,2003-04,3,Total
+LKA,LK2,Central,2003-05,4,Total
+LKA,LK2,Central,2003-06,17,Total
+LKA,LK2,Central,2003-07,12,Total
+LKA,LK2,Central,2003-08,17,Total
+LKA,LK2,Central,2003-09,46,Total
+LKA,LK2,Central,2003-10,39,Total
+LKA,LK2,Central,2003-11,42,Total
+LKA,LK2,Central,2003-12,61,Total
+LKA,LK2,Central,2004-01,50,Total
+LKA,LK2,Central,2004-02,37,Total
+LKA,LK2,Central,2004-03,30,Total
+LKA,LK2,Central,2004-04,65,Total
+LKA,LK2,Central,2004-05,155,Total
+LKA,LK2,Central,2004-06,143,Total
+LKA,LK2,Central,2004-07,73,Total
+LKA,LK2,Central,2004-08,27,Total
+LKA,LK2,Central,2004-09,11,Total
+LKA,LK2,Central,2004-10,11,Total
+LKA,LK2,Central,2004-11,1,Total
+LKA,LK2,Central,2004-12,2,Total
+LKA,LK3,Southern,1996-01,1,Total
+LKA,LK3,Southern,1996-02,3,Total
+LKA,LK3,Southern,1996-03,1,Total
+LKA,LK3,Southern,1996-04,1,Total
+LKA,LK3,Southern,1996-05,0,Total
+LKA,LK3,Southern,1996-06,3,Total
+LKA,LK3,Southern,1996-07,6,Total
+LKA,LK3,Southern,1996-08,8,Total
+LKA,LK3,Southern,1996-09,4,Total
+LKA,LK3,Southern,1996-10,1,Total
+LKA,LK3,Southern,1996-11,2,Total
+LKA,LK3,Southern,1996-12,3,Total
+LKA,LK3,Southern,1997-01,2,Total
+LKA,LK3,Southern,1997-02,1,Total
+LKA,LK3,Southern,1997-03,4,Total
+LKA,LK3,Southern,1997-04,3,Total
+LKA,LK3,Southern,1997-05,5,Total
+LKA,LK3,Southern,1997-06,7,Total
+LKA,LK3,Southern,1997-07,7,Total
+LKA,LK3,Southern,1997-08,14,Total
+LKA,LK3,Southern,1997-09,6,Total
+LKA,LK3,Southern,1997-10,9,Total
+LKA,LK3,Southern,1997-11,19,Total
+LKA,LK3,Southern,1997-12,9,Total
+LKA,LK3,Southern,1998-01,5,Total
+LKA,LK3,Southern,1998-02,4,Total
+LKA,LK3,Southern,1998-03,10,Total
+LKA,LK3,Southern,1998-04,10,Total
+LKA,LK3,Southern,1998-05,11,Total
+LKA,LK3,Southern,1998-06,3,Total
+LKA,LK3,Southern,1998-07,8,Total
+LKA,LK3,Southern,1998-08,17,Total
+LKA,LK3,Southern,1998-09,3,Total
+LKA,LK3,Southern,1998-10,5,Total
+LKA,LK3,Southern,1998-11,10,Total
+LKA,LK3,Southern,1998-12,2,Total
+LKA,LK3,Southern,1999-01,3,Total
+LKA,LK3,Southern,1999-02,4,Total
+LKA,LK3,Southern,1999-03,6,Total
+LKA,LK3,Southern,1999-04,3,Total
+LKA,LK3,Southern,1999-05,0,Total
+LKA,LK3,Southern,1999-06,7,Total
+LKA,LK3,Southern,1999-07,2,Total
+LKA,LK3,Southern,1999-08,7,Total
+LKA,LK3,Southern,1999-09,1,Total
+LKA,LK3,Southern,1999-10,6,Total
+LKA,LK3,Southern,1999-11,8,Total
+LKA,LK3,Southern,1999-12,10,Total
+LKA,LK3,Southern,2000-01,2,Total
+LKA,LK3,Southern,2000-02,8,Total
+LKA,LK3,Southern,2000-03,9,Total
+LKA,LK3,Southern,2000-04,3,Total
+LKA,LK3,Southern,2000-05,5,Total
+LKA,LK3,Southern,2000-06,5,Total
+LKA,LK3,Southern,2000-07,10,Total
+LKA,LK3,Southern,2000-08,17,Total
+LKA,LK3,Southern,2000-09,21,Total
+LKA,LK3,Southern,2000-10,101,Total
+LKA,LK3,Southern,2000-11,179,Total
+LKA,LK3,Southern,2000-12,28,Total
+LKA,LK3,Southern,2001-01,62,Total
+LKA,LK3,Southern,2001-02,36,Total
+LKA,LK3,Southern,2001-03,52,Total
+LKA,LK3,Southern,2001-04,26,Total
+LKA,LK3,Southern,2001-05,33,Total
+LKA,LK3,Southern,2001-06,59,Total
+LKA,LK3,Southern,2001-07,40,Total
+LKA,LK3,Southern,2001-08,13,Total
+LKA,LK3,Southern,2001-09,11,Total
+LKA,LK3,Southern,2001-10,36,Total
+LKA,LK3,Southern,2001-11,59,Total
+LKA,LK3,Southern,2001-12,59,Total
+LKA,LK3,Southern,2002-01,40,Total
+LKA,LK3,Southern,2002-02,27,Total
+LKA,LK3,Southern,2002-03,21,Total
+LKA,LK3,Southern,2002-04,21,Total
+LKA,LK3,Southern,2002-05,54,Total
+LKA,LK3,Southern,2002-06,119,Total
+LKA,LK3,Southern,2002-07,92,Total
+LKA,LK3,Southern,2002-08,47,Total
+LKA,LK3,Southern,2002-09,16,Total
+LKA,LK3,Southern,2002-10,40,Total
+LKA,LK3,Southern,2002-11,55,Total
+LKA,LK3,Southern,2002-12,26,Total
+LKA,LK3,Southern,2003-01,16,Total
+LKA,LK3,Southern,2003-02,18,Total
+LKA,LK3,Southern,2003-03,11,Total
+LKA,LK3,Southern,2003-04,5,Total
+LKA,LK3,Southern,2003-05,6,Total
+LKA,LK3,Southern,2003-06,4,Total
+LKA,LK3,Southern,2003-07,5,Total
+LKA,LK3,Southern,2003-08,10,Total
+LKA,LK3,Southern,2003-09,3,Total
+LKA,LK3,Southern,2003-10,9,Total
+LKA,LK3,Southern,2003-11,5,Total
+LKA,LK3,Southern,2003-12,7,Total
+LKA,LK3,Southern,2004-01,18,Total
+LKA,LK3,Southern,2004-02,11,Total
+LKA,LK3,Southern,2004-03,7,Total
+LKA,LK3,Southern,2004-04,13,Total
+LKA,LK3,Southern,2004-05,44,Total
+LKA,LK3,Southern,2004-06,70,Total
+LKA,LK3,Southern,2004-07,33,Total
+LKA,LK3,Southern,2004-08,23,Total
+LKA,LK3,Southern,2004-09,9,Total
+LKA,LK3,Southern,2004-10,2,Total
+LKA,LK3,Southern,2004-11,2,Total
+LKA,LK3,Southern,2004-12,0,Total
+LKA,LK4,Northern,1996-01,0,Total
+LKA,LK4,Northern,1996-02,0,Total
+LKA,LK4,Northern,1996-03,0,Total
+LKA,LK4,Northern,1996-04,0,Total
+LKA,LK4,Northern,1996-05,0,Total
+LKA,LK4,Northern,1996-06,0,Total
+LKA,LK4,Northern,1996-07,0,Total
+LKA,LK4,Northern,1996-08,0,Total
+LKA,LK4,Northern,1996-09,0,Total
+LKA,LK4,Northern,1996-10,0,Total
+LKA,LK4,Northern,1996-11,0,Total
+LKA,LK4,Northern,1996-12,0,Total
+LKA,LK4,Northern,1997-01,0,Total
+LKA,LK4,Northern,1997-02,0,Total
+LKA,LK4,Northern,1997-03,7,Total
+LKA,LK4,Northern,1997-04,2,Total
+LKA,LK4,Northern,1997-05,0,Total
+LKA,LK4,Northern,1997-06,0,Total
+LKA,LK4,Northern,1997-07,0,Total
+LKA,LK4,Northern,1997-08,2,Total
+LKA,LK4,Northern,1997-09,0,Total
+LKA,LK4,Northern,1997-10,0,Total
+LKA,LK4,Northern,1997-11,0,Total
+LKA,LK4,Northern,1997-12,1,Total
+LKA,LK4,Northern,1998-01,2,Total
+LKA,LK4,Northern,1998-02,1,Total
+LKA,LK4,Northern,1998-03,0,Total
+LKA,LK4,Northern,1998-04,0,Total
+LKA,LK4,Northern,1998-05,0,Total
+LKA,LK4,Northern,1998-06,0,Total
+LKA,LK4,Northern,1998-07,0,Total
+LKA,LK4,Northern,1998-08,0,Total
+LKA,LK4,Northern,1998-09,0,Total
+LKA,LK4,Northern,1998-10,0,Total
+LKA,LK4,Northern,1998-11,0,Total
+LKA,LK4,Northern,1998-12,0,Total
+LKA,LK4,Northern,1999-01,1,Total
+LKA,LK4,Northern,1999-02,0,Total
+LKA,LK4,Northern,1999-03,1,Total
+LKA,LK4,Northern,1999-04,0,Total
+LKA,LK4,Northern,1999-05,0,Total
+LKA,LK4,Northern,1999-06,0,Total
+LKA,LK4,Northern,1999-07,0,Total
+LKA,LK4,Northern,1999-08,0,Total
+LKA,LK4,Northern,1999-09,0,Total
+LKA,LK4,Northern,1999-10,0,Total
+LKA,LK4,Northern,1999-11,0,Total
+LKA,LK4,Northern,1999-12,0,Total
+LKA,LK4,Northern,2000-01,0,Total
+LKA,LK4,Northern,2000-02,0,Total
+LKA,LK4,Northern,2000-03,0,Total
+LKA,LK4,Northern,2000-04,0,Total
+LKA,LK4,Northern,2000-05,0,Total
+LKA,LK4,Northern,2000-06,0,Total
+LKA,LK4,Northern,2000-07,1,Total
+LKA,LK4,Northern,2000-08,0,Total
+LKA,LK4,Northern,2000-09,0,Total
+LKA,LK4,Northern,2000-10,0,Total
+LKA,LK4,Northern,2000-11,1,Total
+LKA,LK4,Northern,2000-12,1,Total
+LKA,LK4,Northern,2001-01,11,Total
+LKA,LK4,Northern,2001-02,4,Total
+LKA,LK4,Northern,2001-03,1,Total
+LKA,LK4,Northern,2001-04,0,Total
+LKA,LK4,Northern,2001-05,1,Total
+LKA,LK4,Northern,2001-06,1,Total
+LKA,LK4,Northern,2001-07,0,Total
+LKA,LK4,Northern,2001-08,0,Total
+LKA,LK4,Northern,2001-09,0,Total
+LKA,LK4,Northern,2001-10,0,Total
+LKA,LK4,Northern,2001-11,0,Total
+LKA,LK4,Northern,2001-12,3,Total
+LKA,LK4,Northern,2002-01,8,Total
+LKA,LK4,Northern,2002-02,1,Total
+LKA,LK4,Northern,2002-03,1,Total
+LKA,LK4,Northern,2002-04,1,Total
+LKA,LK4,Northern,2002-05,1,Total
+LKA,LK4,Northern,2002-06,10,Total
+LKA,LK4,Northern,2002-07,5,Total
+LKA,LK4,Northern,2002-08,2,Total
+LKA,LK4,Northern,2002-09,0,Total
+LKA,LK4,Northern,2002-10,1,Total
+LKA,LK4,Northern,2002-11,3,Total
+LKA,LK4,Northern,2002-12,3,Total
+LKA,LK4,Northern,2003-01,64,Total
+LKA,LK4,Northern,2003-02,10,Total
+LKA,LK4,Northern,2003-03,6,Total
+LKA,LK4,Northern,2003-04,4,Total
+LKA,LK4,Northern,2003-05,2,Total
+LKA,LK4,Northern,2003-06,1,Total
+LKA,LK4,Northern,2003-07,8,Total
+LKA,LK4,Northern,2003-08,5,Total
+LKA,LK4,Northern,2003-09,3,Total
+LKA,LK4,Northern,2003-10,14,Total
+LKA,LK4,Northern,2003-11,14,Total
+LKA,LK4,Northern,2003-12,11,Total
+LKA,LK4,Northern,2004-01,2,Total
+LKA,LK4,Northern,2004-02,0,Total
+LKA,LK4,Northern,2004-03,0,Total
+LKA,LK4,Northern,2004-04,1,Total
+LKA,LK4,Northern,2004-05,3,Total
+LKA,LK4,Northern,2004-06,3,Total
+LKA,LK4,Northern,2004-07,4,Total
+LKA,LK4,Northern,2004-08,0,Total
+LKA,LK4,Northern,2004-09,3,Total
+LKA,LK4,Northern,2004-10,1,Total
+LKA,LK4,Northern,2004-11,0,Total
+LKA,LK4,Northern,2004-12,0,Total
+LKA,LK5,Eastern,1996-01,9,Total
+LKA,LK5,Eastern,1996-02,1,Total
+LKA,LK5,Eastern,1996-03,4,Total
+LKA,LK5,Eastern,1996-04,34,Total
+LKA,LK5,Eastern,1996-05,10,Total
+LKA,LK5,Eastern,1996-06,2,Total
+LKA,LK5,Eastern,1996-07,2,Total
+LKA,LK5,Eastern,1996-08,0,Total
+LKA,LK5,Eastern,1996-09,0,Total
+LKA,LK5,Eastern,1996-10,1,Total
+LKA,LK5,Eastern,1996-11,2,Total
+LKA,LK5,Eastern,1996-12,0,Total
+LKA,LK5,Eastern,1997-01,1,Total
+LKA,LK5,Eastern,1997-02,0,Total
+LKA,LK5,Eastern,1997-03,0,Total
+LKA,LK5,Eastern,1997-04,0,Total
+LKA,LK5,Eastern,1997-05,0,Total
+LKA,LK5,Eastern,1997-06,0,Total
+LKA,LK5,Eastern,1997-07,0,Total
+LKA,LK5,Eastern,1997-08,0,Total
+LKA,LK5,Eastern,1997-09,0,Total
+LKA,LK5,Eastern,1997-10,0,Total
+LKA,LK5,Eastern,1997-11,1,Total
+LKA,LK5,Eastern,1997-12,0,Total
+LKA,LK5,Eastern,1998-01,0,Total
+LKA,LK5,Eastern,1998-02,0,Total
+LKA,LK5,Eastern,1998-03,0,Total
+LKA,LK5,Eastern,1998-04,0,Total
+LKA,LK5,Eastern,1998-05,0,Total
+LKA,LK5,Eastern,1998-06,1,Total
+LKA,LK5,Eastern,1998-07,0,Total
+LKA,LK5,Eastern,1998-08,0,Total
+LKA,LK5,Eastern,1998-09,1,Total
+LKA,LK5,Eastern,1998-10,0,Total
+LKA,LK5,Eastern,1998-11,0,Total
+LKA,LK5,Eastern,1998-12,0,Total
+LKA,LK5,Eastern,1999-01,0,Total
+LKA,LK5,Eastern,1999-02,0,Total
+LKA,LK5,Eastern,1999-03,5,Total
+LKA,LK5,Eastern,1999-04,0,Total
+LKA,LK5,Eastern,1999-05,0,Total
+LKA,LK5,Eastern,1999-06,0,Total
+LKA,LK5,Eastern,1999-07,3,Total
+LKA,LK5,Eastern,1999-08,0,Total
+LKA,LK5,Eastern,1999-09,0,Total
+LKA,LK5,Eastern,1999-10,0,Total
+LKA,LK5,Eastern,1999-11,2,Total
+LKA,LK5,Eastern,1999-12,0,Total
+LKA,LK5,Eastern,2001-01,8,Total
+LKA,LK5,Eastern,2001-02,12,Total
+LKA,LK5,Eastern,2001-03,10,Total
+LKA,LK5,Eastern,2001-04,1,Total
+LKA,LK5,Eastern,2001-05,4,Total
+LKA,LK5,Eastern,2001-06,2,Total
+LKA,LK5,Eastern,2001-07,6,Total
+LKA,LK5,Eastern,2001-08,2,Total
+LKA,LK5,Eastern,2001-09,2,Total
+LKA,LK5,Eastern,2001-10,5,Total
+LKA,LK5,Eastern,2001-11,24,Total
+LKA,LK5,Eastern,2001-12,36,Total
+LKA,LK5,Eastern,2002-01,51,Total
+LKA,LK5,Eastern,2002-02,52,Total
+LKA,LK5,Eastern,2002-03,25,Total
+LKA,LK5,Eastern,2002-04,2,Total
+LKA,LK5,Eastern,2002-05,6,Total
+LKA,LK5,Eastern,2002-06,28,Total
+LKA,LK5,Eastern,2002-07,24,Total
+LKA,LK5,Eastern,2002-08,8,Total
+LKA,LK5,Eastern,2002-09,3,Total
+LKA,LK5,Eastern,2002-10,1,Total
+LKA,LK5,Eastern,2002-11,0,Total
+LKA,LK5,Eastern,2002-12,4,Total
+LKA,LK5,Eastern,2003-01,20,Total
+LKA,LK5,Eastern,2003-02,12,Total
+LKA,LK5,Eastern,2003-03,4,Total
+LKA,LK5,Eastern,2003-04,2,Total
+LKA,LK5,Eastern,2003-05,5,Total
+LKA,LK5,Eastern,2003-06,7,Total
+LKA,LK5,Eastern,2003-07,4,Total
+LKA,LK5,Eastern,2003-08,1,Total
+LKA,LK5,Eastern,2003-09,4,Total
+LKA,LK5,Eastern,2003-10,6,Total
+LKA,LK5,Eastern,2003-11,13,Total
+LKA,LK5,Eastern,2003-12,23,Total
+LKA,LK5,Eastern,2004-01,31,Total
+LKA,LK5,Eastern,2004-02,66,Total
+LKA,LK5,Eastern,2004-03,14,Total
+LKA,LK5,Eastern,2004-04,19,Total
+LKA,LK5,Eastern,2004-05,10,Total
+LKA,LK5,Eastern,2004-06,23,Total
+LKA,LK5,Eastern,2004-07,12,Total
+LKA,LK5,Eastern,2004-08,1,Total
+LKA,LK5,Eastern,2004-09,1,Total
+LKA,LK5,Eastern,2004-10,17,Total
+LKA,LK5,Eastern,2004-11,4,Total
+LKA,LK5,Eastern,2004-12,4,Total
+LKA,LK6,North Western,1996-01,1,Total
+LKA,LK6,North Western,1996-02,1,Total
+LKA,LK6,North Western,1996-03,0,Total
+LKA,LK6,North Western,1996-04,2,Total
+LKA,LK6,North Western,1996-05,6,Total
+LKA,LK6,North Western,1996-06,20,Total
+LKA,LK6,North Western,1996-07,20,Total
+LKA,LK6,North Western,1996-08,81,Total
+LKA,LK6,North Western,1996-09,35,Total
+LKA,LK6,North Western,1996-10,14,Total
+LKA,LK6,North Western,1996-11,108,Total
+LKA,LK6,North Western,1996-12,39,Total
+LKA,LK6,North Western,1997-01,13,Total
+LKA,LK6,North Western,1997-02,1,Total
+LKA,LK6,North Western,1997-03,4,Total
+LKA,LK6,North Western,1997-04,0,Total
+LKA,LK6,North Western,1997-05,10,Total
+LKA,LK6,North Western,1997-06,6,Total
+LKA,LK6,North Western,1997-07,6,Total
+LKA,LK6,North Western,1997-08,3,Total
+LKA,LK6,North Western,1997-09,5,Total
+LKA,LK6,North Western,1997-10,4,Total
+LKA,LK6,North Western,1997-11,6,Total
+LKA,LK6,North Western,1997-12,1,Total
+LKA,LK6,North Western,1998-01,2,Total
+LKA,LK6,North Western,1998-02,1,Total
+LKA,LK6,North Western,1998-03,3,Total
+LKA,LK6,North Western,1998-04,8,Total
+LKA,LK6,North Western,1998-05,3,Total
+LKA,LK6,North Western,1998-06,0,Total
+LKA,LK6,North Western,1998-07,2,Total
+LKA,LK6,North Western,1998-08,6,Total
+LKA,LK6,North Western,1998-09,1,Total
+LKA,LK6,North Western,1998-10,7,Total
+LKA,LK6,North Western,1998-11,2,Total
+LKA,LK6,North Western,1998-12,2,Total
+LKA,LK6,North Western,1999-01,2,Total
+LKA,LK6,North Western,1999-02,5,Total
+LKA,LK6,North Western,1999-03,3,Total
+LKA,LK6,North Western,1999-04,1,Total
+LKA,LK6,North Western,1999-05,1,Total
+LKA,LK6,North Western,1999-06,2,Total
+LKA,LK6,North Western,1999-07,1,Total
+LKA,LK6,North Western,1999-08,14,Total
+LKA,LK6,North Western,1999-09,6,Total
+LKA,LK6,North Western,1999-10,2,Total
+LKA,LK6,North Western,1999-11,6,Total
+LKA,LK6,North Western,1999-12,5,Total
+LKA,LK6,North Western,2000-01,8,Total
+LKA,LK6,North Western,2000-02,7,Total
+LKA,LK6,North Western,2000-03,12,Total
+LKA,LK6,North Western,2000-04,8,Total
+LKA,LK6,North Western,2000-05,28,Total
+LKA,LK6,North Western,2000-06,27,Total
+LKA,LK6,North Western,2000-07,21,Total
+LKA,LK6,North Western,2000-08,12,Total
+LKA,LK6,North Western,2000-09,14,Total
+LKA,LK6,North Western,2000-10,26,Total
+LKA,LK6,North Western,2000-11,108,Total
+LKA,LK6,North Western,2000-12,26,Total
+LKA,LK6,North Western,2001-01,50,Total
+LKA,LK6,North Western,2001-02,22,Total
+LKA,LK6,North Western,2001-03,34,Total
+LKA,LK6,North Western,2001-04,16,Total
+LKA,LK6,North Western,2001-05,25,Total
+LKA,LK6,North Western,2001-06,59,Total
+LKA,LK6,North Western,2001-07,51,Total
+LKA,LK6,North Western,2001-08,17,Total
+LKA,LK6,North Western,2001-09,4,Total
+LKA,LK6,North Western,2001-10,15,Total
+LKA,LK6,North Western,2001-11,30,Total
+LKA,LK6,North Western,2001-12,58,Total
+LKA,LK6,North Western,2002-01,51,Total
+LKA,LK6,North Western,2002-02,33,Total
+LKA,LK6,North Western,2002-03,16,Total
+LKA,LK6,North Western,2002-04,4,Total
+LKA,LK6,North Western,2002-05,38,Total
+LKA,LK6,North Western,2002-06,69,Total
+LKA,LK6,North Western,2002-07,33,Total
+LKA,LK6,North Western,2002-08,6,Total
+LKA,LK6,North Western,2002-09,3,Total
+LKA,LK6,North Western,2002-10,6,Total
+LKA,LK6,North Western,2002-11,11,Total
+LKA,LK6,North Western,2002-12,16,Total
+LKA,LK6,North Western,2003-01,17,Total
+LKA,LK6,North Western,2003-02,5,Total
+LKA,LK6,North Western,2003-03,14,Total
+LKA,LK6,North Western,2003-04,8,Total
+LKA,LK6,North Western,2003-05,0,Total
+LKA,LK6,North Western,2003-06,2,Total
+LKA,LK6,North Western,2003-07,5,Total
+LKA,LK6,North Western,2003-08,5,Total
+LKA,LK6,North Western,2003-09,4,Total
+LKA,LK6,North Western,2003-10,18,Total
+LKA,LK6,North Western,2003-11,18,Total
+LKA,LK6,North Western,2003-12,10,Total
+LKA,LK6,North Western,2004-01,30,Total
+LKA,LK6,North Western,2004-02,19,Total
+LKA,LK6,North Western,2004-03,12,Total
+LKA,LK6,North Western,2004-04,65,Total
+LKA,LK6,North Western,2004-05,140,Total
+LKA,LK6,North Western,2004-06,65,Total
+LKA,LK6,North Western,2004-07,23,Total
+LKA,LK6,North Western,2004-08,4,Total
+LKA,LK6,North Western,2004-09,1,Total
+LKA,LK6,North Western,2004-10,0,Total
+LKA,LK6,North Western,2004-11,1,Total
+LKA,LK6,North Western,2004-12,2,Total
+LKA,LK7,North Central,1996-01,0,Total
+LKA,LK7,North Central,1996-02,0,Total
+LKA,LK7,North Central,1996-03,1,Total
+LKA,LK7,North Central,1996-04,3,Total
+LKA,LK7,North Central,1996-05,0,Total
+LKA,LK7,North Central,1996-06,0,Total
+LKA,LK7,North Central,1996-07,0,Total
+LKA,LK7,North Central,1996-08,0,Total
+LKA,LK7,North Central,1996-09,0,Total
+LKA,LK7,North Central,1996-10,0,Total
+LKA,LK7,North Central,1996-11,1,Total
+LKA,LK7,North Central,1996-12,2,Total
+LKA,LK7,North Central,1997-01,1,Total
+LKA,LK7,North Central,1997-02,1,Total
+LKA,LK7,North Central,1997-03,4,Total
+LKA,LK7,North Central,1997-04,1,Total
+LKA,LK7,North Central,1997-05,2,Total
+LKA,LK7,North Central,1997-06,0,Total
+LKA,LK7,North Central,1997-07,1,Total
+LKA,LK7,North Central,1997-08,3,Total
+LKA,LK7,North Central,1997-09,0,Total
+LKA,LK7,North Central,1997-10,2,Total
+LKA,LK7,North Central,1997-11,10,Total
+LKA,LK7,North Central,1997-12,3,Total
+LKA,LK7,North Central,1998-01,5,Total
+LKA,LK7,North Central,1998-02,1,Total
+LKA,LK7,North Central,1998-03,1,Total
+LKA,LK7,North Central,1998-04,5,Total
+LKA,LK7,North Central,1998-05,3,Total
+LKA,LK7,North Central,1998-06,2,Total
+LKA,LK7,North Central,1998-07,1,Total
+LKA,LK7,North Central,1998-08,0,Total
+LKA,LK7,North Central,1998-09,1,Total
+LKA,LK7,North Central,1998-10,0,Total
+LKA,LK7,North Central,1998-11,0,Total
+LKA,LK7,North Central,1998-12,1,Total
+LKA,LK7,North Central,1999-01,1,Total
+LKA,LK7,North Central,1999-02,4,Total
+LKA,LK7,North Central,1999-03,1,Total
+LKA,LK7,North Central,1999-04,4,Total
+LKA,LK7,North Central,1999-05,0,Total
+LKA,LK7,North Central,1999-06,1,Total
+LKA,LK7,North Central,1999-07,1,Total
+LKA,LK7,North Central,1999-08,1,Total
+LKA,LK7,North Central,1999-09,1,Total
+LKA,LK7,North Central,1999-10,3,Total
+LKA,LK7,North Central,1999-11,2,Total
+LKA,LK7,North Central,1999-12,2,Total
+LKA,LK7,North Central,2000-01,5,Total
+LKA,LK7,North Central,2000-02,1,Total
+LKA,LK7,North Central,2000-03,6,Total
+LKA,LK7,North Central,2000-04,2,Total
+LKA,LK7,North Central,2000-05,2,Total
+LKA,LK7,North Central,2000-06,4,Total
+LKA,LK7,North Central,2000-07,2,Total
+LKA,LK7,North Central,2000-08,0,Total
+LKA,LK7,North Central,2000-09,3,Total
+LKA,LK7,North Central,2000-10,2,Total
+LKA,LK7,North Central,2000-11,7,Total
+LKA,LK7,North Central,2000-12,2,Total
+LKA,LK7,North Central,2001-01,19,Total
+LKA,LK7,North Central,2001-02,20,Total
+LKA,LK7,North Central,2001-03,7,Total
+LKA,LK7,North Central,2001-04,3,Total
+LKA,LK7,North Central,2001-05,1,Total
+LKA,LK7,North Central,2001-06,13,Total
+LKA,LK7,North Central,2001-07,4,Total
+LKA,LK7,North Central,2001-08,2,Total
+LKA,LK7,North Central,2001-09,3,Total
+LKA,LK7,North Central,2001-10,0,Total
+LKA,LK7,North Central,2001-11,2,Total
+LKA,LK7,North Central,2001-12,1,Total
+LKA,LK7,North Central,2002-01,3,Total
+LKA,LK7,North Central,2002-02,1,Total
+LKA,LK7,North Central,2002-03,9,Total
+LKA,LK7,North Central,2002-04,6,Total
+LKA,LK7,North Central,2002-05,7,Total
+LKA,LK7,North Central,2002-06,32,Total
+LKA,LK7,North Central,2002-07,11,Total
+LKA,LK7,North Central,2002-08,3,Total
+LKA,LK7,North Central,2002-09,1,Total
+LKA,LK7,North Central,2002-10,0,Total
+LKA,LK7,North Central,2002-11,2,Total
+LKA,LK7,North Central,2002-12,2,Total
+LKA,LK7,North Central,2003-01,6,Total
+LKA,LK7,North Central,2003-02,6,Total
+LKA,LK7,North Central,2003-03,5,Total
+LKA,LK7,North Central,2003-04,6,Total
+LKA,LK7,North Central,2003-05,4,Total
+LKA,LK7,North Central,2003-06,1,Total
+LKA,LK7,North Central,2003-07,5,Total
+LKA,LK7,North Central,2003-08,1,Total
+LKA,LK7,North Central,2003-09,3,Total
+LKA,LK7,North Central,2003-10,18,Total
+LKA,LK7,North Central,2003-11,67,Total
+LKA,LK7,North Central,2003-12,48,Total
+LKA,LK7,North Central,2004-01,32,Total
+LKA,LK7,North Central,2004-02,11,Total
+LKA,LK7,North Central,2004-03,3,Total
+LKA,LK7,North Central,2004-04,15,Total
+LKA,LK7,North Central,2004-05,125,Total
+LKA,LK7,North Central,2004-06,97,Total
+LKA,LK7,North Central,2004-07,52,Total
+LKA,LK7,North Central,2004-08,21,Total
+LKA,LK7,North Central,2004-09,16,Total
+LKA,LK7,North Central,2004-10,8,Total
+LKA,LK7,North Central,2004-11,0,Total
+LKA,LK7,North Central,2004-12,3,Total
+LKA,LK8,Uva,1996-01,0,Total
+LKA,LK8,Uva,1996-02,0,Total
+LKA,LK8,Uva,1996-03,0,Total
+LKA,LK8,Uva,1996-04,1,Total
+LKA,LK8,Uva,1996-05,1,Total
+LKA,LK8,Uva,1996-06,0,Total
+LKA,LK8,Uva,1996-07,1,Total
+LKA,LK8,Uva,1996-08,0,Total
+LKA,LK8,Uva,1996-09,0,Total
+LKA,LK8,Uva,1996-10,0,Total
+LKA,LK8,Uva,1996-11,0,Total
+LKA,LK8,Uva,1996-12,5,Total
+LKA,LK8,Uva,1997-01,0,Total
+LKA,LK8,Uva,1997-02,1,Total
+LKA,LK8,Uva,1997-03,0,Total
+LKA,LK8,Uva,1997-04,0,Total
+LKA,LK8,Uva,1997-05,0,Total
+LKA,LK8,Uva,1997-06,0,Total
+LKA,LK8,Uva,1997-07,0,Total
+LKA,LK8,Uva,1997-08,0,Total
+LKA,LK8,Uva,1997-09,0,Total
+LKA,LK8,Uva,1997-10,0,Total
+LKA,LK8,Uva,1997-11,0,Total
+LKA,LK8,Uva,1997-12,0,Total
+LKA,LK8,Uva,1998-01,0,Total
+LKA,LK8,Uva,1998-02,0,Total
+LKA,LK8,Uva,1998-03,0,Total
+LKA,LK8,Uva,1998-04,2,Total
+LKA,LK8,Uva,1998-05,2,Total
+LKA,LK8,Uva,1998-06,0,Total
+LKA,LK8,Uva,1998-07,0,Total
+LKA,LK8,Uva,1998-08,1,Total
+LKA,LK8,Uva,1998-09,0,Total
+LKA,LK8,Uva,1998-10,1,Total
+LKA,LK8,Uva,1998-11,0,Total
+LKA,LK8,Uva,1998-12,0,Total
+LKA,LK8,Uva,1999-01,1,Total
+LKA,LK8,Uva,1999-02,0,Total
+LKA,LK8,Uva,1999-03,0,Total
+LKA,LK8,Uva,1999-04,0,Total
+LKA,LK8,Uva,1999-05,1,Total
+LKA,LK8,Uva,1999-06,2,Total
+LKA,LK8,Uva,1999-07,2,Total
+LKA,LK8,Uva,1999-08,0,Total
+LKA,LK8,Uva,1999-09,0,Total
+LKA,LK8,Uva,1999-10,0,Total
+LKA,LK8,Uva,1999-11,0,Total
+LKA,LK8,Uva,1999-12,2,Total
+LKA,LK8,Uva,2000-01,0,Total
+LKA,LK8,Uva,2000-02,0,Total
+LKA,LK8,Uva,2000-03,0,Total
+LKA,LK8,Uva,2000-04,2,Total
+LKA,LK8,Uva,2000-05,1,Total
+LKA,LK8,Uva,2000-06,0,Total
+LKA,LK8,Uva,2000-07,0,Total
+LKA,LK8,Uva,2000-08,0,Total
+LKA,LK8,Uva,2000-09,0,Total
+LKA,LK8,Uva,2000-10,0,Total
+LKA,LK8,Uva,2000-11,2,Total
+LKA,LK8,Uva,2000-12,7,Total
+LKA,LK8,Uva,2001-01,3,Total
+LKA,LK8,Uva,2001-02,0,Total
+LKA,LK8,Uva,2001-03,1,Total
+LKA,LK8,Uva,2001-04,0,Total
+LKA,LK8,Uva,2001-05,1,Total
+LKA,LK8,Uva,2001-06,4,Total
+LKA,LK8,Uva,2001-07,5,Total
+LKA,LK8,Uva,2001-08,4,Total
+LKA,LK8,Uva,2001-09,11,Total
+LKA,LK8,Uva,2001-10,24,Total
+LKA,LK8,Uva,2001-11,18,Total
+LKA,LK8,Uva,2001-12,14,Total
+LKA,LK8,Uva,2002-01,9,Total
+LKA,LK8,Uva,2002-02,3,Total
+LKA,LK8,Uva,2002-03,3,Total
+LKA,LK8,Uva,2002-04,2,Total
+LKA,LK8,Uva,2002-05,4,Total
+LKA,LK8,Uva,2002-06,14,Total
+LKA,LK8,Uva,2002-07,20,Total
+LKA,LK8,Uva,2002-08,1,Total
+LKA,LK8,Uva,2002-09,2,Total
+LKA,LK8,Uva,2002-10,0,Total
+LKA,LK8,Uva,2002-11,3,Total
+LKA,LK8,Uva,2002-12,6,Total
+LKA,LK8,Uva,2003-01,6,Total
+LKA,LK8,Uva,2003-02,6,Total
+LKA,LK8,Uva,2003-03,6,Total
+LKA,LK8,Uva,2003-04,1,Total
+LKA,LK8,Uva,2003-05,2,Total
+LKA,LK8,Uva,2003-06,0,Total
+LKA,LK8,Uva,2003-07,0,Total
+LKA,LK8,Uva,2003-08,1,Total
+LKA,LK8,Uva,2003-09,0,Total
+LKA,LK8,Uva,2003-10,6,Total
+LKA,LK8,Uva,2003-11,4,Total
+LKA,LK8,Uva,2003-12,4,Total
+LKA,LK8,Uva,2004-01,2,Total
+LKA,LK8,Uva,2004-02,2,Total
+LKA,LK8,Uva,2004-03,3,Total
+LKA,LK8,Uva,2004-04,3,Total
+LKA,LK8,Uva,2004-05,13,Total
+LKA,LK8,Uva,2004-06,18,Total
+LKA,LK8,Uva,2004-07,9,Total
+LKA,LK8,Uva,2004-08,1,Total
+LKA,LK8,Uva,2004-09,0,Total
+LKA,LK8,Uva,2004-10,2,Total
+LKA,LK8,Uva,2004-11,0,Total
+LKA,LK8,Uva,2004-12,0,Total
+LKA,LK9,Sabaragamuwa,1996-01,0,Total
+LKA,LK9,Sabaragamuwa,1996-02,0,Total
+LKA,LK9,Sabaragamuwa,1996-03,0,Total
+LKA,LK9,Sabaragamuwa,1996-04,0,Total
+LKA,LK9,Sabaragamuwa,1996-05,1,Total
+LKA,LK9,Sabaragamuwa,1996-06,1,Total
+LKA,LK9,Sabaragamuwa,1996-07,11,Total
+LKA,LK9,Sabaragamuwa,1996-08,5,Total
+LKA,LK9,Sabaragamuwa,1996-09,1,Total
+LKA,LK9,Sabaragamuwa,1996-10,3,Total
+LKA,LK9,Sabaragamuwa,1996-11,9,Total
+LKA,LK9,Sabaragamuwa,1996-12,0,Total
+LKA,LK9,Sabaragamuwa,1997-01,0,Total
+LKA,LK9,Sabaragamuwa,1997-02,0,Total
+LKA,LK9,Sabaragamuwa,1997-03,1,Total
+LKA,LK9,Sabaragamuwa,1997-04,0,Total
+LKA,LK9,Sabaragamuwa,1997-05,3,Total
+LKA,LK9,Sabaragamuwa,1997-06,2,Total
+LKA,LK9,Sabaragamuwa,1997-07,2,Total
+LKA,LK9,Sabaragamuwa,1997-08,0,Total
+LKA,LK9,Sabaragamuwa,1997-09,5,Total
+LKA,LK9,Sabaragamuwa,1997-10,2,Total
+LKA,LK9,Sabaragamuwa,1997-11,0,Total
+LKA,LK9,Sabaragamuwa,1997-12,4,Total
+LKA,LK9,Sabaragamuwa,1998-01,2,Total
+LKA,LK9,Sabaragamuwa,1998-02,7,Total
+LKA,LK9,Sabaragamuwa,1998-03,1,Total
+LKA,LK9,Sabaragamuwa,1998-04,6,Total
+LKA,LK9,Sabaragamuwa,1998-05,0,Total
+LKA,LK9,Sabaragamuwa,1998-06,2,Total
+LKA,LK9,Sabaragamuwa,1998-07,1,Total
+LKA,LK9,Sabaragamuwa,1998-08,2,Total
+LKA,LK9,Sabaragamuwa,1998-09,3,Total
+LKA,LK9,Sabaragamuwa,1998-10,8,Total
+LKA,LK9,Sabaragamuwa,1998-11,3,Total
+LKA,LK9,Sabaragamuwa,1998-12,4,Total
+LKA,LK9,Sabaragamuwa,1999-01,1,Total
+LKA,LK9,Sabaragamuwa,1999-02,1,Total
+LKA,LK9,Sabaragamuwa,1999-03,0,Total
+LKA,LK9,Sabaragamuwa,1999-04,2,Total
+LKA,LK9,Sabaragamuwa,1999-05,0,Total
+LKA,LK9,Sabaragamuwa,1999-06,4,Total
+LKA,LK9,Sabaragamuwa,1999-07,1,Total
+LKA,LK9,Sabaragamuwa,1999-08,4,Total
+LKA,LK9,Sabaragamuwa,1999-09,11,Total
+LKA,LK9,Sabaragamuwa,1999-10,1,Total
+LKA,LK9,Sabaragamuwa,1999-11,3,Total
+LKA,LK9,Sabaragamuwa,1999-12,7,Total
+LKA,LK9,Sabaragamuwa,2000-01,2,Total
+LKA,LK9,Sabaragamuwa,2000-02,1,Total
+LKA,LK9,Sabaragamuwa,2000-03,2,Total
+LKA,LK9,Sabaragamuwa,2000-04,13,Total
+LKA,LK9,Sabaragamuwa,2000-05,7,Total
+LKA,LK9,Sabaragamuwa,2000-06,9,Total
+LKA,LK9,Sabaragamuwa,2000-07,19,Total
+LKA,LK9,Sabaragamuwa,2000-08,14,Total
+LKA,LK9,Sabaragamuwa,2000-09,6,Total
+LKA,LK9,Sabaragamuwa,2000-10,13,Total
+LKA,LK9,Sabaragamuwa,2000-11,54,Total
+LKA,LK9,Sabaragamuwa,2000-12,36,Total
+LKA,LK9,Sabaragamuwa,2001-01,87,Total
+LKA,LK9,Sabaragamuwa,2001-02,42,Total
+LKA,LK9,Sabaragamuwa,2001-03,55,Total
+LKA,LK9,Sabaragamuwa,2001-04,38,Total
+LKA,LK9,Sabaragamuwa,2001-05,28,Total
+LKA,LK9,Sabaragamuwa,2001-06,63,Total
+LKA,LK9,Sabaragamuwa,2001-07,59,Total
+LKA,LK9,Sabaragamuwa,2001-08,18,Total
+LKA,LK9,Sabaragamuwa,2001-09,12,Total
+LKA,LK9,Sabaragamuwa,2001-10,10,Total
+LKA,LK9,Sabaragamuwa,2001-11,13,Total
+LKA,LK9,Sabaragamuwa,2001-12,8,Total
+LKA,LK9,Sabaragamuwa,2002-01,11,Total
+LKA,LK9,Sabaragamuwa,2002-02,25,Total
+LKA,LK9,Sabaragamuwa,2002-03,23,Total
+LKA,LK9,Sabaragamuwa,2002-04,18,Total
+LKA,LK9,Sabaragamuwa,2002-05,11,Total
+LKA,LK9,Sabaragamuwa,2002-06,52,Total
+LKA,LK9,Sabaragamuwa,2002-07,41,Total
+LKA,LK9,Sabaragamuwa,2002-08,21,Total
+LKA,LK9,Sabaragamuwa,2002-09,17,Total
+LKA,LK9,Sabaragamuwa,2002-10,11,Total
+LKA,LK9,Sabaragamuwa,2002-11,8,Total
+LKA,LK9,Sabaragamuwa,2002-12,5,Total
+LKA,LK9,Sabaragamuwa,2003-01,2,Total
+LKA,LK9,Sabaragamuwa,2003-02,2,Total
+LKA,LK9,Sabaragamuwa,2003-03,2,Total
+LKA,LK9,Sabaragamuwa,2003-04,9,Total
+LKA,LK9,Sabaragamuwa,2003-05,10,Total
+LKA,LK9,Sabaragamuwa,2003-06,4,Total
+LKA,LK9,Sabaragamuwa,2003-07,3,Total
+LKA,LK9,Sabaragamuwa,2003-08,6,Total
+LKA,LK9,Sabaragamuwa,2003-09,7,Total
+LKA,LK9,Sabaragamuwa,2003-10,17,Total
+LKA,LK9,Sabaragamuwa,2003-11,18,Total
+LKA,LK9,Sabaragamuwa,2003-12,11,Total
+LKA,LK9,Sabaragamuwa,2004-01,36,Total
+LKA,LK9,Sabaragamuwa,2004-02,16,Total
+LKA,LK9,Sabaragamuwa,2004-03,12,Total
+LKA,LK9,Sabaragamuwa,2004-04,28,Total
+LKA,LK9,Sabaragamuwa,2004-05,91,Total
+LKA,LK9,Sabaragamuwa,2004-06,95,Total
+LKA,LK9,Sabaragamuwa,2004-07,29,Total
+LKA,LK9,Sabaragamuwa,2004-08,10,Total
+LKA,LK9,Sabaragamuwa,2004-09,1,Total
+LKA,LK9,Sabaragamuwa,2004-10,2,Total
+LKA,LK9,Sabaragamuwa,2004-11,0,Total
+LKA,LK9,Sabaragamuwa,2004-12,0,Total

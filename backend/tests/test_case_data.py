@@ -272,3 +272,101 @@ def test_admin1_name_map_and_config_licences_for_thailand():
     assert "CC BY-IGO" in meta["boundary_license"]
     assert "Royal Thai Survey Department" in meta["boundary_citation"]
 
+
+def test_load_dengue_admin1_thailand_output_unchanged():
+    """Task I Rule 4 & E: verify Thailand bundled output stays unchanged."""
+    raw_csv = pd.read_csv(DATA_DIR / "dengue_monthly_admin1_THA.csv")
+    assert len(raw_csv) == 27_024
+    assert int(raw_csv["dengue_total"].sum()) == 1_410_795
+    assert raw_csv["admin1_pcode"].nunique() == 77
+    assert raw_csv["month"].min() == "1993-01"
+    assert raw_csv["month"].max() == "2022-12"
+
+    unmerged = load_dengue_admin1("THA", date(1993, 1, 1), date(2022, 12, 31), merge_changed_units=False)
+    assert len(unmerged) == 27_024
+    assert int(unmerged["cases"].sum()) == 1_410_795
+
+    merged = load_dengue_admin1("THA", date(1993, 1, 1), date(2022, 12, 31), merge_changed_units=True)
+    assert int(merged["cases"].sum()) == 1_410_795
+
+
+def test_load_dengue_admin1_bundled_lao_file():
+    """Task I: verify bundled Lao PDR (LAO) Admin1 monthly dengue dataset."""
+    df = load_dengue_admin1("LAO", date(1998, 1, 1), date(2010, 12, 31))
+    assert list(df.columns) == ["admin1_pcode", "admin1_name", "month", "cases"]
+    # 2,731 raw OpenDengue rows minus 2 x 156 rows of the two ambiguous Vientiane series = 2,419
+    assert len(df) == 2_419
+    assert int(df["cases"].sum()) == 63_534
+    assert df["admin1_pcode"].nunique() == 16
+    assert "LA01" not in set(df["admin1_pcode"])
+    assert df["month"].min() == pd.Timestamp(1998, 1, 1)
+    assert df["month"].max() == pd.Timestamp(2010, 12, 1)
+
+    # Xaisomboon (LA18) exists only in 1998-2005 in OpenDengue (reason not verified)
+    xai = df[df["admin1_pcode"] == "LA18"]
+    assert len(xai) == 96
+    assert xai["month"].dt.year.min() == 1998
+    assert xai["month"].dt.year.max() == 2005
+
+    name_map = pd.read_csv(DATA_DIR / "admin1_name_map_LAO.csv", dtype=str).fillna("")
+    assert len(name_map) == 18
+    unresolved = name_map[name_map["admin1_pcode"] == ""]
+    assert unresolved["opendengue_name"].tolist() == ["VIENTIANE CAPITAL", "VIENTIANE CAPITAL [PREFECTURE]"]
+
+
+def test_load_dengue_admin1_bundled_lka_file():
+    """Task I: verify bundled Sri Lanka (LKA) Admin1 monthly dengue dataset."""
+    df = load_dengue_admin1("LKA", date(1996, 1, 1), date(2004, 12, 31))
+    assert list(df.columns) == ["admin1_pcode", "admin1_name", "month", "cases"]
+    assert len(df) == 960
+    assert int(df["cases"].sum()) == 20_868
+    assert df["admin1_pcode"].nunique() == 9
+    assert df["month"].min() == pd.Timestamp(1996, 1, 1)
+    assert df["month"].max() == pd.Timestamp(2004, 12, 1)
+
+    # Year 2000 has 8 provinces (Eastern LK5 is absent in 2000; gaps stay gaps per Rule C / A20)
+    by_year = df.groupby(df["month"].dt.year)["admin1_pcode"].nunique()
+    assert by_year[2000] == 8
+    for yr in [1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004]:
+        assert by_year[yr] == 9
+
+
+def test_load_dengue_admin1_bundled_slv_file():
+    """Task I: verify bundled El Salvador (SLV) Admin1 monthly dengue dataset."""
+    df = load_dengue_admin1("SLV", date(2000, 1, 1), date(2009, 12, 31))
+    assert list(df.columns) == ["admin1_pcode", "admin1_name", "month", "cases"]
+    assert len(df) == 1_587
+    assert int(df["cases"].sum()) == 41_958
+    assert df["admin1_pcode"].nunique() == 14
+    assert df["month"].min() == pd.Timestamp(2000, 1, 1)
+    assert df["month"].max() == pd.Timestamp(2009, 8, 1)
+
+    # San Salvador (SV10) is absent in 2000-2002 (13 departments) and present 2003-2009 (14 departments)
+    by_year = df.groupby(df["month"].dt.year)["admin1_pcode"].nunique()
+    for yr in [2000, 2001, 2002]:
+        assert by_year[yr] == 13
+    for yr in range(2003, 2010):
+        assert by_year[yr] == 14
+
+
+@pytest.mark.parametrize(
+    "iso3,expected_source",
+    [
+        ("THA", "Royal Thai Survey Department"),
+        ("LAO", "National Geographic Department (NGD)"),
+        ("LKA", "Survey Department of Sri Lanka (http://www.survey.gov.lk)"),
+        ("SLV", "www.gadm.org"),
+    ],
+)
+def test_regional_case_data_sources_config_all_countries(iso3, expected_source):
+    meta = REGIONAL_CASE_DATA_SOURCES[iso3]
+    assert meta["hdx_dataset_source"] == expected_source
+    assert (
+        meta["hdx_license_title"]
+        == "Creative Commons Attribution for Intergovernmental Organisations (CC BY-IGO)"
+    )
+    assert "CC BY 4.0" in meta["case_license"]
+    assert (DATA_DIR / meta["data_file"]).exists()
+    assert (DATA_DIR / meta["name_map_file"]).exists()
+
+
