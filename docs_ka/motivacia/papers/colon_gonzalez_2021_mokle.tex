@@ -1,0 +1,147 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{booktabs,longtable,array,xcolor,enumitem,tcolorbox}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\setmainfont{Sylfaen}
+\setmonofont{Consolas}
+\newfontfamily\symfont{Segoe UI Symbol}
+\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
+\begin{document}
+\section*{Colón-González et al. (2021): რა წაიკითხო და რა არის მნიშვნელოვანი}
+
+\textbf{სტატია:} Colón-González, F. J., Soares Bastos, L., Hofmann, B., … Brady, O. J., Lowe, R. (2021).
+\emph{Probabilistic seasonal dengue forecasting in Vietnam: A modelling study using superensembles.}
+PLOS Medicine 18(3): e1003542. \url{https://doi.org/10.1371/journal.pmed.1003542} (CC BY 4.0)
+\textbf{ფაილი:} \texttt{colon\_gonzalez\_2021\_plosmed.pdf} (30 გვერდი; PDF-ის გვერდი = ჟურნალის გვერდი, „N / 30“)
+
+\begin{tcolorbox}[colback=blue!4,colframe=blue!40!black,boxrule=0.4pt]\textbf{საინტერესოა:} ბოლო ავტორი \textbf{Rachel Lowe}-ა, იგივე, ვინც ბრაზილიის სტატიის (Lowe et al. 2021) პირველი ავტორია.\end{tcolorbox}
+
+\medskip\hrule\medskip
+
+\section*{რა წაიკითხო (≈ 6 გვერდი, დანარჩენი გამოტოვე)}
+
+\begin{longtable}{@{}p{0.317\linewidth}p{0.317\linewidth}p{0.317\linewidth}@{}}
+\toprule
+\textbf{გვერდი} & \textbf{სექცია} & \textbf{რატომ} \\
+\midrule
+6 & ბოლო აბზაცი Introduction-ში + \textbf{„Dengue surveillance data“} & შემთხვევების წყარო \\
+7 & \textbf{„Historical demographic and land cover data“}, \textbf{„Historical Earth observation data“} & მოსახლეობა, კლიმატი, აგრეგაცია \\
+8 & ზედა ნაწილი: \textbf{საზღვრების ცვლილება} & ძალიან მნიშვნელოვანი ჩვენთვის \\
+9 & \textbf{„Model specification“} ბოლო აბზაცი & lag-ები და ინსტრუმენტები \\
+1 & \textbf{Data Availability Statement} & ღიაა თუ არა მონაცემები \\
+\bottomrule
+\end{longtable}
+
+მოდელის მათემატიკა (ფორმულები გვ. 8–11, superensemble, CRPS) \textbf{არ გჭირდება}: შენი თეზისი მონაცემების მომზადებაზეა.
+
+\medskip\hrule\medskip
+
+\section*{რას ამბობს ეს ნაწილი (ქართულად)}
+
+\subsection*{1. შემთხვევები (გვ. 6)}
+\begin{itemize}[nosep]
+\item თვიური დენგეს შემთხვევები ვიეტნამის \textbf{ჯანდაცვის სამინისტროდან}, \textbf{2002-08 – 2019-12}, \textbf{63 პროვინცია}.
+\item „Data comprised suspected and confirmed dengue cases“, მაგრამ არ წერია, რამდენია რომელი. სეროტიპები არ არის.
+\item გვ. 7-ზე: 2002–2019 წლებში შემთხვევის განსაზღვრება \textbf{არ შეცვლილა}. $\rightarrow$ ეს \textbf{შედარებადობის} საკითხია (ჩვენი A20 / Clarke).
+\end{itemize}
+
+\subsection*{2. მოსახლეობა (გვ. 7)}
+\begin{itemize}[nosep]
+\item პროვინციის მოსახლეობა \textbf{SEDAC GPW v4.11}-დან, 1 კმ, \textbf{ყოველ 5 წელში} (2000–2020).
+\item „Intervening years were generated using linear interpolation.“ $\rightarrow$ \textbf{ზუსტად ჩვენი FR-17} (წლიური $\rightarrow$ შუალედური წლები წრფივად).
+\end{itemize}
+
+\subsection*{3. კლიმატი (გვ. 7)}
+ბევრი სხვადასხვა წყარო, სხვადასხვა რეზოლუციით და \textbf{წყაროს შეცვლა დროში}:
+\begin{itemize}[nosep]
+\item ტემპერატურა (min, max, mean): MODIS, 1 კმ;
+\item ნალექი: TRMM 2014-04-მდე, \textbf{შემდეგ GPM} (წყარო შეიცვალა!);
+\item ტენიანობა: MODIS;
+\item ქარი: \textbf{ERA5} 2002–2011, \textbf{შემდეგ NOAA CFS} (ისევ წყაროს ცვლილება);
+\item El Niño-ს ინდექსი: NOAA.
+\end{itemize}
+$\rightarrow$ \textbf{მოტივაციისთვის კარგი არგუმენტი:} ერთ კვლევაში 6+ წყარო, ზოგი ცვლადისთვის დროში ორი წყარო ერთმანეთზე „გადაბმული“. ეს ზუსტად ის პრობლემაა, რისთვისაც ჩვენი \textbf{წყაროების შედარება (FR-27)} არსებობს.
+
+\subsection*{4. სივრცითი აგრეგაცია (გვ. 7–8): ყველაზე საინტერესო}
+\begin{itemize}[nosep]
+\item ბადის მონაცემები პროვინციებზე Python-ის მოდულით  გასაშუალოვდა; ნაწილობრივ დაფარულ უჯრაზე, წილის მიხედვით (როგორც Lowe-ს \texttt{exactextractr}).
+\item \textbf{„Climate data were aggregated at the province level using population weighted averages for each month.“}
+$\rightarrow$ კლიმატი \textbf{მოსახლეობით შეწონილი} საშუალოა: სადაც მეტი ადამიანი ცხოვრობს, ის უჯრა მეტს იწონის.
+Lowe \textbf{ფართობით} წონიდა, ესენი \textbf{მოსახლეობით}. ეს მესამე ვარიანტია ჩვენი A/B/C-ს გვერდით.
+\item წონებისთვის \textbf{WorldPop} (100 მ), რადგან SEDAC-ს რაიონის შიგნით ერთნაირი მნიშვნელობები ჰქონდა. WorldPop
+მხოლოდ 2009, 2010, 2015, 2020 წლებისთვის იყო $\rightarrow$ შუალედური წლები \textbf{წრფივად ინტერპოლირდა}.
+\end{itemize}
+
+\subsection*{5. საზღვრების ცვლილება (გვ. 8): ჩვენთვის ყველაზე მნიშვნელოვანი}
+\begin{itemize}[nosep]
+\item „There were multiple changes in the administrative boundaries of the provinces over the study period. The last
+change took place in 2008. Consequently, we froze the administrative boundaries of the country at their 2008 level.“
+\item შემთხვევები 2008 წლის საზღვრებზე \textbf{რაიონების ჩანაწერებით} გადაანაწილა ჯანდაცვის სამინისტრომ.
+\end{itemize}
+$\rightarrow$ \textbf{იგივე პრობლემა, რაც ტაილანდის Bueng Kan-ში}, ოღონდ სხვა გადაწყვეტით:
+\begin{itemize}[nosep]
+\item Suttirat: ახალი პროვინცია ძველს \textbf{შეუერთეს};
+\item Colón-González: საზღვრები \textbf{ერთ წელზე „გაყინეს“} (2008).
+ორივე ერთსა და იმავე ნაბიჯს ასრულებს: \textbf{დროში ცვალებადი ერთეულების ჰარმონიზაცია}. ეს ახლა \textbf{სამ სტატიაშია}
+(+ ვიეტნამის 2025 წლის გაერთიანება HDX-ზე) $\rightarrow$ FR-28-ის ძლიერი დასაბუთება.
+\end{itemize}
+
+\subsection*{6. lag-ები (გვ. 9)}
+\begin{itemize}[nosep]
+\item ტემპერატურა, ნალექი, ტენიანობა, DTR: \textbf{3-თვიანი მოძრავი საშუალო lag 0–2 თვე}.
+\item El Niño: lag 0–3 თვე. ქარი: lag-ის გარეშე.
+\item ასევე \textbf{წინა თვის შემთხვევები} (lag 1 შემთხვევებისთვის).
+\item გვ. 4: „Most of the effects of climate on dengue incidence are delayed by 1 to 2 months“.
+\end{itemize}
+
+\subsection*{7. ინსტრუმენტები (გვ. 7, 9)}
+\begin{itemize}[nosep]
+\item Python 3.6 (\texttt{rasterstats}), R 3.6.1 + \textbf{INLA}. კოდი GitHub-ზე: github.com/FelipeJColon/paper\_dengue\_superensemble.
+\end{itemize}
+
+\subsection*{8. მონაცემების ხელმისაწვდომობა (გვ. 1)}
+\begin{itemize}[nosep]
+\item დენგეს მონაცემები: \textbf{მოთხოვნით}, ვიეტნამის ჯანდაცვის სამინისტროს კონკრეტული პირისგან. $\rightarrow$ \textbf{ღია არ არის}.
+\end{itemize}
+
+\medskip\hrule\medskip
+
+\section*{მოტივაციისთვის გამოსადეგი წინადადებები (გვ. 4–5)}
+\begin{itemize}[nosep]
+\item გვ. 4: „Some of these challenges include the lack of multi-decadal health data sets …, **the common mismatch of
+scales between climate data outputs and data used for decision-making** …“ $\rightarrow$ მასშტაბების შეუსაბამობა = ჩვენი
+ჰარმონიზაცია.
+\item გვ. 5: „… difficulties related to the integration of these systems into existing public health procedures and
+\textbf{occasional lack of technical expertise}.“ $\rightarrow$ უნარების ნაკლებობის კიდევ ერთი (ფრთხილი) წყარო.
+\end{itemize}
+
+\medskip\hrule\medskip
+
+\section*{ჩვენი ცხრილისთვის (Schritte / Traceability)}
+
+\begin{longtable}{@{}p{0.237\linewidth}p{0.237\linewidth}p{0.237\linewidth}p{0.237\linewidth}@{}}
+\toprule
+\textbf{ნაბიჯი} & \textbf{Colón-González 2021} & \textbf{გვ.} & \textbf{ჩვენი სისტემა} \\
+\midrule
+თვიური შემთხვევები & MoH, 63 პროვინცია, 2002–2019 & 6 & {\symfont ✓} (FR-28 ნაწილი 1, ტაილანდი) \\
+საზღვრების ჰარმონიზაცია & საზღვრები 2008-ზე გაყინული & 8 & {\symfont ✓} ტაილანდი (Bueng Kan), {\symfont {\symfont ⚠}} ზოგადად \\
+კლიმატის რამდენიმე წყარო, წყაროს ცვლილება დროში & TRMM$\rightarrow$GPM, ERA5$\rightarrow$CFS & 7 & {\symfont {\symfont ⚠}} შედარება {\symfont ✓} (FR-27), გადაბმა {\symfont ✗} \\
+რასტრი $\rightarrow$ პროვინცია & rasterstats, მოსახლეობით შეწონილი & 7 & {\symfont ✗} (FR-28 ნაწილი 2, ვარიანტები A/B) \\
+მოსახლეობა, შუალედური წლები & GPW 5-წლიანი, წრფივი ინტერპოლაცია & 7 & {\symfont ✓} (FR-17) \\
+lag-ები & 3-თვიანი საშუალო lag 0–2; ENSO 0–3 & 9 & {\symfont ✓} lag სვეტები (FR-23); მოძრავი საშუალო {\symfont ✗} \\
+ინსტრუმენტები & Python + R/INLA & 7, 9 & — \\
+\bottomrule
+\end{longtable}
+
+\medskip\hrule\medskip
+
+\section*{შენი დავალება}
+\begin{enumerate}[nosep]
+\item გახსენი PDF და \textbf{ზემოთ მოყვანილი ციტატები გადაამოწმე} (Ctrl+F), გვერდები ჩამიწერე, თუ რამე არ ემთხვევა.
+\item შეავსე \texttt{kitxvis\_furceli.md}-ის ასლი (\texttt{kitxvis\_furceli\_colon\_gonzalez\_2021.md}) \textbf{შენი სიტყვებით} — ეს
+შეჯამება დახმარებაა და არა შენი ფორმის ჩანაცვლება.
+\item ნაწილი 7, „ჩემი დასკვნა“: რას ამატებს ეს სტატია? (მინიშნება: საზღვრები, მოსახლეობით შეწონვა, წყაროს ცვლილება დროში.)
+\end{enumerate}
+\end{document}
