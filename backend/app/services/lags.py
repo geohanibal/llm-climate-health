@@ -170,3 +170,105 @@ def add_lagged_climate_features(
     # Retain only the rows that were present in the original dataset
     result = reindexed.loc[reindexed.index.isin(original_periods)].reset_index()
     return result
+
+
+def add_lagged_case_features(
+    df: pd.DataFrame,
+    case_lag_periods: list[int],
+    resolution: str | None = None,
+    value_col: str = "value",
+) -> pd.DataFrame:
+    """Adds lagged case-count features (`cases_lag<k>`) to a case DataFrame.
+
+    Motivated by Suttirat et al. (2026, PLOS Negl Trop Dis 20(7): e0014590,
+    pp. 9-10: previous month's risk status added as a predictor to remove
+    residual autocorrelation) and Colon-Gonzalez et al. (2021, PLOS Medicine
+    18(3): e1003542, p. 9: "log of the observed number of dengue cases in the
+    previous month").
+
+    Uses the same regular-timeline reindexing as `add_lagged_climate_features`
+    so that missing observation intervals produce NaN rather than silently
+    propagating an older period's case count across a gap (rule A20).
+    """
+    if df.empty or not case_lag_periods or "period" not in df.columns or value_col not in df.columns:
+        return df
+
+    out = df.copy()
+    out = out.sort_values("period").reset_index(drop=True)
+
+    res = resolution or _infer_resolution(out["period"])
+    original_periods = out["period"].tolist()
+    min_p = original_periods[0]
+    max_p = original_periods[-1]
+
+    try:
+        full_periods = _build_complete_period_range(min_p, max_p, res)
+    except Exception:
+        full_periods = original_periods
+
+    reindexed = out.set_index("period").reindex(full_periods)
+
+    for lag in sorted(case_lag_periods):
+        lag_col = f"cases_lag{lag}"
+        reindexed[lag_col] = reindexed[value_col].shift(lag)
+
+    result = reindexed.loc[reindexed.index.isin(original_periods)].reset_index()
+    return result
+
+
+def add_moving_average_climate_features(
+    df: pd.DataFrame,
+    window_lengths: list[int],
+    resolution: str | None = None,
+) -> pd.DataFrame:
+    """Adds trailing moving-average climate features (`<var>_ma<w>`) over lag 0 .. lag (w-1).
+
+    Motivated by Colon-Gonzalez et al. (2021, PLOS Medicine 18(3): e1003542, p. 9:
+    "a 3-month moving average of temperature, precipitation, specific humidity,
+    and DTR centred at lag of 1 month (i.e., each value is given the average of
+    lag 0 to a lag of 2 months)").
+
+    Note on precipitation: for monthly/period-summed precipitation, `<var>_ma<w>`
+    computes the arithmetic mean of the w period totals (e.g. the mean of the
+    current and previous w-1 monthly precipitation sums), which matches the
+    moving-average definition in Colon-Gonzalez et al. (2021, p. 9).
+
+    Gaps are never filled (rule A20): the series is first reindexed to the
+    complete unbroken timeline and `rolling(window=w, min_periods=w).mean()` is
+    used so that if ANY period in the window `[t-(w-1), ..., t]` is missing or
+    NaN, the resulting `<var>_ma<w>` is NaN (never averaged over fewer values).
+    """
+    if df.empty or not window_lengths or "period" not in df.columns:
+        return df
+
+    out = df.copy()
+    out = out.sort_values("period").reset_index(drop=True)
+
+    detected_vars: dict[str, str] = {}
+    for col in out.columns:
+        col_lower = str(col).lower()
+        if col_lower in _CLIMATE_VAR_MAPPING:
+            detected_vars[col] = _CLIMATE_VAR_MAPPING[col_lower]
+
+    if not detected_vars:
+        return out
+
+    res = resolution or _infer_resolution(out["period"])
+    original_periods = out["period"].tolist()
+    min_p = original_periods[0]
+    max_p = original_periods[-1]
+
+    try:
+        full_periods = _build_complete_period_range(min_p, max_p, res)
+    except Exception:
+        full_periods = original_periods
+
+    reindexed = out.set_index("period").reindex(full_periods)
+
+    for w in sorted(window_lengths):
+        for src_col, base_var in detected_vars.items():
+            ma_col = f"{base_var}_ma{w}"
+            reindexed[ma_col] = reindexed[src_col].rolling(window=w, min_periods=w).mean()
+
+    result = reindexed.loc[reindexed.index.isin(original_periods)].reset_index()
+    return result

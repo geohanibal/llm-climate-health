@@ -373,6 +373,22 @@ void main() {
       expect(encoded['temperature_min_c'], 20.1);
       expect(encoded['temperature_max_c'], 31.2);
     });
+
+    test('decodes dynamic cases_lag<k> and <var>_ma<w> columns alongside climate lags', () {
+      final json = {
+        'period': '2019-01',
+        'case_count': 5443.0,
+        'cases_lag1': 6155.0,
+        'temperature_mean_c': 26.2,
+        'temperature_ma3': 26.5,
+        'precipitation_ma3': 45.2,
+      };
+      final record = PeriodRecord.fromJson(json);
+      expect(record.lagValues['cases_lag1'], 6155.0);
+      expect(record.lagValues['temperature_ma3'], 26.5);
+      expect(record.lagValues['precipitation_ma3'], 45.2);
+      expect(PeriodRecord.lagColumnNames([record]), ['cases_lag1', 'precipitation_ma3', 'temperature_ma3']);
+    });
   });
 
   group('DataCoverage', () {

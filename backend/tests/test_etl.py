@@ -245,3 +245,74 @@ def test_run_integration_coverage_detects_outside_source_gaps_thailand_2005_2010
     # Provenance steps note coverage
     assert any("Checked data completeness:" in s for s in steps)
 
+
+@patch("app.services.etl.fetch_climate")
+def test_run_integration_with_case_lag_periods_and_buffer(mock_climate):
+    """J1: case_lag_periods fetches case data max(k) periods before start_date (buffer),
+    computes cases_lag<k>, drops rows outside [start_date, end_date], and does NOT add
+    incidence lags."""
+    mock_climate.return_value = pd.DataFrame(
+        {
+            "period": ["2019-01", "2019-02", "2019-03"],
+            "temperature_2m_mean": [26.0, 27.0, 28.0],
+            "precipitation_sum": [10.0, 20.0, 30.0],
+        }
+    )
+    steps, records, resolution, audit, stat_summary, coverage = run_integration(
+        "dengue",
+        "Thailand",
+        ["temperature", "precipitation"],
+        date(2019, 1, 1),
+        date(2019, 3, 31),
+        aggregation="native",
+        case_lag_periods=[1, 2],
+    )
+    assert resolution == "month"
+    assert len(records) == 3
+    # Buffer months 2018-11 and 2018-12 must not appear in returned records
+    assert [r.period for r in records] == ["2019-01", "2019-02", "2019-03"]
+
+    # First row (2019-01) has non-empty cases_lag1 (from 2018-12) and cases_lag2 (from 2018-11)
+    r0 = records[0].model_dump()
+    assert r0["cases_lag1"] is not None
+    assert r0["cases_lag2"] is not None
+    # Second row (2019-02) cases_lag1 equals first row's case_count
+    r1 = records[1].model_dump()
+    assert r1["cases_lag1"] == r0["case_count"]
+    # No incidence lags are added
+    assert not any(k.startswith("incidence_lag") for k in r0.keys())
+    assert any("lag buffer for case data" in s for s in steps)
+    assert any("Added lagged case-count features: lags 1, 2." in s for s in steps)
+
+
+@patch("app.services.etl.fetch_climate")
+def test_run_integration_with_climate_moving_average_and_buffer(mock_climate):
+    """J2: climate_moving_average reuses the climate lag buffer (w-1 periods before start_date)
+    so initial rows have valid moving averages, and buffer periods are trimmed."""
+    mock_climate.return_value = pd.DataFrame(
+        {
+            "period": ["2018-11", "2018-12", "2019-01", "2019-02", "2019-03"],
+            "temperature_2m_mean": [24.0, 26.0, 28.0, 30.0, 32.0],
+            "precipitation_sum": [10.0, 20.0, 30.0, 40.0, 50.0],
+        }
+    )
+    steps, records, resolution, audit, stat_summary, coverage = run_integration(
+        "dengue",
+        "Thailand",
+        ["temperature", "precipitation"],
+        date(2019, 1, 1),
+        date(2019, 3, 31),
+        aggregation="native",
+        climate_moving_average=[3],
+    )
+    assert resolution == "month"
+    assert [r.period for r in records] == ["2019-01", "2019-02", "2019-03"]
+
+    # 2019-01 ma3 uses 2018-11, 2018-12, 2019-01 -> (24+26+28)/3 = 26.0, precip (10+20+30)/3 = 20.0
+    r0 = records[0].model_dump()
+    assert r0["temperature_ma3"] == 26.0
+    assert r0["precipitation_ma3"] == 20.0
+    assert any("lag buffer for climate data" in s for s in steps)
+    assert any("Added moving-average climate features: windows 3." in s for s in steps)
+
+

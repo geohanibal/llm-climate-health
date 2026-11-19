@@ -32,6 +32,8 @@ class IntegrationRequest(BaseModel):
     population_indicator_code: str | None = None
     population_indicator_name: str | None = None
     lag_periods: list[int] = Field(default_factory=list)
+    case_lag_periods: list[int] = Field(default_factory=list)
+    climate_moving_average: list[int] = Field(default_factory=list)
 
     @field_validator("lag_periods")
     @classmethod
@@ -41,6 +43,26 @@ class IntegrationRequest(BaseModel):
         for lag in v:
             if not isinstance(lag, int) or lag < 1 or lag > 6:
                 raise ValueError("lag_periods elements must be integers between 1 and 6.")
+        return sorted(list(set(v)))
+
+    @field_validator("case_lag_periods")
+    @classmethod
+    def validate_case_lag_periods(cls, v: list[int]) -> list[int]:
+        if not v:
+            return []
+        for lag in v:
+            if not isinstance(lag, int) or isinstance(lag, bool) or lag < 1 or lag > 6:
+                raise ValueError("case_lag_periods elements must be integers between 1 and 6.")
+        return sorted(list(set(v)))
+
+    @field_validator("climate_moving_average")
+    @classmethod
+    def validate_climate_moving_average(cls, v: list[int]) -> list[int]:
+        if not v:
+            return []
+        for w in v:
+            if not isinstance(w, int) or isinstance(w, bool) or w < 2 or w > 6:
+                raise ValueError("climate_moving_average elements must be integers between 2 and 6.")
         return sorted(list(set(v)))
 
 

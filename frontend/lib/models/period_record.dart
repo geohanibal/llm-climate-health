@@ -32,8 +32,9 @@ class PeriodRecord {
     this.lagValues = const {},
   });
 
-  /// Matches backend lag column names such as `precipitation_lag3`.
-  static final RegExp _lagColumnPattern = RegExp(r'_lag\d+$');
+  /// Matches backend dynamic lag and moving-average column names such as
+  /// `precipitation_lag3`, `cases_lag1`, or `temperature_ma3`.
+  static final RegExp _lagColumnPattern = RegExp(r'_(?:lag|ma)\d+$');
 
   factory PeriodRecord.fromJson(Map<String, dynamic> json) {
     return PeriodRecord(

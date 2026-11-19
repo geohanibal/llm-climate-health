@@ -49,7 +49,9 @@ once real credentials are available (see that file's module docstring).
 
 In addition to core parameters (`disease`, `region`, `start_date`, `end_date`, `climate_source`), the API supports:
 - `variables: list[str]` — supported climate variables: `"temperature"` (mean), `"precipitation"` (sum), `"temperature_min"` (daily minimum mean), `"temperature_max"` (daily maximum mean) (Suttirat et al. 2026).
-- `lag_periods: list[int]` — optional list of temporal lags (1..6) for climate features (e.g. `[1, 3]`). Uses a lag buffer (Lowe et al. 2021) to compute lagged predictors without dropping initial observation rows.
+- `lag_periods: list[int]` — optional list of temporal lags (1..6) for climate features (e.g. `[1, 3]`, producing `<variable>_lag<k>`). Uses a lag buffer (Lowe et al. 2021) to compute lagged predictors without dropping initial observation rows.
+- `case_lag_periods: list[int]` — optional list of temporal lags (1..6) for case counts (e.g. `[1, 2]`, producing `cases_lag<k>`; candidate FR-29 / A1b, Suttirat et al. 2026, pp. 9–10; Colón-González et al. 2021, p. 9). Fetches case data with a `max(k)`-period lag buffer before `start_date`; missing periods produce `NaN/null` (rule A20).
+- `climate_moving_average: list[int]` — optional list of trailing window lengths in periods (2..6) for climate moving averages (e.g. `[3]`, producing `<variable>_ma<w>` as the mean of lag 0 .. lag `w-1`, including the mean of monthly sums for precipitation; candidate FR-30, Colón-González et al. 2021, p. 9). Reuses the climate lag buffer; if any period in the window is missing, the result is `NaN/null` (rule A20).
 
 ## Provenance fields in the response (FR-25)
 
@@ -95,6 +97,11 @@ To support province-level climate-health modelling for endemic countries (Suttir
   - `SLV` (El Salvador): 14 departments (`SV01`–`SV14`), 2000-01 to 2009-08, 1,587 rows (source: `www.gadm.org`).
 - **Loader (`app/services/case_data.py::load_dengue_admin1`):** `load_dengue_admin1(iso3, start, end, merge_changed_units=True)` returns `admin1_pcode, admin1_name, month, cases` within `[start, end]`. When `merge_changed_units=True` (default), Thailand's Bueng Kan (`TH38`, split from Nong Khai in 2011) is explicitly merged into Nong Khai (`TH43`) via `CHANGED_UNITS = {"THA": {"TH38": "TH43"}}` following Suttirat et al. (2026, p. 5). Missing months remain absent (rule A20). Licences and citations are registered in `app/config.py::REGIONAL_CASE_DATA_SOURCES`.
 
+## Reproducible National Dengue Dataset Verification (Task J3 / A13)
+
+`scripts/build_dengue_national.py` reproduces and empirically verifies the bundled national monthly dengue file (`app/data/dengue_monthly_by_iso3.csv`, 2,308 rows across 39 countries) against the pinned OpenDengue V1.3 National extract (`National_extract_V1_3.zip`, CC BY 4.0) and optionally compares with the Temporal extract (`Temporal_extract_V1_3.zip`). It never overwrites the bundled file by default (writes to `--out` and prints a per-country comparison table):
+- **Empirical finding:** 100 % of the 2,308 bundled rows across all 39 countries are reproduced identically (`rows_equal=2,308`, `rows_different=0`, `months_only_in_bundled=0`, `months_only_in_repro=0`) from OpenDengue **V1.3 National extract** filtered strictly to `T_res == "Month"` (`S_res == "Admin0"`). No weekly (`T_res == "Week"`) or yearly (`T_res == "Year"`) records were converted into the bundled file.
+
 ## Tests
 
 ```bash
@@ -130,6 +137,7 @@ app/
     cache.py           in-process TTL cache
   data/                bundled case-count CSVs (national + Thailand Admin1) + name map + region registry
 scripts/
-  build_dengue_admin1.py  offline reproducible builder for dengue_monthly_admin1_THA.csv (FR-28)
+  build_dengue_admin1.py    offline reproducible builder for dengue_monthly_admin1_<ISO3>.csv (FR-28)
+  build_dengue_national.py  offline reproducible builder & verifier for dengue_monthly_by_iso3.csv (A13 / J3)
 tests/                 pytest suite, mirrors services/ + main.py
 ```

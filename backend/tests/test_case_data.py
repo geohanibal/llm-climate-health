@@ -370,3 +370,78 @@ def test_regional_case_data_sources_config_all_countries(iso3, expected_source):
     assert (DATA_DIR / meta["name_map_file"]).exists()
 
 
+# ---------------------------------------------------------------------------
+# Task J3 / A13: Reproducible national dengue build & comparison tests
+# ---------------------------------------------------------------------------
+
+
+def test_build_dengue_national_comparison_and_weekly_rules(tmp_path):
+    """Verifies build_dengue_national helper functions on a synthetic OpenDengue V1.3 extract
+    and ensures the script refuses to overwrite the bundled file."""
+    from scripts.build_dengue_national import (
+        BUNDLED_NATIONAL_CSV_PATH,
+        _aggregate_weekly_to_monthly,
+        build_national_monthly_df,
+        compare_with_bundled,
+        run_build_and_compare,
+    )
+
+    raw_nat = pd.DataFrame(
+        [
+            {
+                "ISO_A0": "THA",
+                "S_res": "Admin0",
+                "T_res": "Month",
+                "calendar_start_date": "2020-01-01",
+                "calendar_end_date": "2020-01-31",
+                "dengue_total": 100.0,
+            },
+            {
+                "ISO_A0": "THA",
+                "S_res": "Admin0",
+                "T_res": "Month",
+                "calendar_start_date": "2020-02-01",
+                "calendar_end_date": "2020-02-29",
+                "dengue_total": 120.0,
+            },
+            {
+                "ISO_A0": "THA",
+                "S_res": "Admin0",
+                "T_res": "Week",
+                "calendar_start_date": "2021-01-29",
+                "calendar_end_date": "2021-02-04",
+                "dengue_total": 70.0,
+            },
+        ]
+    )
+
+    # 1. Default rule='none' keeps only T_res == 'Month'
+    monthly_only = build_national_monthly_df(raw_nat, include_weekly_rule="none")
+    assert len(monthly_only) == 2
+    assert monthly_only["month"].tolist() == ["2020-01", "2020-02"]
+    assert monthly_only["dengue_total"].tolist() == [100.0, 120.0]
+
+    # 2. Weekly rules: 2021-01-29..2021-02-04 has 3 days in Jan (29, 30, 31) and 4 days in Feb (1, 2, 3, 4)
+    w_rows = raw_nat[raw_nat["T_res"] == "Week"]
+    by_start = _aggregate_weekly_to_monthly(w_rows, "start_date")
+    assert by_start.to_dict(orient="records") == [{"iso3": "THA", "month": "2021-01", "dengue_total": 70.0}]
+
+    by_end = _aggregate_weekly_to_monthly(w_rows, "end_date")
+    assert by_end.to_dict(orient="records") == [{"iso3": "THA", "month": "2021-02", "dengue_total": 70.0}]
+
+    by_split = _aggregate_weekly_to_monthly(w_rows, "split_by_days").sort_values("month")
+    assert by_split["month"].tolist() == ["2021-01", "2021-02"]
+    assert by_split["dengue_total"].tolist() == pytest.approx([30.0, 40.0])
+
+    # 3. compare_with_bundled reports exact equality
+    cmp_df = compare_with_bundled(monthly_only, monthly_only)
+    assert len(cmp_df) == 1
+    assert cmp_df.iloc[0]["rows_equal"] == 2
+    assert cmp_df.iloc[0]["rows_different"] == 0
+
+    # 4. Refuses to overwrite the bundled file
+    with pytest.raises(ValueError, match="Refusing to overwrite the bundled file"):
+        run_build_and_compare(out_path=BUNDLED_NATIONAL_CSV_PATH)
+
+
+

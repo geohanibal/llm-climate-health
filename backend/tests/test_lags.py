@@ -10,7 +10,12 @@ import pytest
 from pydantic import ValidationError
 
 from app.models import IntegrationRequest, PeriodRecord
-from app.services.lags import add_lagged_climate_features, calculate_buffer_start_date
+from app.services.lags import (
+    add_lagged_case_features,
+    add_lagged_climate_features,
+    add_moving_average_climate_features,
+    calculate_buffer_start_date,
+)
 
 
 def test_integration_request_lag_periods_default_is_empty():
@@ -217,3 +222,198 @@ def test_add_lagged_climate_features_tmin_tmax():
     assert res.loc[2, "temperature_min_lag2"] == 18.0
     assert res.loc[1, "temperature_max_lag1"] == 28.0
     assert res.loc[2, "temperature_max_lag2"] == 28.0
+
+
+# --- J1: Lagged case counts (case_lag_periods) ---
+
+
+def test_integration_request_case_lag_periods_default_is_empty():
+    req = IntegrationRequest(
+        disease="dengue",
+        region="Thailand",
+        start_date=date(2020, 1, 1),
+        end_date=date(2020, 6, 1),
+    )
+    assert req.case_lag_periods == []
+
+
+def test_integration_request_case_lag_periods_valid_range():
+    req = IntegrationRequest(
+        disease="dengue",
+        region="Thailand",
+        start_date=date(2020, 1, 1),
+        end_date=date(2020, 6, 1),
+        case_lag_periods=[3, 1, 1, 2],
+    )
+    assert req.case_lag_periods == [1, 2, 3]
+
+
+@pytest.mark.parametrize("invalid_lag", [0, 7, -1, 10])
+def test_integration_request_case_lag_periods_rejects_out_of_range(invalid_lag):
+    with pytest.raises(ValidationError):
+        IntegrationRequest(
+            disease="dengue",
+            region="Thailand",
+            start_date=date(2020, 1, 1),
+            end_date=date(2020, 6, 1),
+            case_lag_periods=[1, invalid_lag],
+        )
+
+
+def test_add_lagged_case_features_default_empty():
+    df = pd.DataFrame({
+        "period": ["2020-01", "2020-02"],
+        "value": [100.0, 150.0],
+    })
+    res = add_lagged_case_features(df, [])
+    assert list(res.columns) == ["period", "value"]
+
+
+def test_add_lagged_case_features_shift_correctness():
+    df = pd.DataFrame({
+        "period": ["2020-01", "2020-02", "2020-03", "2020-04"],
+        "value": [100.0, 200.0, 300.0, 400.0],
+    })
+    res = add_lagged_case_features(df, [1, 2])
+    assert "cases_lag1" in res.columns
+    assert "cases_lag2" in res.columns
+
+    assert pd.isna(res.loc[0, "cases_lag1"])
+    assert pd.isna(res.loc[0, "cases_lag2"])
+    assert res.loc[1, "cases_lag1"] == 100.0
+    assert pd.isna(res.loc[1, "cases_lag2"])
+    assert res.loc[2, "cases_lag1"] == 200.0
+    assert res.loc[2, "cases_lag2"] == 100.0
+    assert res.loc[3, "cases_lag1"] == 300.0
+    assert res.loc[3, "cases_lag2"] == 200.0
+
+
+def test_add_lagged_case_features_missing_period_yields_nan():
+    """If 2019-12 is missing, 2020-01's cases_lag1 must be NaN, not 2019-11."""
+    df = pd.DataFrame({
+        "period": ["2019-10", "2019-11", "2020-01"],
+        "value": [50.0, 75.0, 120.0],
+    })
+    res = add_lagged_case_features(df, [1])
+    assert len(res) == 3
+    assert pd.isna(res.loc[res["period"] == "2019-10", "cases_lag1"].iloc[0])
+    assert res.loc[res["period"] == "2019-11", "cases_lag1"].iloc[0] == 50.0
+    assert pd.isna(res.loc[res["period"] == "2020-01", "cases_lag1"].iloc[0])
+
+
+# --- J2: Moving-average climate lag (climate_moving_average) ---
+
+
+def test_integration_request_climate_moving_average_default_is_empty():
+    req = IntegrationRequest(
+        disease="dengue",
+        region="Thailand",
+        start_date=date(2020, 1, 1),
+        end_date=date(2020, 6, 1),
+    )
+    assert req.climate_moving_average == []
+
+
+def test_integration_request_climate_moving_average_valid_range():
+    req = IntegrationRequest(
+        disease="dengue",
+        region="Thailand",
+        start_date=date(2020, 1, 1),
+        end_date=date(2020, 6, 1),
+        climate_moving_average=[3, 2, 6, 3],
+    )
+    assert req.climate_moving_average == [2, 3, 6]
+
+
+@pytest.mark.parametrize("invalid_window", [0, 1, 7, -2, 10])
+def test_integration_request_climate_moving_average_rejects_out_of_range(invalid_window):
+    with pytest.raises(ValidationError):
+        IntegrationRequest(
+            disease="dengue",
+            region="Thailand",
+            start_date=date(2020, 1, 1),
+            end_date=date(2020, 6, 1),
+            climate_moving_average=[3, invalid_window],
+        )
+
+
+def test_add_moving_average_climate_features_default_empty():
+    df = pd.DataFrame({
+        "period": ["2020-01", "2020-02"],
+        "temperature_2m_mean": [25.0, 26.0],
+    })
+    res = add_moving_average_climate_features(df, [])
+    assert list(res.columns) == ["period", "temperature_2m_mean"]
+
+
+def test_add_moving_average_climate_features_handmade_series():
+    """Verifies `<var>_ma<w>` equals the arithmetic mean of lag 0 .. lag (w-1)."""
+    df = pd.DataFrame({
+        "period": ["2020-01", "2020-02", "2020-03", "2020-04"],
+        "temperature_2m_mean": [20.0, 22.0, 27.0, 31.0],
+        "precipitation_sum": [10.0, 20.0, 30.0, 60.0],
+        "temperature_2m_min": [15.0, 17.0, 19.0, 21.0],
+        "temperature_2m_max": [25.0, 27.0, 29.0, 31.0],
+    })
+    res = add_moving_average_climate_features(df, [2, 3])
+
+    for col in (
+        "temperature_ma2", "temperature_ma3",
+        "precipitation_ma2", "precipitation_ma3",
+        "temperature_min_ma2", "temperature_min_ma3",
+        "temperature_max_ma2", "temperature_max_ma3",
+    ):
+        assert col in res.columns
+
+    # Index 0 (2020-01): lacks lag1/lag2 -> both ma2 and ma3 are NaN
+    assert pd.isna(res.loc[0, "temperature_ma2"])
+    assert pd.isna(res.loc[0, "temperature_ma3"])
+
+    # Index 1 (2020-02): ma2 = (20+22)/2 = 21.0; ma3 is still NaN
+    assert res.loc[1, "temperature_ma2"] == pytest.approx(21.0)
+    assert res.loc[1, "precipitation_ma2"] == pytest.approx(15.0)
+    assert pd.isna(res.loc[1, "temperature_ma3"])
+
+    # Index 2 (2020-03): ma2 = (22+27)/2 = 24.5; ma3 = (20+22+27)/3 = 23.0
+    assert res.loc[2, "temperature_ma2"] == pytest.approx(24.5)
+    assert res.loc[2, "temperature_ma3"] == pytest.approx(23.0)
+    assert res.loc[2, "precipitation_ma3"] == pytest.approx(20.0)
+    assert res.loc[2, "temperature_min_ma3"] == pytest.approx(17.0)
+    assert res.loc[2, "temperature_max_ma3"] == pytest.approx(27.0)
+
+    # Index 3 (2020-04): ma3 = (22+27+31)/3 = 80/3 = 26.666666...; precip ma3 = (20+30+60)/3 = 110/3
+    assert res.loc[3, "temperature_ma3"] == pytest.approx(80.0 / 3.0)
+    assert res.loc[3, "precipitation_ma3"] == pytest.approx(110.0 / 3.0)
+
+
+def test_add_moving_average_climate_features_nan_propagation():
+    """If ANY value in the window is missing (either an omitted period or an explicit NaN),
+    the result must be NaN — never averaged from fewer values (rule A20)."""
+    # Case A: omitted period 2020-02 in the timeline
+    df_gap = pd.DataFrame({
+        "period": ["2020-01", "2020-03", "2020-04", "2020-05"],
+        "temperature_2m_mean": [20.0, 26.0, 28.0, 30.0],
+    })
+    res_gap = add_moving_average_climate_features(df_gap, [2, 3])
+    # 2020-03 needs 2020-02 (missing) -> both ma2 and ma3 must be NaN
+    row_mar = res_gap.loc[res_gap["period"] == "2020-03"].iloc[0]
+    assert pd.isna(row_mar["temperature_ma2"])
+    assert pd.isna(row_mar["temperature_ma3"])
+    # 2020-04 has 2020-03 and 2020-04 -> ma2 is valid ((26+28)/2=27.0), but ma3 needs 2020-02 -> NaN
+    row_apr = res_gap.loc[res_gap["period"] == "2020-04"].iloc[0]
+    assert row_apr["temperature_ma2"] == pytest.approx(27.0)
+    assert pd.isna(row_apr["temperature_ma3"])
+    # 2020-05 has 2020-03, 2020-04, 2020-05 -> ma3 is valid ((26+28+30)/3=28.0)
+    row_may = res_gap.loc[res_gap["period"] == "2020-05"].iloc[0]
+    assert row_may["temperature_ma3"] == pytest.approx(28.0)
+
+    # Case B: explicit NaN value inside the series
+    df_nan = pd.DataFrame({
+        "period": ["2020-01", "2020-02", "2020-03"],
+        "temperature_2m_mean": [20.0, np.nan, 26.0],
+    })
+    res_nan = add_moving_average_climate_features(df_nan, [2, 3])
+    assert pd.isna(res_nan.loc[1, "temperature_ma2"])
+    assert pd.isna(res_nan.loc[2, "temperature_ma2"])
+    assert pd.isna(res_nan.loc[2, "temperature_ma3"])
+

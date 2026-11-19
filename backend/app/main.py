@@ -423,6 +423,8 @@ def integrate(req: IntegrationRequest):
         custom_population_url=req.custom_population_url,
         population_indicator_code=req.population_indicator_code,
         lag_periods=tuple(sorted(req.lag_periods)),
+        case_lag_periods=tuple(sorted(req.case_lag_periods)),
+        climate_moving_average=tuple(sorted(req.climate_moving_average)),
     )
     hit = cache.get(cache_key)
     if hit is not None:
@@ -470,6 +472,8 @@ def integrate(req: IntegrationRequest):
         population_indicator_code=req.population_indicator_code,
         population_indicator_name=req.population_indicator_name,
         lag_periods=req.lag_periods,
+        case_lag_periods=req.case_lag_periods,
+        climate_moving_average=req.climate_moving_average,
     )
     transformation_audit = None
     if audit_data:
@@ -533,6 +537,8 @@ async def integrate_with_upload(
     climate_file: UploadFile | None = File(None),
     population_file: UploadFile | None = File(None),
     lag_periods: str = Form(""),
+    case_lag_periods: str = Form(""),
+    climate_moving_average: str = Form(""),
 ):
     """Same pipeline as /api/integrate, but data series (case counts, climate observations,
     and/or population demographics) can come from user-uploaded CSV files or custom URLs."""
@@ -556,6 +562,24 @@ async def integrate_with_upload(
         except ValueError:
             raise HTTPException(400, "lag_periods must be a comma-separated list of integers.")
 
+    parsed_case_lags: list[int] = []
+    if case_lag_periods.strip():
+        try:
+            parsed_case_lags = [int(p.strip()) for p in case_lag_periods.split(",") if p.strip()]
+        except ValueError:
+            raise HTTPException(400, "case_lag_periods must be a comma-separated list of integers.")
+
+    parsed_climate_ma: list[int] = []
+    if climate_moving_average.strip():
+        try:
+            parsed_climate_ma = [
+                int(p.strip()) for p in climate_moving_average.split(",") if p.strip()
+            ]
+        except ValueError:
+            raise HTTPException(
+                400, "climate_moving_average must be a comma-separated list of integers."
+            )
+
     req = IntegrationRequest(
         disease=disease,
         region=region,
@@ -570,6 +594,8 @@ async def integrate_with_upload(
         population_indicator_code=population_indicator_code,
         population_indicator_name=population_indicator_name,
         lag_periods=parsed_lags,
+        case_lag_periods=parsed_case_lags,
+        climate_moving_average=parsed_climate_ma,
     )
     _validate_common(req)
 
@@ -623,6 +649,8 @@ async def integrate_with_upload(
         population_indicator_code=req.population_indicator_code,
         population_indicator_name=req.population_indicator_name,
         lag_periods=req.lag_periods,
+        case_lag_periods=req.case_lag_periods,
+        climate_moving_average=req.climate_moving_average,
     )
     transformation_audit = None
     if audit_data:

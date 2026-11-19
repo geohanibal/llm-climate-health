@@ -145,8 +145,17 @@ class ExportMetadata {
     };
   }
 
-  /// `temperature_max_lag3` -> "temperature_max 3 period(s) earlier".
+  /// `temperature_max_lag3` -> "value of temperature_max 3 period(s) earlier";
+  /// `temperature_ma3` -> "3-period moving average of temperature (lag 0 to lag 2)".
   static String _describeLag(String column) {
+    // Only a trailing `_ma<digits>` is a moving average; `temperature_max_lag3`
+    // also contains "_ma" but is a lag column.
+    final ma = RegExp(r'^(.+)_ma(\d+)$').firstMatch(column);
+    if (ma != null) {
+      final variable = ma.group(1)!;
+      final w = int.parse(ma.group(2)!);
+      return '$w-period moving average of $variable (lag 0 to lag ${w - 1})';
+    }
     final index = column.lastIndexOf('_lag');
     final variable = column.substring(0, index);
     final lag = column.substring(index + 4);

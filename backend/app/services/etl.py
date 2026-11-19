@@ -18,7 +18,12 @@ from app.services.case_data import (
 )
 from app.services.climate import fetch_climate
 from app.services.coverage import analyze_data_coverage
-from app.services.lags import add_lagged_climate_features, calculate_buffer_start_date
+from app.services.lags import (
+    add_lagged_case_features,
+    add_lagged_climate_features,
+    add_moving_average_climate_features,
+    calculate_buffer_start_date,
+)
 from app.services.population import get_population_data
 from app.services.statistics import MIN_PAIRS_FOR_SIGNIFICANCE, compute_statistics, format_p_value
 from app.services.tmd import fetch_tmd_climate
@@ -131,17 +136,23 @@ def run_integration(
     population_indicator_code: str | None = None,
     population_indicator_name: str | None = None,
     lag_periods: list[int] | None = None,
+    case_lag_periods: list[int] | None = None,
+    climate_moving_average: list[int] | None = None,
 ):
     disease = DISEASES[disease_key]
     steps: list[str] = []
     lags = sorted(list(set(lag_periods or [])))
+    case_lags = sorted(list(set(case_lag_periods or [])))
+    climate_ma_windows = sorted(list(set(climate_moving_average or [])))
 
     coords = REGIONS[region]
     lag_req_str = f", lag_periods={lags}" if lags else ""
+    case_lag_req_str = f", case_lag_periods={case_lags}" if case_lags else ""
+    ma_req_str = f", climate_moving_average={climate_ma_windows}" if climate_ma_windows else ""
     steps.append(
         f"Received request: disease='{disease.label}', region='{region}', "
         f"variables={variables}, period={start} to {end}, "
-        f"aggregation='{aggregation}', scenario='historical'{lag_req_str}."
+        f"aggregation='{aggregation}', scenario='historical'{lag_req_str}{case_lag_req_str}{ma_req_str}."
     )
     steps.append(
         f"Validated region '{region}' and mapped it to a reference "
@@ -150,10 +161,27 @@ def run_integration(
         f"the gridded, admin-area-resolved approach the full platform targets."
     )
 
+    # WHO GHO indicators are always yearly, regardless of the disease's
+    # normal native resolution (e.g. dengue is monthly via OpenDengue but
+    # yearly via WHO GHO) — using the source actually queried, not the
+    # disease's default, keeps the case/climate join periods aligned.
+    native_resolution = "year" if case_data_source == "who_gho" else disease.native_resolution
+    resolution = _target_resolution(native_resolution, aggregation)
+    start_period = _period_label(pd.Series([pd.Timestamp(start)]), resolution).iloc[0]
+
+    case_start = calculate_buffer_start_date(start, case_lags, resolution)
+    if case_lags and case_start < start:
+        steps.append(
+            f"Applied a {max(case_lags)}-period lag buffer for case data "
+            f"(fetching from {case_start} instead of {start}) to compute "
+            f"lagged case counts without losing initial observations "
+            f"(Suttirat et al. 2026; Colon-Gonzalez et al. 2021)."
+        )
+
     case_df = resolve_case_data(
         disease,
         region,
-        start,
+        case_start,
         end,
         case_data_source,
         custom_source_url,
@@ -162,13 +190,6 @@ def run_integration(
         who_indicator_code,
         who_indicator_name,
     )
-
-    # WHO GHO indicators are always yearly, regardless of the disease's
-    # normal native resolution (e.g. dengue is monthly via OpenDengue but
-    # yearly via WHO GHO) — using the source actually queried, not the
-    # disease's default, keeps the case/climate join periods aligned.
-    native_resolution = "year" if case_data_source == "who_gho" else disease.native_resolution
-    resolution = _target_resolution(native_resolution, aggregation)
 
     case_df = case_df.copy()
     has_daily_input = (
@@ -179,7 +200,7 @@ def run_integration(
     if case_df.empty:
         case_agg = case_df.assign(period=pd.Series(dtype="object"))[["period", "value"]]
     elif resolution == "day" and not has_daily_input and len(case_df) > 0:
-        all_days = pd.date_range(start=start, end=end, freq="D")
+        all_days = pd.date_range(start=case_start, end=end, freq="D")
         daily_df = pd.DataFrame({"day": all_days})
 
         if len(case_df) == 1:
@@ -235,13 +256,22 @@ def run_integration(
         case_df["period"] = _period_label(case_df["period_start"], resolution)
         case_agg = case_df.groupby("period", as_index=False)["value"].sum()
 
-    climate_fetch_resolution = "day" if resolution == "day" else ("month" if resolution == "month" else "year")
-    climate_start = calculate_buffer_start_date(start, lags, resolution)
-    if lags and climate_start < start:
+    if case_lags:
+        case_agg = add_lagged_case_features(case_agg, case_lags, resolution=resolution)
         steps.append(
-            f"Applied a {max(lags)}-period lag buffer for climate data "
+            f"Added lagged case-count features: lags {', '.join(str(k) for k in case_lags)}."
+        )
+    if not case_agg.empty:
+        case_agg = case_agg[case_agg["period"] >= start_period].copy()
+
+    climate_fetch_resolution = "day" if resolution == "day" else ("month" if resolution == "month" else "year")
+    climate_buffer_lags = list(lags) + [w - 1 for w in climate_ma_windows]
+    climate_start = calculate_buffer_start_date(start, climate_buffer_lags, resolution)
+    if climate_buffer_lags and climate_start < start:
+        steps.append(
+            f"Applied a {max(climate_buffer_lags)}-period lag buffer for climate data "
             f"(fetching from {climate_start} instead of {start}) to compute "
-            f"lagged variables without losing initial observations (Lowe et al. 2021)."
+            f"lagged and/or moving-average variables without losing initial observations (Lowe et al. 2021)."
         )
 
     if climate_source == "tmd":
@@ -308,8 +338,15 @@ def run_integration(
         steps.append(
             f"Added lagged climate features: lags {', '.join(str(k) for k in lags)}."
         )
+    if climate_ma_windows:
+        climate_df = add_moving_average_climate_features(
+            climate_df, climate_ma_windows, resolution=resolution
+        )
+        steps.append(
+            f"Added moving-average climate features: windows {', '.join(str(w) for w in climate_ma_windows)}."
+        )
+    if lags or climate_ma_windows:
         # Cut climate series back to requested period start so buffer periods do not appear in output
-        start_period = _period_label(pd.Series([pd.Timestamp(start)]), resolution).iloc[0]
         climate_df = climate_df[climate_df["period"] >= start_period].copy()
 
     pop_df = get_population_data(
@@ -369,6 +406,15 @@ def run_integration(
         for lag in lags:
             for v_name in ("temperature", "precipitation", "temperature_min", "temperature_max"):
                 col = f"{v_name}_lag{lag}"
+                if col in row:
+                    extra_lag_values[col] = clean(row.get(col))
+        for lag in case_lags:
+            col = f"cases_lag{lag}"
+            if col in row:
+                extra_lag_values[col] = clean(row.get(col))
+        for w in climate_ma_windows:
+            for v_name in ("temperature", "precipitation", "temperature_min", "temperature_max"):
+                col = f"{v_name}_ma{w}"
                 if col in row:
                     extra_lag_values[col] = clean(row.get(col))
 

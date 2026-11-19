@@ -68,8 +68,8 @@ pytest -m "not network"       # fast, fully offline — what CI would run
 pytest                        # everything, including one live Open-Meteo call
 ```
 
-Expected result: `pytest -m "not network"` reports **205 passed, 1 deselected**; the full
-`pytest` run reports **206 passed** (the extra one is
+Expected result: `pytest -m "not network"` reports **227 passed, 1 deselected**; the full
+`pytest` run reports **228 passed** (the extra one is
 `test_integrate_end_to_end_dengue_thailand`, which needs internet access to
 reach the real Open-Meteo API — it's the only test in the suite that does).
 
@@ -101,9 +101,16 @@ analyze` reports no errors in application code.
   edge cases), population alignment (linear interpolation of annual values
   to monthly/daily: no January jump, July = annual value, constant outside
   the available years, missing middle year interpolated), climate feature
-  lag generation (lags 1..6, column naming `<variable>_lag<k>`, lag buffer
-  prior to `start_date` ensuring no initial-row data loss per Lowe et al. 2021,
-  and rejection of invalid lag values), deterministic data coverage & gap detection (FR-26), alternative source comparison (FR-27: Pearson r, mean difference, MAD, rel MAD%, seasonal cycle note, resolution mismatch check), the lagged-correlation
+  lag generation (`lag_periods`, lags 1..6, column naming `<variable>_lag<k>`),
+  case-count lag generation (`case_lag_periods`, lags 1..6, column naming
+  `cases_lag<k>`, candidate FR-29 / A1b per Suttirat et al. 2026, pp. 9–10 and
+  Colón-González et al. 2021, p. 9), moving-average climate lag generation
+  (`climate_moving_average`, windows 2..6, column naming `<variable>_ma<w>`,
+  candidate FR-30 per Colón-González et al. 2021, p. 9), lag buffers prior to
+  `start_date` for both climate and case data ensuring no initial-row data loss
+  (Lowe et al. 2021) and strict `NaN/null` propagation across missing periods
+  (rule A20), reproducible national dengue verification (`build_dengue_national.py`,
+  A13 / J3), deterministic data coverage & gap detection (FR-26), alternative source comparison (FR-27: Pearson r, mean difference, MAD, rel MAD%, seasonal cycle note, resolution mismatch check), the lagged-correlation
   significance rule (at least 10 pairs and Pearson AND Spearman p < 0.05;
   regression test for 3-pair samples where Spearman p = 0.0), the in-memory cache, and the Gemini-backed parsing/
   explanation logic (both success and graceful-fallback paths).
@@ -192,12 +199,9 @@ order — it touches every major feature.
     clear message), a disease/region combination with no data (the
     "no built-in data" message, prompting a custom source instead).
 
-12. **Lagged climate predictors (API).** Send a POST request to `/api/integrate`
-    with `"lag_periods": [1, 3]` (e.g. for Thailand Dengue 2010-01 to 2010-06).
-    Verify in the response JSON that records contain `temperature_lag1` and
-    `temperature_lag3`, that the initial row `2010-01` has non-null lag values
-    thanks to the automatic climate lag buffer (Lowe et al. 2021), and that the
-    pipeline steps visibly report the lag buffer and feature additions.
+12. **Lagged climate predictors, lagged case counts, and moving-average climate predictors (API).** Send a POST request to `/api/integrate`
+    with `"lag_periods": [1, 3]`, `"case_lag_periods": [1, 2]`, and `"climate_moving_average": [3]` (e.g. for Thailand Dengue 2019-01 to 2019-06).
+    Verify in the response JSON that records contain `temperature_lag1`, `temperature_lag3`, `cases_lag1`, `cases_lag2`, `temperature_ma3`, and `precipitation_ma3`, that the initial row `2019-01` has non-null lag and moving-average values thanks to the automatic climate and case lag buffers (Lowe et al. 2021; Suttirat et al. 2026; Colón-González et al. 2021), and that the pipeline steps visibly report the lag buffers and feature additions.
 
 13. **Data completeness and gap detection (FR-26).** Request dengue for Thailand
     from 2005-01 to 2010-12 (monthly). OpenDengue for Thailand only starts in 2009-01,

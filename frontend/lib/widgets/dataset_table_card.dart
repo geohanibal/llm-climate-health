@@ -79,9 +79,12 @@ class DatasetTableCard extends StatelessWidget {
     );
   }
 
-  /// Lag columns reuse the unit formatting of their base variable.
-  static String _formatLag(String column, double? value) =>
-      column.startsWith('precipitation') ? Formatting.precipitation(value) : Formatting.temperature(value);
+  /// Lag and moving-average columns reuse the unit formatting of their base variable.
+  static String _formatLag(String column, double? value) {
+    if (column.startsWith('cases')) return Formatting.caseCount(value);
+    if (column.startsWith('precipitation')) return Formatting.precipitation(value);
+    return Formatting.temperature(value);
+  }
 }
 
 /// Horizontal scroll area with an always-visible scrollbar: with lag
