@@ -113,6 +113,11 @@ class DataCoverageCard extends StatelessWidget {
       headerIcon = Icons.warning_amber_rounded;
     }
 
+    // The red/amber backgrounds are always light, also in dark mode, so their
+    // text needs fixed dark colours; theme text colours would be light-on-light.
+    final textColor = onlyNotProvided ? colors.onSurface : Colors.grey.shade900;
+    final mutedTextColor = onlyNotProvided ? colors.onSurfaceVariant : Colors.grey.shade800;
+
     // Inspect which domains have gaps for action buttons
     final caseCov = coverage.where((c) => c.column == 'case_count').firstOrNull;
     final popCov = coverage.where((c) => c.column == 'population').firstOrNull;
@@ -204,11 +209,12 @@ class DataCoverageCard extends StatelessWidget {
                           label,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: textColor,
                           ),
                         ),
                         Text(
                           '$missingMsg (${completePercent.toStringAsFixed(1)} % complete)',
-                          style: theme.textTheme.bodySmall,
+                          style: theme.textTheme.bodySmall?.copyWith(color: textColor),
                         ),
                       ],
                     ),
@@ -231,7 +237,7 @@ class DataCoverageCard extends StatelessWidget {
                       Text(
                         reasonText,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
+                          color: mutedTextColor,
                         ),
                       ),
                     ],
@@ -307,7 +313,7 @@ class DataCoverageCard extends StatelessWidget {
               I18n.t('coverageComparabilityNote'),
               style: theme.textTheme.bodySmall?.copyWith(
                 fontStyle: FontStyle.italic,
-                color: colors.onSurfaceVariant,
+                color: mutedTextColor,
               ),
             ),
           ],
