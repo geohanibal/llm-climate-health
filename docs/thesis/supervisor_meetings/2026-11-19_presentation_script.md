@@ -46,17 +46,17 @@ Last time you said I need a source for the skills gap. I found two studies. They
 
 ## სლაიდი 6: I think I am ready to register
 
-Now the registration. I think I am ready. The system works, the requirements come from papers, and I have a first draft. The regional data, the case studies, the related work and the writing are still to do. I think this is possible in sixteen weeks. So I would like to register in the next two weeks. Then the deadline would be around the end of March. What do you think?
+Now the registration. I think I am ready. The system works, the requirements come from papers, and I have a first draft. The regional data, the case studies, the related work and the writing are still to do. I think this is possible in about eight weeks. So I would like to register in the next two weeks. I plan to submit after about eight weeks; the official deadline would be around the end of March. What do you think?
 
-(ახლა რეგისტრაცია. მგონი, მზად ვარ. სისტემა მუშაობს, მოთხოვნები სტატიებიდან მოდის და პირველი მონახაზი მაქვს. ჯერ დარჩენილია რეგიონული მონაცემები, case study-ები, მონათესავე ნაშრომები და წერა. მგონი, ეს თექვსმეტ კვირაში შესაძლებელია. ამიტომ მინდა მომდევნო ორ კვირაში დავრეგისტრირდე. მაშინ ბოლო ვადა დაახლოებით მარტის ბოლო იქნება. რას ფიქრობთ?)
+(ახლა რეგისტრაცია. მგონი, მზად ვარ. სისტემა მუშაობს, მოთხოვნები სტატიებიდან მოდის და პირველი მონახაზი მაქვს. ჯერ დარჩენილია რეგიონული მონაცემები, case study-ები, მონათესავე ნაშრომები და წერა. მგონი, ეს დაახლოებით რვა კვირაში შესაძლებელია. ამიტომ მინდა მომდევნო ორ კვირაში დავრეგისტრირდე. ჩაბარებას დაახლოებით რვა კვირაში ვგეგმავ; ოფიციალური ბოლო ვადა დაახლოებით მარტის ბოლო იქნება. რას ფიქრობთ?)
 
 ---
 
 ## სლაიდი 7: Plan until submission (proposal)
 
-This is my plan until the submission. If I register in early December, I have sixteen weeks, until the end of March. In December I finish the regional data and measure the time for case study 1. In January I do case studies 2 and 3 and the related work, and I write chapters 2 to 4. In February I write the implementation and the evaluation, so I have a full first draft. In March I revise everything and submit. The colloquium would be around May. I think we need about four meetings until the submission, at the important milestones, and one more before the colloquium. Small questions I can ask you by email in between. Does this plan look realistic to you?
+This is my plan until the submission. I plan about two weeks for each part. In the first two weeks I finish the regional data and measure the time for case study 1. In weeks three and four I do case studies 2 and 3 and the related work. In weeks five and six I write all chapters, so I have a full first draft. In weeks seven and eight I revise and submit, around the end of January. The official limit is sixteen weeks, so I still have eight weeks as a buffer. The colloquium would be around March. I think four short meetings are enough, one for each part, and small questions I can ask by email. Does this plan look realistic to you?
 
-(ეს ჩემი გეგმაა ჩაბარებამდე. თუ დეკემბრის დასაწყისში დავრეგისტრირდები, თექვსმეტი კვირა მაქვს, მარტის ბოლომდე. დეკემბერში რეგიონულ მონაცემებს დავასრულებ და case study 1-ის დროს გავზომავ. იანვარში case study 2-სა და 3-ს და მონათესავე ნაშრომებს გავაკეთებ და მე-2–4 თავებს დავწერ. თებერვალში იმპლემენტაციასა და შეფასებას დავწერ, ასე რომ, სრული პირველი მონახაზი მექნება. მარტში ყველაფერს გადავამუშავებ და ჩავაბარებ. კოლოკვიუმი დაახლოებით მაისში იქნება. მგონი, ჩაბარებამდე დაახლოებით ოთხი შეხვედრა დაგვჭირდება, მნიშვნელოვან ეტაპებზე, და კიდევ ერთი კოლოკვიუმამდე. პატარა კითხვებს შუალედში მეილით მოგწერთ. ეს გეგმა რეალისტურად გეჩვენებათ?)
+(ეს ჩემი გეგმაა ჩაბარებამდე. თითოეულ ნაწილზე დაახლოებით ორ კვირას ვგეგმავ. პირველ ორ კვირაში რეგიონულ მონაცემებს დავასრულებ და case study 1-ის დროს გავზომავ. მესამე და მეოთხე კვირაში case study 2-სა და 3-ს და მონათესავე ნაშრომებს გავაკეთებ. მეხუთე და მეექვსე კვირაში ყველა თავს დავწერ, ასე რომ, სრული პირველი მონახაზი მექნება. მეშვიდე და მერვე კვირაში გადავამუშავებ და ჩავაბარებ, დაახლოებით იანვრის ბოლოს. ოფიციალური ლიმიტი თექვსმეტი კვირაა, ასე რომ, რვა კვირა სარეზერვოდ მრჩება. კოლოკვიუმი დაახლოებით მარტში იქნება. მგონი, ოთხი მოკლე შეხვედრა საკმარისია, თითო თითოეულ ნაწილზე, პატარა კითხვებს კი მეილით დაგისვამთ. ეს გეგმა რეალისტურად გეჩვენებათ?)
 
 ---
 
