@@ -12,13 +12,10 @@
 
 \setmainfont{Sylfaen}
 \setmonofont{Consolas}
-
-ewfontfamily\symfont{Segoe UI Symbol}
-
-ewcommand{\ok}{{\symfont ✓}}
-ewcommand{
-o}{{\symfont ✗}}
-ewcommand{\warn}{{\symfont ⚠}}
+\newfontfamily\symfont{Segoe UI Symbol}
+\newcommand{\ok}{{\symfont ✓}}
+\newcommand{\no}{{\symfont ✗}}
+\newcommand{\warn}{{\symfont ⚠}}
 
 \newcommand{\q}[1]{,,#1``}
 \newtcolorbox{mnishvn}{colback=orange!8,colframe=orange!70!black,title=რატომ არის ეს შენთვის მნიშვნელოვანი,fonttitle=\bfseries}
